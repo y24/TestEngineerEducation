@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第1回 テストとは何か — マインドセットと基礎</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #1e3a5f;
+    --accent-light: #eef3f9;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 16px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 36px; margin-bottom: 36px;
+  }
+  header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
+  header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
+  section {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 30px 34px; margin-bottom: 30px;
+  }
+  section > h2 {
+    margin: -30px -34px 24px; padding: 16px 34px;
+    background: var(--accent-light); border-radius: 12px 12px 0 0;
+    font-size: 1.25rem; color: var(--accent);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  section > h2 .time { float: right; font-size: .8rem; color: var(--muted); font-weight: normal; margin-top: 4px; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 28px 0 10px; }
+  .goal { background: var(--accent-light); border-radius: 10px; padding: 20px 26px; margin-bottom: 30px; }
+  .goal h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--accent); }
+  .goal ul { margin: 0; padding-left: 1.4em; }
+  .callout { border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .mind .tag { color: var(--mind); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; font-size: .93rem; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: .8rem; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: .8rem; }
+  details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  figure { margin: 20px 0; text-align: center; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
+  .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
+  footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
+  footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="crumb"><a href="index.html">← 目次に戻る</a></nav>
+
+  <header class="hero">
+    <div class="label">テストエンジニア育成講座 — 第1回（90分）</div>
+    <h1>テストとは何か<br>— マインドセットと基礎</h1>
+    <p>テストの目的と7原則、テストの全体地図、そして最初の武器「良い不具合報告」。</p>
+  </header>
+
+  <div class="goal">
+    <h2>今日のゴール</h2>
+    <ul>
+      <li>テストの仕事を「バグ探し」ではなく<strong>「品質の情報を届けて意思決定を支える仕事」</strong>として説明できる</li>
+      <li>テストの7原則を、自分たちの現場の言葉で言い換えられる</li>
+      <li>自分の担当テストが開発全体のどこに位置するかを図で指させる</li>
+      <li>開発者が動ける不具合報告を書ける</li>
+    </ul>
+  </div>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>1. なぜテストをするのか <span class="time">15分</span></h2>
+
+    <h3>テストの仕事は「バグ探し」だけではない</h3>
+    <p>
+      テストの目的としてまず思い浮かぶのは「欠陥（バグ）を見つけること」でしょう。それは正しいのですが、半分です。
+      もう半分は、<em>テスト対象の品質について信頼できる情報を集め、関係者に届けること</em>。
+      「この機能はここまで確認できていて、ここにリスクが残っています」と語れることが、
+      リリースする／しないという<strong>ビジネスの意思決定</strong>を支えます。
+    </p>
+    <p>つまりテストエンジニアの成果物はバグ票の山ではなく、「品質に関する判断材料」です。この視点を持つと、日々の仕事の優先順位が変わってきます。</p>
+
+    <div class="example">
+      <span class="tag">業務システムの現場から</span>
+      経費精算システムで消費税の端数処理に誤りがあったとします。1件あたりの差額は1円でも、
+      月末に全社員の精算・仕訳データに波及し、経理の締めがやり直しになります。
+      業務システムの不具合は「画面が変」では済まず、<strong>お金・業務・信用</strong>に直結します。
+      だからこそ、リリース前に「どこにどんなリスクが残っているか」を語れる人が必要なのです。
+    </div>
+
+    <h3>テストで何が示せて、何が示せないか</h3>
+    <ul>
+      <li>テストは「欠陥がある」ことは示せるが、<strong>「欠陥がない」ことは証明できない</strong></li>
+      <li>だから「テストしたのでバグゼロです」とは絶対に言わない。言えるのは「この範囲をこう確認し、結果はこうだった」まで</li>
+      <li>この誠実さが、テストエンジニアの信用の源泉になる</li>
+    </ul>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      テスターは「壊す人」ではなく「守る人」。開発者のあら探しをするのではなく、
+      <strong>プロダクトとユーザーと開発チームを、出荷後の事故から守る</strong>仕事だと考える。
+      批判的に考え、しかし人ではなく成果物に向ける。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>2. ワーク①「日付入力欄をテストして」 <span class="time">10分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（個人5分 → 共有5分）</span>
+      <p style="margin:6px 0;">
+        経費申請画面に「利用日」を入力する日付欄（テキストボックス）があります。
+        <strong>この入力欄のテストとして思いつくものを、制限時間内にできるだけ多く</strong>書き出してください。
+      </p>
+      <p style="margin:6px 0;">書き出したら隣の人と見せ合い、「自分になかった視点」に印をつけてください。</p>
+    </div>
+    <details>
+      <summary>講師用: このワークの狙いと展開例</summary>
+      <ul>
+        <li>正常な日付だけ書く人、形式異常（2/30、うるう年、和暦、全角）に行く人、業務ルール（未来日の経費は申請できる？締め済み月は？）に行く人で<strong>視点がバラける</strong>ことを見せる</li>
+        <li>「全部やると何件になる？時間は足りる？」と問いかけ、次節の「全数テストは不可能」へつなぐ</li>
+        <li>業務ルール系の観点（締め日、年度末、過去何ヶ月まで遡れるか）が出たら強調して褒める — 業務システムのテストの核心はそこにある</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>3. テストの7原則 — 先人の知恵 <span class="time">15分</span></h2>
+    <p>ISTQBがまとめている「テストの7原則」は、標語ではなく<strong>日々の判断に効く道具</strong>です。現場の言葉に翻訳しながら見ていきます。</p>
+    <table>
+      <tr><th style="width:38%">原則</th><th>現場ではこういうこと</th></tr>
+      <tr>
+        <td>1. テストは欠陥があることは示せるが、ないことは示せない</td>
+        <td>「テスト済み＝バグゼロ」と言わない。報告は常に「確認した範囲と結果」で語る。</td>
+      </tr>
+      <tr>
+        <td>2. 全数テストは不可能</td>
+        <td>さっきの日付欄で体感した通り。だから<strong>「何をやらないか」を決めるのもテスト設計</strong>。優先順位づけ（リスクベース）が仕事の中心になる。</td>
+      </tr>
+      <tr>
+        <td>3. 早期テストで時間とコストを節約</td>
+        <td>仕様書レビューで見つけた欠陥は数分で直る。本番で見つかれば数日〜数週間＋信用の損失。上流から関わるほど価値が出る（シフトレフト）。</td>
+      </tr>
+      <tr>
+        <td>4. 欠陥は偏在する</td>
+        <td>バグは均等に散らばらず、複雑な機能・仕様変更が重なった機能・締め処理のような日付境界に固まる。<strong>過去の不具合リストは宝の地図</strong>。</td>
+      </tr>
+      <tr>
+        <td>5. テストの弱化（殺虫剤のパラドックス）</td>
+        <td>同じテストを繰り返すと新しいバグは見つからなくなる。定期リグレッションだけに頼らず、観点を見直し続ける。</td>
+      </tr>
+      <tr>
+        <td>6. テストは状況次第</td>
+        <td>経費精算と証券取引システムでは求められるテストの深さが違う。「前のプロジェクトのやり方」をそのまま持ち込まない。</td>
+      </tr>
+      <tr>
+        <td>7. 「欠陥ゼロ」の落とし穴</td>
+        <td>バグを全部直しても、そもそも業務に合わない仕様なら使われない。「仕様どおりか」だけでなく<strong>「業務が回るか」</strong>を見る。</td>
+      </tr>
+    </table>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      7原則のうち半分は「テストには限界がある」という話。限界を認めた上で、
+      <strong>限られた時間で最大の情報を得るにはどこを狙うか</strong>を考え続けるのがプロのテストエンジニア。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>4. テストの全体地図 <span class="time">15分</span></h2>
+
+    <h3>テストは「実行」だけではない — テストプロセス</h3>
+    <p>
+      テストと聞くと「テストケースを実行している時間」を想像しがちですが、それはプロセスの一部です。
+      一人で回せるようになるとは、<em>この一連の流れを自分で計画し、進められる</em>ということです。
+    </p>
+    <figure>
+      <svg viewBox="0 0 800 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="テストプロセスの流れ">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="#1e3a5f"/>
+          </marker>
+        </defs>
+        <g font-family="sans-serif" font-size="14" text-anchor="middle">
+          <rect x="10" y="40" width="100" height="46" rx="8" fill="#1e3a5f"/>
+          <text x="60" y="68" fill="#fff">計画</text>
+          <rect x="140" y="40" width="100" height="46" rx="8" fill="#1e3a5f"/>
+          <text x="190" y="68" fill="#fff">分析</text>
+          <rect x="270" y="40" width="100" height="46" rx="8" fill="#1e3a5f"/>
+          <text x="320" y="68" fill="#fff">設計</text>
+          <rect x="400" y="40" width="100" height="46" rx="8" fill="#1e3a5f"/>
+          <text x="450" y="68" fill="#fff">実装</text>
+          <rect x="530" y="40" width="100" height="46" rx="8" fill="#1e3a5f"/>
+          <text x="580" y="68" fill="#fff">実行</text>
+          <rect x="660" y="40" width="110" height="46" rx="8" fill="#1e3a5f"/>
+          <text x="715" y="68" fill="#fff">完了</text>
+          <line x1="110" y1="63" x2="136" y2="63" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="240" y1="63" x2="266" y2="63" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="370" y1="63" x2="396" y2="63" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="500" y1="63" x2="526" y2="63" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="630" y1="63" x2="656" y2="63" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr)"/>
+          <rect x="140" y="108" width="500" height="32" rx="8" fill="#eef3f9" stroke="#1e3a5f" stroke-dasharray="4 3"/>
+          <text x="390" y="129" fill="#1e3a5f" font-size="13">モニタリングとコントロール（全体を通して進捗と品質を見張る）</text>
+          <text x="190" y="30" fill="#6b7280" font-size="12">何を確かめるか</text>
+          <text x="320" y="30" fill="#6b7280" font-size="12">どう確かめるか</text>
+          <text x="450" y="30" fill="#6b7280" font-size="12">手順・データ準備</text>
+        </g>
+      </svg>
+      <figcaption>テストプロセス: 第2回で「分析・設計」を、第3回で「計画・モニタリング・完了」を深掘りします</figcaption>
+    </figure>
+
+    <h3>テストレベルとテストタイプ — 自分の持ち場を知る</h3>
+    <p>開発の各段階に対応するテストの段階（レベル）があります。Vモデルで見ると、<strong>各テストは対応する上流成果物を「答え合わせの基準」にしている</strong>ことが分かります。</p>
+    <figure>
+      <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vモデル">
+        <g font-family="sans-serif" font-size="13" text-anchor="middle">
+          <rect x="20" y="20" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="105" y="45" fill="#1e3a5f">要件定義</text>
+          <rect x="70" y="90" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="155" y="115" fill="#1e3a5f">基本設計</text>
+          <rect x="120" y="160" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="205" y="185" fill="#1e3a5f">詳細設計</text>
+          <rect x="315" y="235" width="170" height="40" rx="8" fill="#1e3a5f"/>
+          <text x="400" y="260" fill="#fff">実装（コーディング）</text>
+          <rect x="610" y="20" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="695" y="45" fill="#1e3a5f">受け入れテスト</text>
+          <rect x="560" y="90" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="645" y="115" fill="#1e3a5f">システムテスト</text>
+          <rect x="510" y="160" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="595" y="185" fill="#1e3a5f">統合テスト</text>
+          <line x1="190" y1="40" x2="610" y2="40" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <line x1="240" y1="110" x2="560" y2="110" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <line x1="290" y1="180" x2="510" y2="180" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <text x="400" y="32" fill="#0f766e" font-size="12">「業務が回るか」を検証</text>
+          <text x="400" y="102" fill="#0f766e" font-size="12">「要件どおりか」を検証</text>
+          <text x="400" y="172" fill="#0f766e" font-size="12">「設計どおりか」を検証</text>
+        </g>
+      </svg>
+      <figcaption>Vモデル: 左側の成果物が、右側のテストの「テストベース（拠り所）」になる</figcaption>
+    </figure>
+    <ul>
+      <li><strong>テストレベル</strong>: 単体 → 統合 → システム → 受け入れ。QAチームが主に担うのはシステムテスト以降が多いが、<em>上流のレビューに参加することにも大きな価値がある</em>（早期テストの原則）</li>
+      <li><strong>テストタイプ</strong>: 機能テストのほかに、性能・セキュリティ・ユーザビリティなどの非機能テスト、修正の影響を確認するリグレッションテストがある</li>
+      <li>アジャイル開発ではこのVが小さく高速に何度も回る。だからこそ「どのレベル・タイプの確認か」を意識しないとテストが混乱する</li>
+    </ul>
+
+    <h3>静的テスト — 動かさずに見つける</h3>
+    <p>
+      仕様書や設計書の<strong>レビューも立派なテスト</strong>です（静的テスト）。動かして見つける欠陥より、
+      文書上で見つける欠陥のほうが圧倒的に安く直せます。第2回で扱う「仕様の読み方」は、実は静的テストの技術でもあります。
+    </p>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>5. 良い不具合報告 — テスターの最初の武器 <span class="time">15分</span></h2>
+
+    <h3>バグ票は「開発者への手紙」</h3>
+    <p>
+      どれだけ良いテストをしても、報告が悪ければ直りません。バグ票の読み手は開発者です。
+      <em>読んだ人がすぐ調査に取りかかれるか</em>が唯一の品質基準です。
+    </p>
+    <table>
+      <tr><th style="width:30%">必須要素</th><th>ポイント</th></tr>
+      <tr><td>タイトル</td><td>「何をしたら・何がどうなった」まで一行で。「〜がおかしい」はNG</td></tr>
+      <tr><td>再現手順</td><td>前提条件（ログインユーザーの権限、データの状態）から番号付きで。<strong>業務システムでは「どんなデータで」が命</strong></td></tr>
+      <tr><td>期待結果</td><td>「仕様書◯◯の記載では〜のはず」と根拠を添える</td></tr>
+      <tr><td>実際の結果</td><td>観察した事実だけを書く</td></tr>
+      <tr><td>環境・証跡</td><td>環境（検証/ステージング）、アカウント、日時、スクリーンショットやログ</td></tr>
+      <tr><td>発生頻度</td><td>必ず再現するのか、時々なのか。再現しない場合もその旨を正直に</td></tr>
+    </table>
+
+    <h3>書き方の作法</h3>
+    <ul>
+      <li><strong>事実と推測を分ける</strong>。「〜になる（事実）」と「おそらく〜が原因と思われる（推測）」を明示的に区別する。推測を書くこと自体は歓迎される</li>
+      <li><strong>1票1事象</strong>。複数の問題を1枚に詰めない（片方だけ直って迷子になる）</li>
+      <li><strong>感情を入れない</strong>。「またこのバグですか」は何も生まない。バグ票は成果物であって、メッセージアプリではない</li>
+    </ul>
+
+    <h3>重要度（Severity）と優先度（Priority）</h3>
+    <ul>
+      <li><strong>重要度</strong> = その欠陥がシステム・業務に与えるダメージの大きさ。<em>テスターが事実に基づいて提案する</em></li>
+      <li><strong>優先度</strong> = いつ直すべきか。リリース日程・業務カレンダー・回避策の有無で決まる。<em>チーム／プロダクト側が決める</em></li>
+      <li>「軽微だが月次締め日に必ず発生して経理を止める」→ 重要度は中でも優先度は高、ということが起きる。この2軸の区別は第3回のトリアージで再登場します</li>
+    </ul>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      <strong>悪い報せほど、早く・正確に。</strong>重大なバグを見つけたとき、テスターの価値が最も試される。
+      抱え込まず、盛らず、事実で速報する。「言った/言わない」ではなく記録で語る習慣をつける。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>6. ワーク② ダメバグ票の改善 <span class="time">10分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（ペア10分）</span>
+      <p style="margin:6px 0;">次のバグ票を、開発者がすぐ動ける形に書き直してください。<strong>不足している情報は「確認すべき項目リスト」として挙げる</strong>形でOKです。</p>
+    </div>
+    <div class="bad-box">
+      <span class="tag">悪い例</span>
+      <p style="margin:6px 0;">
+        <strong>タイトル</strong>: 経費申請の金額がおかしい<br>
+        <strong>内容</strong>: 経費申請をしたら金額が変になりました。たぶん消費税のバグだと思います。早めに直してほしいです。けっこうまずい気がします。
+      </p>
+    </div>
+    <details>
+      <summary>改善例を見る</summary>
+      <div class="good-box">
+        <span class="tag">改善例</span>
+        <p style="margin:6px 0;">
+          <strong>タイトル</strong>: 経費申請で税込金額を入力すると、一覧画面の表示金額が1円少なくなる<br>
+          <strong>環境</strong>: 検証環境 / 一般社員ロール（user01）/ 2026-07-07 14:30頃<br>
+          <strong>再現手順</strong>:<br>
+          1. 一般社員でログインし、経費申請画面を開く<br>
+          2. 交通費・税込1,111円で申請を登録する<br>
+          3. 申請一覧画面で当該申請の金額を確認する<br>
+          <strong>期待結果</strong>: 1,111円と表示される（入力仕様書 §3.2「入力金額をそのまま表示」）<br>
+          <strong>実際の結果</strong>: 1,110円と表示される（スクリーンショット添付）<br>
+          <strong>頻度</strong>: 1,111円・2,222円で再現（毎回）。1,000円では発生しない<br>
+          <strong>備考（推測）</strong>: 税抜換算→再計算時の端数処理で切り捨てされている可能性
+        </p>
+      </div>
+      <p>ポイント: タイトルだけで事象が分かる／データ条件（いくらで起きるか）を特定している／事実と推測を分離している／根拠となる仕様を引いている。</p>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>まとめと宿題 <span class="time">5分</span></h2>
+    <h3>今日の持ち帰り</h3>
+    <ul>
+      <li>テストは<strong>品質の情報を届けて意思決定を支える仕事</strong>。「テスト済み＝バグゼロ」とは言わない</li>
+      <li>全数テストは不可能。だから<strong>どこを狙い、何をやらないかを決める</strong>のがテスト設計（→第2回）</li>
+      <li>テストは実行だけでなく、計画〜完了までのプロセス。全体のどこにいるかを常に意識する</li>
+      <li>バグ票は開発者への手紙。<strong>事実と推測を分け、悪い報せほど早く</strong></li>
+    </ul>
+    <h3>宿題（30分程度）</h3>
+    <ul>
+      <li>自分のプロジェクトの直近の不具合票を3件読み、今日の基準で「良い点・直したい点」をメモしてくる</li>
+      <li>次回使うので、担当プロダクトの仕様書（どれか1機能分）にざっと目を通しておく</li>
+    </ul>
+    <p class="jstqb">シラバス対応: ISTQB CTFL 2023 V4.0 — 第1章（テストの基礎）、第2章（SDLC全体を通してのテスト）、第3章（静的テスト）、5.5（欠陥マネジメント）</p>
+  </section>
+
+  <footer class="pager">
+    <a href="index.html">← 目次</a>
+    <a href="phase2.html">第2回 仕様を読み、テストを設計する →</a>
+  </footer>
+</div>
+</body>
+</html>

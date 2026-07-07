@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第2回 仕様を読み、テストを設計する</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #1e3a5f;
+    --accent-light: #eef3f9;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --spec-bg: #fffbeb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 16px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 36px; margin-bottom: 36px;
+  }
+  header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
+  header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
+  section {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 30px 34px; margin-bottom: 30px;
+  }
+  section > h2 {
+    margin: -30px -34px 24px; padding: 16px 34px;
+    background: var(--accent-light); border-radius: 12px 12px 0 0;
+    font-size: 1.25rem; color: var(--accent);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  section > h2 .time { float: right; font-size: .8rem; color: var(--muted); font-weight: normal; margin-top: 4px; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 28px 0 10px; }
+  .goal { background: var(--accent-light); border-radius: 10px; padding: 20px 26px; margin-bottom: 30px; }
+  .goal h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--accent); }
+  .goal ul { margin: 0; padding-left: 1.4em; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .mind .tag { color: var(--mind); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .spec {
+    background: var(--spec-bg); border: 1px solid #fcd34d; border-radius: 10px;
+    padding: 20px 26px; margin: 20px 0; font-size: .95rem;
+  }
+  .spec .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 6px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  td.c, th.c { text-align: center; }
+  details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  figure { margin: 20px 0; text-align: center; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
+  .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
+  footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
+  footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="crumb"><a href="index.html">← 目次に戻る</a></nav>
+
+  <header class="hero">
+    <div class="label">テストエンジニア育成講座 — 第2回（90分）</div>
+    <h1>仕様を読み、テストを設計する</h1>
+    <p>仕様把握の勘所、テスト観点の洗い出し、そして技法ダイジェスト。「考えて設計する」力を作る。</p>
+  </header>
+
+  <div class="goal">
+    <h2>今日のゴール</h2>
+    <ul>
+      <li>仕様書を「疑いながら」読み、<strong>書かれていないこと（暗黙の仕様・仕様の穴）</strong>に気づける</li>
+      <li>やみくもにケースを書き始めず、<strong>観点 → テスト条件 → テストケース</strong>の順で考えられる</li>
+      <li>代表的な技法4つの「使い所」が分かる（練習は課題図書で）</li>
+      <li>自分のテストケースの「根拠」を他人に説明できる</li>
+    </ul>
+  </div>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>1. 仕様把握の勘所 — テストは読むことから始まる <span class="time">20分</span></h2>
+
+    <h3>テストベースは仕様書だけではない</h3>
+    <p>テストの拠り所（テストベース）＝仕様書、と思いがちですが、実際の現場ではもっと広い情報源を使います。</p>
+    <table>
+      <tr><th style="width:34%">情報源</th><th>そこから得られるもの</th></tr>
+      <tr><td>要件定義書・仕様書・設計書</td><td>明示された仕様。まずはここから。ただし完全ではない前提で読む</td></tr>
+      <tr><td>過去の不具合票・障害報告</td><td>このプロダクトの「壊れやすい場所」（欠陥の偏在）。<strong>新しい現場に入ったらまず読むべき資料</strong></td></tr>
+      <tr><td>問い合わせ・ヘルプデスク記録</td><td>ユーザーが実際につまずく場所、想定外の使われ方</td></tr>
+      <tr><td>業務マニュアル・運用手順書</td><td>システムの外側にある業務の流れ。締め日・月次/年次処理・例外運用</td></tr>
+      <tr><td>実際の画面・現行システム</td><td>仕様書に書かれない振る舞い。リプレイス案件では現行が最大のテストベース</td></tr>
+      <tr><td>人（企画・開発・業務部門）</td><td>文書化されていない意図・経緯。<strong>「聞くこと」も立派な調査活動</strong></td></tr>
+    </table>
+
+    <h3>仕様書の読み方 — 3つのパスで読む</h3>
+    <ol>
+      <li><strong>1周目: 俯瞰</strong> — 目的から読む。「この機能は誰の・何の業務のためにあるのか」を掴む。細部は読み飛ばしてよい</li>
+      <li><strong>2周目: 精読</strong> — 条件・数値・状態を拾いながら読む。「〜の場合」が出てきたら<em>その裏（それ以外の場合）はどうなる？</em>と必ず問う</li>
+      <li><strong>3周目: 攻める</strong> — テスターの目で読む。「ここを突いたら壊れそう」「この2つの記述は矛盾していないか」を探す。これは静的テストそのもの</li>
+    </ol>
+
+    <h3>「暗黙の仕様」に気づく</h3>
+    <p>仕様書に書かれるのは氷山の一角です。書かれていないが守られるべきことを<strong>暗黙の仕様</strong>と呼びます。</p>
+    <ul>
+      <li><strong>当たり前すぎて書かれないこと</strong>: 保存したデータは消えない、他人の申請は見えない、二重送信でレコードが重複しない</li>
+      <li><strong>業務の常識</strong>: 締め処理後の伝票は修正できない、退職者のアカウントでは申請できない、年度をまたぐ精算の扱い</li>
+      <li><strong>エラー処理の欠落</strong>: 正常系しか書かれていない仕様書は非常に多い。「失敗したらどうなるか」は大抵書かれていない</li>
+    </ul>
+
+    <h3>仕様の穴・矛盾の嗅ぎ分け方</h3>
+    <table>
+      <tr><th style="width:36%">兆候</th><th>問いかけ</th></tr>
+      <tr><td>「◯◯以上」「◯◯を超える」の混在</td><td>境界ちょうどはどっち？（5万円「以上」と「超」は1円違う）</td></tr>
+      <tr><td>用語の揺れ（申請者/起票者/本人）</td><td>同じ意味？違う意味？代理申請だと誰を指す？</td></tr>
+      <tr><td>「原則として」「基本的に」</td><td>例外は何？誰が判断する？</td></tr>
+      <tr><td>主語がない受け身文</td><td>誰が／どのタイミングで行う処理？バッチ？画面操作？</td></tr>
+      <tr><td>更新系の記述だけがある</td><td>同時に操作したら？途中で失敗したら？取り消せる？</td></tr>
+    </table>
+
+    <h3>質問力 — 開発者・企画への聞き方</h3>
+    <ul>
+      <li>Yes/Noで聞かず、<strong>自分の理解を仮説として提示する</strong>: 「5万円ちょうどは部長承認不要、という理解で合っていますか？」— 相手は差分だけ答えればよく、認識ズレも露見しやすい</li>
+      <li>質問はまとめて、優先度をつけて持っていく（五月雨に聞かない）</li>
+      <li>回答は必ず記録し、チームに共有する。<em>口頭で得た仕様は、あなたが文書化した瞬間にチームの資産になる</em></li>
+    </ul>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      仕様書を<strong>「正解が書いてある答案」ではなく「検証すべき主張」</strong>として読む。
+      仕様の質問がたくさん出るのは、読み込みが深い証拠。遠慮して聞かずに思い込みでテストするのが一番危険。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>2. ワーク① 曖昧な仕様から質問リストを作る <span class="time">15分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（個人7分 → グループ共有8分）</span>
+      <p style="margin:6px 0;">
+        次の仕様書（抜粋）を読み、<strong>開発者・企画に確認すべき質問を最低5つ</strong>書き出してください。
+        「暗黙の仕様」「境界」「例外」の3方向から考えると出しやすいです。
+      </p>
+    </div>
+    <div class="spec">
+      <span class="tag">経費精算システム 機能仕様書（抜粋）— §4 経費申請</span>
+      <ol style="margin:4px 0;">
+        <li>社員は経費を申請できる。</li>
+        <li>金額は1円以上とする。</li>
+        <li>申請金額が5万円を超える場合は、部長の承認が必要となる。それ以外は課長の承認とする。</li>
+        <li>申請には領収書を添付すること。</li>
+        <li>承認された申請は、翌月の給与とあわせて振り込まれる。</li>
+      </ol>
+    </div>
+    <details>
+      <summary>質問リストの例を見る（20個以上出ます）</summary>
+      <ul>
+        <li><strong>境界・数値</strong>: 5万円「ちょうど」は課長承認でよいか／金額に上限はないのか（1億円でも申請できる？）／小数や負数の入力は弾く仕様か</li>
+        <li><strong>用語・主体</strong>: 「社員」に契約社員・派遣・休職中は含むか／部長が申請者本人の場合は誰が承認するか／代理申請はあるか</li>
+        <li><strong>添付</strong>: 領収書のファイル形式・サイズ上限は／複数枚添付できるか／領収書が出ない経費（電車賃）はどうするか</li>
+        <li><strong>状態・フロー</strong>: 承認前に申請者は修正・取り下げできるか／差し戻しはあるか／承認者が不在（退職・異動）の場合は</li>
+        <li><strong>時間・業務</strong>: 「翌月」の締め日はいつか／月末申請と月初申請の境界は／年度をまたぐ場合の扱いは</li>
+        <li><strong>暗黙の仕様</strong>: 他人の申請は見えないはず／二重申請（同じ領収書を2回）を防ぐ仕組みはあるか</li>
+      </ul>
+      <p>たった5行の仕様からこれだけ出る、ということ自体が今日の学びです。<strong>仕様の行数とテストすべきことの量は比例しません。</strong></p>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>3. テスト観点 — 何を確かめるかを先に決める <span class="time">15分</span></h2>
+
+    <h3>いきなりテストケースを書かない</h3>
+    <p>
+      未経験者が最初にやりがちな失敗は、仕様書を見ながらいきなりExcelにテストケースを書き始めることです。
+      これをやると<em>思いついた順のケース</em>になり、抜けだらけ・重複だらけになります。順番はこうです:
+    </p>
+    <figure>
+      <svg viewBox="0 0 800 110" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="観点からケースへの流れ">
+        <defs>
+          <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="#1e3a5f"/>
+          </marker>
+        </defs>
+        <g font-family="sans-serif" font-size="13" text-anchor="middle">
+          <rect x="10" y="25" width="180" height="52" rx="8" fill="#1e3a5f"/>
+          <text x="100" y="46" fill="#fff">テスト観点</text>
+          <text x="100" y="66" fill="#fff" font-size="11">どんな切り口で見るか</text>
+          <rect x="250" y="25" width="180" height="52" rx="8" fill="#1e3a5f"/>
+          <text x="340" y="46" fill="#fff">テスト条件</text>
+          <text x="340" y="66" fill="#fff" font-size="11">具体的に何を確かめるか</text>
+          <rect x="490" y="25" width="180" height="52" rx="8" fill="#1e3a5f"/>
+          <text x="580" y="46" fill="#fff">テストケース</text>
+          <text x="580" y="66" fill="#fff" font-size="11">手順・データ・期待結果</text>
+          <line x1="190" y1="51" x2="246" y2="51" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr2)"/>
+          <line x1="430" y1="51" x2="486" y2="51" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr2)"/>
+          <text x="730" y="46" fill="#0f766e" font-size="12">技法は条件→ケース</text>
+          <text x="730" y="64" fill="#0f766e" font-size="12">の変換を助ける道具</text>
+        </g>
+      </svg>
+      <figcaption>観点 → 条件 → ケースの順で考える。観点の抜けはケースをいくら増やしても埋まらない</figcaption>
+    </figure>
+
+    <h3>観点出しのフレーム — 7つの引き出し</h3>
+    <p>ゼロから観点をひねり出すのは無理です。<strong>引き出し（フレーム）に沿って機械的に問いかける</strong>のがコツです。</p>
+    <table>
+      <tr><th style="width:20%">引き出し</th><th>問いかけ</th><th>経費申請での例</th></tr>
+      <tr><td>機能</td><td>仕様に書かれた振る舞いは正しいか</td><td>5万円超で部長承認ルートになるか</td></tr>
+      <tr><td>データ</td><td>入力の種類・境界・組み合わせは</td><td>金額の境界値、全角数字、空欄、巨大な添付ファイル</td></tr>
+      <tr><td>状態</td><td>対象の状態によって挙動が変わらないか</td><td>下書き／申請中／差戻し／承認済、それぞれからできる操作</td></tr>
+      <tr><td>タイミング</td><td>いつ・どの順で起きると危ないか</td><td>締め日当日の申請、承認中の申請者による取り下げ、二重クリック</td></tr>
+      <tr><td>環境</td><td>動作環境・連携先が変わったら</td><td>ブラウザ差、給与システム連携の失敗時</td></tr>
+      <tr><td>ユーザー</td><td>誰が使うと想定と違うか</td><td>権限違い（一般/課長/部長/経理）、兼務者、退職予定者</td></tr>
+      <tr><td>組み合わせ</td><td>複数条件が重なったら</td><td>差戻し後に金額を5万円超へ修正 → 承認ルートは変わるか</td></tr>
+    </table>
+
+    <h3>リスクベースで濃淡をつける</h3>
+    <p>観点をたくさん出したら、全部を同じ深さでテストするのではなく、2つの軸で濃淡をつけます。</p>
+    <ul>
+      <li><strong>壊れると痛い所はどこか</strong>（業務影響）: お金の計算、締め処理、外部連携、権限まわりは業務システムの急所</li>
+      <li><strong>壊れていそうな所はどこか</strong>（欠陥の偏在）: 新規機能、仕様変更が重なった機能、過去にバグが多発した機能、複雑な条件分岐</li>
+    </ul>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      「やらないこと」を決めて説明できるのがテスト設計者。<strong>薄くする領域は、隠すのではなく宣言する</strong>。
+      「この領域は変更がなくリスクが低いため確認は主要動線のみとします」と言えれば、それは手抜きではなく設計。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>4. ワーク② 観点ブレスト <span class="time">10分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（グループ10分）</span>
+      <p style="margin:6px 0;">
+        ワーク①の経費申請仕様について、7つの引き出しを使って<strong>テスト観点をチームで20個以上</strong>挙げてください。
+        付箋（またはホワイトボード）に1観点1枚で書き出し、引き出しごとにグルーピングします。
+      </p>
+      <p style="margin:6px 0;">最後に「最も濃くテストすべき観点トップ3」に投票し、理由（業務影響 or 壊れやすさ）を一言添えてください。</p>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>5. 技法ダイジェスト — 条件をケースに変換する道具 <span class="time">15分</span></h2>
+    <p>
+      技法は「賢いテストケースを思いつく魔法」ではなく、<strong>観点・条件を漏れなく・ダブりなくケースへ変換する道具</strong>です。
+      今日は代表4つの「使い所」だけ押さえます。手を動かす練習は課題図書（『ソフトウェアテスト技法練習帳』）で。
+    </p>
+
+    <h3>① 同値分割・境界値分析 — データの観点に</h3>
+    <p>入力を「同じ扱いをされるグループ（同値クラス）」に分け、各グループから代表値を選ぶ。バグは境界に潜むので、<strong>境界の両側</strong>を必ず突く。</p>
+    <div class="example">
+      <span class="tag">例: 承認ルート（5万円を超えると部長承認）</span>
+      境界は50,000円。テストすべきは <code>49,999 / 50,000 / 50,001</code> の3点。
+      「以上」なのか「超える」なのかをワーク①で確認したことが、ここで効いてくる。
+      あわせて下限境界 <code>0 / 1</code> 円も（仕様は「1円以上」）。
+    </div>
+
+    <h3>② デシジョンテーブル — 条件の組み合わせに</h3>
+    <p>複数の条件で挙動が変わるとき、条件の組み合わせを表にして<strong>全パターンの挙動を仕様に問う</strong>。埋まらないマスは仕様の穴。</p>
+    <table>
+      <tr><th></th><th class="c">ルール1</th><th class="c">ルール2</th><th class="c">ルール3</th><th class="c">ルール4</th></tr>
+      <tr><td>金額が5万円を超える</td><td class="c">Y</td><td class="c">Y</td><td class="c">N</td><td class="c">N</td></tr>
+      <tr><td>申請者が部長職</td><td class="c">Y</td><td class="c">N</td><td class="c">Y</td><td class="c">N</td></tr>
+      <tr><td><strong>承認者は？</strong></td><td class="c" style="background:#fef2f2">仕様未定義!</td><td class="c">部長</td><td class="c" style="background:#fef2f2">仕様未定義!</td><td class="c">課長</td></tr>
+    </table>
+    <p>表にした瞬間、「部長本人が申請したら誰が承認するのか」という穴が<em>機械的に</em>見つかる。デシジョンテーブルは設計の道具であると同時に、仕様レビューの道具でもあります。</p>
+
+    <h3>③ 状態遷移テスト — 状態とフローの観点に</h3>
+    <p>状態を持つ対象（申請ステータス、契約状態など）は、状態遷移図を描いて<strong>「できるはずの遷移」と「できてはいけない遷移」</strong>を確かめる。</p>
+    <figure>
+      <svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="経費申請の状態遷移図">
+        <defs>
+          <marker id="arr3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="#1e3a5f"/>
+          </marker>
+        </defs>
+        <g font-family="sans-serif" font-size="13" text-anchor="middle">
+          <rect x="20" y="70" width="120" height="44" rx="22" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="80" y="97" fill="#1e3a5f">下書き</text>
+          <rect x="240" y="70" width="120" height="44" rx="22" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="300" y="97" fill="#1e3a5f">申請中</text>
+          <rect x="470" y="20" width="120" height="44" rx="22" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="530" y="47" fill="#1e3a5f">承認済</text>
+          <rect x="470" y="130" width="120" height="44" rx="22" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="530" y="157" fill="#1e3a5f">差戻し</text>
+          <rect x="670" y="20" width="110" height="44" rx="22" fill="#1e3a5f"/>
+          <text x="725" y="47" fill="#fff">振込済</text>
+          <line x1="140" y1="92" x2="236" y2="92" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr3)"/>
+          <text x="188" y="84" fill="#6b7280" font-size="11">申請</text>
+          <line x1="360" y1="80" x2="466" y2="48" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr3)"/>
+          <text x="410" y="52" fill="#6b7280" font-size="11">承認</text>
+          <line x1="360" y1="104" x2="466" y2="146" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr3)"/>
+          <text x="412" y="140" fill="#6b7280" font-size="11">差戻し</text>
+          <line x1="470" y1="140" x2="350" y2="112" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr3)"/>
+          <text x="418" y="112" fill="#6b7280" font-size="11">修正して再申請?</text>
+          <line x1="590" y1="42" x2="666" y2="42" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr3)"/>
+          <text x="628" y="34" fill="#6b7280" font-size="11">月次振込</text>
+        </g>
+      </svg>
+      <figcaption>図を描くと「差戻しから再申請したら承認ルートは？」「承認済を取り消せる？」という質問が自然に生まれる</figcaption>
+    </figure>
+    <ul>
+      <li>特に重要なのが<strong>「無効な遷移」の確認</strong>: 承認済の申請を申請者が編集できてしまったら、承認の意味がなくなる（業務統制の崩壊）</li>
+    </ul>
+
+    <h3>④ 探索的テスト — スクリプトの外側を補う</h3>
+    <p>
+      事前に書いたケース（スクリプトテスト）だけでは、書いた人の想像の範囲しか確かめられません。
+      <strong>「◯◯を60分間、△△の観点で探索する」というお題（チャーター）を決めて自由に触り、学びながらテストする</strong>のが探索的テスト。
+      スクリプトの対極ではなく補完です。新しい機能を受け取ったら、まず30分探索してからケースを書くと設計の質が上がります。
+    </p>
+
+    <h3>良いテストケースの条件</h3>
+    <ul>
+      <li>目的（確かめたい条件）が1つに絞れている</li>
+      <li>期待結果が具体的（「正しく表示される」はNG。「1,111円と表示される」まで書く）</li>
+      <li>前提条件・データが書かれていて、<strong>他人が・半年後の自分が</strong>同じように実行できる</li>
+      <li>どの観点・仕様に基づくかを辿れる（トレーサビリティ）— 仕様変更のとき、直すべきケースがすぐ分かる</li>
+    </ul>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>6. ワーク③ 境界値とデシジョンテーブルでケース化 <span class="time">10分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（ペア10分）</span>
+      <p style="margin:6px 0;">ワーク②で出した観点のうち「金額と承認ルート」について、次の2つを作ってください。</p>
+      <ol style="margin:6px 0;">
+        <li>金額の<strong>境界値一覧</strong>（テストすべき金額のリストと、それぞれの期待結果）</li>
+        <li>「金額 × 申請者の役職」の<strong>デシジョンテーブル</strong>。仕様が未定義のマスには「要確認」と書く</li>
+      </ol>
+      <p style="margin:6px 0;">完成したらペアを交換して相互レビュー: 「期待結果は具体的か」「境界の両側があるか」を確認し合う。</p>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>まとめと宿題 <span class="time">5分</span></h2>
+    <h3>今日の持ち帰り</h3>
+    <ul>
+      <li>テストベースは仕様書だけではない。<strong>過去の不具合票と「人」</strong>は特に重要な情報源</li>
+      <li>仕様書は3周読む（俯瞰→精読→攻める）。<strong>「〜の場合」の裏を必ず問う</strong></li>
+      <li>いきなりケースを書かない。<strong>観点 → 条件 → ケース</strong>。観点は7つの引き出しで機械的に出す</li>
+      <li>濃淡はリスクで決め、「やらないこと」は宣言する</li>
+      <li>技法は変換の道具。境界値・デシジョンテーブル・状態遷移は<strong>仕様の穴の発見器</strong>でもある</li>
+    </ul>
+    <h3>宿題（30分程度）</h3>
+    <ul>
+      <li>『ソフトウェアテスト技法練習帳』の同値分割・境界値の章を1章分解く</li>
+      <li>担当プロダクトの1機能について、7つの引き出しで観点を10個出してみる（次回冒頭で数人に共有してもらいます）</li>
+    </ul>
+    <p class="jstqb">シラバス対応: ISTQB CTFL 2023 V4.0 — 第4章（テスト分析と設計: 4.1 ブラックボックステスト技法、4.4 経験ベースのテスト技法）、第3章（静的テスト）</p>
+  </section>
+
+  <footer class="pager">
+    <a href="phase1.html">← 第1回 テストとは何か</a>
+    <a href="phase3.html">第3回 テストを管理し、品質を語る →</a>
+  </footer>
+</div>
+</body>
+</html>

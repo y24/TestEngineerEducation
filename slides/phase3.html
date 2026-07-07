@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第3回 テストを管理し、品質を語る</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #1e3a5f;
+    --accent-light: #eef3f9;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --warn: #b91c1c;
+    --warn-bg: #fef2f2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 16px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 36px; margin-bottom: 36px;
+  }
+  header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
+  header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
+  section {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 30px 34px; margin-bottom: 30px;
+  }
+  section > h2 {
+    margin: -30px -34px 24px; padding: 16px 34px;
+    background: var(--accent-light); border-radius: 12px 12px 0 0;
+    font-size: 1.25rem; color: var(--accent);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  section > h2 .time { float: right; font-size: .8rem; color: var(--muted); font-weight: normal; margin-top: 4px; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 28px 0 10px; }
+  .goal { background: var(--accent-light); border-radius: 10px; padding: 20px 26px; margin-bottom: 30px; }
+  .goal h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--accent); }
+  .goal ul { margin: 0; padding-left: 1.4em; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .mind .tag { color: var(--mind); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .warn { background: var(--warn-bg); border-left: 5px solid var(--warn); border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .warn .tag { color: var(--warn); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  td.c, th.c { text-align: center; }
+  details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  figure { margin: 20px 0; text-align: center; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
+  .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
+  footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
+  footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="crumb"><a href="index.html">← 目次に戻る</a></nav>
+
+  <header class="hero">
+    <div class="label">テストエンジニア育成講座 — 第3回（90分）</div>
+    <h1>テストを管理し、品質を語る</h1>
+    <p>テスト計画と見積り、PB曲線の読み方、バグトリアージ、そしてテストの終わり方。「回す」力を作る。</p>
+  </header>
+
+  <div class="goal">
+    <h2>今日のゴール</h2>
+    <ul>
+      <li>テスト計画に<strong>何を決めて書くべきか</strong>が分かる（特に開始基準・終了基準・やらないこと）</li>
+      <li>消化曲線とPB曲線を読み、<strong>グラフの裏にある現場の状況を想像してから</strong>判断できる</li>
+      <li>バグトリアージで、テスターとして<strong>意思を持った材料</strong>を出せる</li>
+      <li>「テストの終わり」を残存リスクの言葉で語れる</li>
+    </ul>
+  </div>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>1. テスト計画と見積り — 始める前に勝負は半分決まる <span class="time">20分</span></h2>
+
+    <h3>テスト計画に書くこと</h3>
+    <p>テスト計画書は儀式の文書ではなく、<strong>関係者と交わす「合意」のかたまり</strong>です。最低限これを決めます。</p>
+    <table>
+      <tr><th style="width:28%">項目</th><th>決めること・ポイント</th></tr>
+      <tr><td>スコープ</td><td>テストする機能・レベル・タイプ。そして<strong>「やらないこと」を明記する</strong>（第2回参照）。やらないことが書かれていない計画は、後で「やってくれてると思った」を生む</td></tr>
+      <tr><td>アプローチ</td><td>どの領域をどの濃さで（リスクベースの濃淡）。新規機能は設計ベースで厚く、既存部はリグレッション中心、など</td></tr>
+      <tr><td>開始基準（エントリ）</td><td>テストを受け入れる条件: 単体テスト完了、環境・テストデータが揃っている、主要動線が最低限動く（スモーク通過）など</td></tr>
+      <tr><td>終了基準（イグジット）</td><td>「いつ終わってよいか」: ケース消化率、未解決バグの重要度別件数、カバレッジなど。<strong>始める前に決めておく</strong>のが肝</td></tr>
+      <tr><td>スケジュール・体制</td><td>誰が・いつ・何を。バグ修正待ちと再テストの時間を織り込む</td></tr>
+      <tr><td>リスクと前提</td><td>「環境提供が遅れたら開始も遅れる」等、崩れたら計画が変わる前提を書いておく — これが後の交渉材料になる</td></tr>
+    </table>
+
+    <h3>開始基準を軽視すると地獄が始まる</h3>
+    <p>
+      経験の浅いチームが最も痛い目に遭うのがここです。単体テストが不十分なままシステムテストを始めると、
+      <em>初日から基本動作のバグで手が止まり、本来の観点のテストに一切進めない</em>という消耗戦になります。
+    </p>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      基準を満たさない成果物は<strong>受け入れを保留する勇気</strong>を持つ。ただし喧嘩ではなく交渉で。
+      「この状態で受けると全体が遅れます。スモークが通る状態で受ける方が結局早いです」と、相手の利益で語る。
+    </div>
+
+    <h3>見積りの現実 — 実行時間だけ数えると必ず破綻する</h3>
+    <ul>
+      <li>テスト見積り ＝ 実行時間だけではない。<strong>分析・設計・データ準備・環境確認・バグ票起票・再テスト・リグレッション</strong>を含める</li>
+      <li>経験則: バグ対応（起票・確認・再テスト）で実行工数と同等以上かかることも珍しくない。バグが多い前提の機能なら、なおさら</li>
+      <li>業務システム特有の重さ: <strong>テストデータ作り</strong>（マスタ・権限・月次状態の組み合わせ）と<strong>環境・連携先の調整</strong>は、見積りから最も抜けやすく、最も遅延を生む</li>
+      <li>締め日・月次処理があるシステムは「その日付にならないと確認できない」テストがある。カレンダーを最初に確認する</li>
+    </ul>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      計画は「約束」ではなく<strong>「その時点の情報で合意した仮説」</strong>。状況が変わったら隠さず更新して再合意する。
+      黙って頑張って最後に「間に合いません」が最悪のパターン。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>2. 進捗と品質を読む — 消化曲線とPB曲線 <span class="time">20分</span></h2>
+
+    <h3>2つのグラフで現在地を見る</h3>
+    <ul>
+      <li><strong>消化曲線</strong>: テストケースの消化数（予定と実績）を日ごとに折れ線で。<em>進捗</em>を見る</li>
+      <li><strong>PB曲線（バグ曲線／信頼度成長曲線）</strong>: 累積バグ発見数を折れ線で。<em>品質の安定度</em>を見る</li>
+      <li>この2つは<strong>必ずセットで読む</strong>。バグ曲線だけ見ても、テストが進んでいないのか品質が良いのか区別できない</li>
+    </ul>
+
+    <h3>PB曲線の基本の見方</h3>
+    <p>
+      テスト序盤はバグが多く見つかり、順調に進めば発見ペースが落ちて曲線が水平に近づく（<strong>「曲線が寝る」＝収束のサイン</strong>）。
+      理想は緩やかなS字です。ただし——
+    </p>
+
+    <h3>グラフは嘘をつく — 4つのパターン</h3>
+    <figure>
+      <svg viewBox="0 0 840 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PB曲線の4パターン">
+        <g font-family="sans-serif">
+          <!-- Pattern A -->
+          <g transform="translate(20,20)">
+            <rect x="0" y="0" width="380" height="240" rx="10" fill="#fff" stroke="#d1d5db"/>
+            <text x="16" y="30" font-size="15" fill="#1e3a5f" font-weight="bold">A. 理想的なS字収束</text>
+            <line x1="50" y1="200" x2="350" y2="200" stroke="#9ca3af" stroke-width="1.5"/>
+            <line x1="50" y1="200" x2="50" y2="55" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="200" y="222" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+            <text x="38" y="130" font-size="11" fill="#6b7280" text-anchor="middle" transform="rotate(-90 38 130)">累積バグ数</text>
+            <path d="M50,198 C110,195 120,110 190,85 C250,64 300,60 348,58" fill="none" stroke="#0f766e" stroke-width="3"/>
+            <text x="200" y="250" font-size="12" fill="#374151" text-anchor="middle"></text>
+          </g>
+          <!-- Pattern B -->
+          <g transform="translate(440,20)">
+            <rect x="0" y="0" width="380" height="240" rx="10" fill="#fff" stroke="#d1d5db"/>
+            <text x="16" y="30" font-size="15" fill="#b91c1c" font-weight="bold">B. 増え続けて寝ない</text>
+            <line x1="50" y1="200" x2="350" y2="200" stroke="#9ca3af" stroke-width="1.5"/>
+            <line x1="50" y1="200" x2="50" y2="55" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="200" y="222" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+            <path d="M50,198 L120,170 L190,135 L260,100 L348,62" fill="none" stroke="#b91c1c" stroke-width="3"/>
+          </g>
+          <!-- Pattern C -->
+          <g transform="translate(20,300)">
+            <rect x="0" y="0" width="380" height="240" rx="10" fill="#fff" stroke="#d1d5db"/>
+            <text x="16" y="30" font-size="15" fill="#b45309" font-weight="bold">C. 早々に寝た（本当に収束？）</text>
+            <line x1="50" y1="200" x2="350" y2="200" stroke="#9ca3af" stroke-width="1.5"/>
+            <line x1="50" y1="200" x2="50" y2="55" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="200" y="222" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+            <path d="M50,198 C80,190 95,140 130,132 C170,124 260,122 348,121" fill="none" stroke="#b45309" stroke-width="3"/>
+          </g>
+          <!-- Pattern D -->
+          <g transform="translate(440,300)">
+            <rect x="0" y="0" width="380" height="240" rx="10" fill="#fff" stroke="#d1d5db"/>
+            <text x="16" y="30" font-size="15" fill="#7c3aed" font-weight="bold">D. 階段状にガクガク</text>
+            <line x1="50" y1="200" x2="350" y2="200" stroke="#9ca3af" stroke-width="1.5"/>
+            <line x1="50" y1="200" x2="50" y2="55" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="200" y="222" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+            <path d="M50,198 L90,196 L95,150 L160,147 L165,105 L240,102 L245,70 L348,66" fill="none" stroke="#7c3aed" stroke-width="3"/>
+          </g>
+        </g>
+      </svg>
+      <figcaption>同じ「累積バグ数」でも、裏にある現場の状況はまったく違う</figcaption>
+    </figure>
+
+    <table>
+      <tr><th class="c" style="width:8%">形</th><th style="width:42%">ありがちな解釈</th><th>本当に確かめるべきこと</th></tr>
+      <tr>
+        <td class="c"><strong>A</strong></td>
+        <td>順調に収束。リリース可能</td>
+        <td>消化曲線も計画通りか。<strong>難しいケースを後回しにして寝ているだけ</strong>ではないか。終盤の消化ケースの中身を見る</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>B</strong></td>
+        <td>品質が悪い。リリース不可</td>
+        <td>本当に品質問題か、それとも<strong>テストが優秀でバグを掘り当て続けている</strong>のか。バグの重要度の内訳と発生機能の偏りを見る。特定機能に集中しているなら、その機能の作り直し判断も視野に</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>C</strong></td>
+        <td>早く収束した。品質が良い</td>
+        <td><strong>一番危険な形</strong>。テストが止まっていないか（環境障害・ブロックバグ・要員離脱）、簡単なケースだけ消化していないか、バグ起票をサボっていないか。消化曲線とセットで見れば一発で分かる</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>D</strong></td>
+        <td>よく分からない動き</td>
+        <td>ケース消化をまとめてやっていないか（週末にまとめて実行）、<strong>バグ報告が遅延・まとめ起票されていないか</strong>。運用の問題であってプロダクト品質の問題ではないかも</td>
+      </tr>
+    </table>
+
+    <div class="warn">
+      <span class="tag">現場の鉄則</span>
+      <strong>メトリクスは会話の入口であって、結論ではない。</strong>グラフを見て言ってよいのは「リリースできる/できない」ではなく
+      「この形になっている理由を確認しよう」。数字の裏を現場に確かめてから判断する。
+      逆に、自分が報告する側になったら「グラフ＋その裏で起きていること」をセットで語る。
+    </div>
+
+    <div class="example">
+      <span class="tag">業務システムの現場から</span>
+      消化率95%・バグ曲線も寝ていて「順調」に見えたプロジェクト。残り5%が「月次締めバッチ」のケースで、
+      実行できる日が月末しかなく、最後の最後で重大バグが噴出——という失敗は本当によくある。
+      <strong>残ケースの「数」ではなく「中身」を見る</strong>癖をつける。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>3. ワーク① このプロジェクト、リリースしてよい？ <span class="time">20分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（グループ15分 → 発表5分）</span>
+      <p style="margin:6px 0;">
+        グループごとに、上のA〜Dいずれかのグラフ＋「状況カード」（講師が配布: 消化率、残バグの重要度内訳、残ケースの中身、チーム状況）を受け取ります。
+      </p>
+      <ol style="margin:6px 0;">
+        <li>リリース判定会議に出すつもりで、<strong>「現状の品質状況」「リリース可否の推奨」「可否を判断するために追加で確認すべきこと」</strong>を3分で説明できる形にまとめる</li>
+        <li>各グループ発表。他グループは「その判断、数字の裏は取れてる？」の視点でツッコミを入れる</li>
+      </ol>
+    </div>
+    <details>
+      <summary>講師用: 状況カードの例</summary>
+      <ul>
+        <li><strong>Aグラフ用</strong>: 消化率98%。ただし未消化の2%は権限×月次締めの組み合わせケース。残バグは重要度低が3件。→「順調に見えるが残りが急所」に気づけるか</li>
+        <li><strong>Bグラフ用</strong>: バグの7割が新規機能「電子帳簿連携」に集中。他機能は収束傾向。→「全体NG」ではなく「特定機能の品質問題」と切り分けられるか</li>
+        <li><strong>Cグラフ用</strong>: 10日前から検証環境が不安定でテストが半分止まっている。→ グラフが寝た理由は品質ではないと見抜けるか</li>
+        <li><strong>Dグラフ用</strong>: テスターがバグ票を週1でまとめて起票していた。→ プロセス改善の話であり、品質判断には起票遅延を補正した見方が必要と気づけるか</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>4. バグトリアージ — 直す順番を決める会議の回し方 <span class="time">10分</span></h2>
+
+    <h3>トリアージとは</h3>
+    <p>
+      見つかったバグ全部を直す時間はありません（全数テスト不可能の親戚です）。
+      <strong>重要度・頻度・回避策の有無</strong>から優先度を決め、「今直す／次のリリースで直す／直さないと決める」を関係者で合意するのがトリアージです。
+    </p>
+    <table>
+      <tr><th style="width:24%">判断軸</th><th>問いかけ</th></tr>
+      <tr><td>業務影響（重要度）</td><td>壊れると業務が止まるか。お金・法令・締め処理に関わるか。影響するユーザー数は</td></tr>
+      <tr><td>発生頻度・条件</td><td>誰でも毎回踏むのか、特定条件のみか。<strong>月次でしか発生しなくても、締め日に全員が踏むなら高頻度と同じ</strong></td></tr>
+      <tr><td>回避策の有無</td><td>運用でしのげるか（手作業で代替できるか）。回避策があるなら優先度を下げられる。ただし回避策の運用コストも見積もる</td></tr>
+      <tr><td>修正リスク</td><td>直すことで他を壊さないか。リリース直前の修正は、それ自体がリスク</td></tr>
+    </table>
+
+    <h3>テスターの役割 — 意思を持って材料を出す</h3>
+    <ul>
+      <li>優先度の最終決定はプロダクト側の仕事。しかし<strong>「決められる材料」を揃えるのはテスターの仕事</strong>: 再現条件、影響範囲、頻度、回避策の有無まで調べて出す</li>
+      <li>単なる報告係にならない。「私はこれをP1相当と考えます。理由は締め日に経理全員が踏むからです」と<em>推奨＋根拠</em>まで言う。採用されなくてよい。考えを持って出すことに意味がある</li>
+      <li>「直さない」と決まったバグは、<strong>既知の問題として残存リスクに記録する</strong>。ここでうやむやにすると、リリース後に「聞いてない」が起きる</li>
+    </ul>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      トリアージは開発 vs テストの勝負の場ではなく、<strong>限られた時間をどこに使うかをチームで決める場</strong>。
+      「全部直してください」は思考停止。優先順位を語れるテスターがチームの信頼を得る。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>5. テストの終わり方 — 残存リスクを語る <span class="time">10分</span></h2>
+
+    <h3>テストは「バグが0になったら終わり」ではない</h3>
+    <p>
+      バグは0にならないし、0に見えてもいないことは証明できません（第1回・7原則）。
+      テストの終わりは<strong>計画時に合意した終了基準を満たしたかどうか</strong>で判断し、
+      満たせない場合は<em>何が残っているかを明らかにして、リリース判断者に委ねる</em>のが正しい終わり方です。
+    </p>
+
+    <h3>テストサマリーレポート — 最後の成果物</h3>
+    <table>
+      <tr><th style="width:30%">書くこと</th><th>ポイント</th></tr>
+      <tr><td>実施したこと／しなかったこと</td><td>計画とスコープに対する実績。<strong>やらなかったことを隠さない</strong></td></tr>
+      <tr><td>結果サマリー</td><td>消化数、バグ数と重要度内訳、収束状況（グラフ＋裏の状況説明）</td></tr>
+      <tr><td>残存リスク</td><td>未解決バグ（回避策つき）、テストできなかった領域とその理由、薄くした領域</td></tr>
+      <tr><td>推奨</td><td>「リリース可否の判断材料として、以上を報告します。テストチームとしては〜を推奨します」</td></tr>
+    </table>
+    <p>
+      これが第1回の冒頭に言った「テストの成果物は品質に関する判断材料」の最終形です。
+      <strong>良いサマリーレポートが書けること＝テストを一人で回せること</strong>、と言ってもいいくらいです。
+    </p>
+
+    <div class="mind">
+      <span class="tag">マインドセット（総集編）</span>
+      <ul style="margin:6px 0;">
+        <li>悪い報せほど早く・正確に。盛らない、隠さない、憶測で断言しない</li>
+        <li>「テスト済み＝バグゼロ」とは決して言わない誠実さが、あなたの報告の価値を作る</li>
+        <li>品質はテストチームだけのものではない。開発・企画・業務部門と<strong>同じ側に立って</strong>品質を作る</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>まとめ・これからの学び方 <span class="time">5分</span></h2>
+    <h3>3回の講座の全体像</h3>
+    <ul>
+      <li><strong>第1回</strong>: テストは品質情報で意思決定を支える仕事。限界を知り、バグ票という武器を持った</li>
+      <li><strong>第2回</strong>: 仕様を疑って読み、観点→条件→ケースの順で、根拠を説明できる設計をする</li>
+      <li><strong>第3回</strong>: 計画で合意し、グラフの裏を読み、トリアージで意思を出し、残存リスクを語って終える</li>
+    </ul>
+    <p>この3つのループを、小さな案件でよいので<strong>一人で最初から最後まで回してみる</strong>のが次のステップです（卒業課題としてOJTで実施します）。</p>
+
+    <h3>学びを続けるために</h3>
+    <ul>
+      <li><strong>書籍</strong>: 『ソフトウェアテスト技法練習帳』（技法の筋トレ）、『ソフトウェアテスト講義ノオト』（体系の復習）、『知識ゼロから学ぶソフトウェアテスト』（読み物として）</li>
+      <li><strong>資格</strong>: この講座はISTQB Foundation Level（CTFL 2023 V4.0）の体系に沿っています。腕試しにJSTQB認定テスト技術者資格（FL）の受験もおすすめです。シラバスはJSTQB公式サイトで無料公開されています</li>
+      <li><strong>コミュニティ</strong>: JaSST（ソフトウェアテストシンポジウム）など。現場の外の空気を吸うと視野が広がります</li>
+    </ul>
+
+    <h3>卒業課題（OJTで実施）</h3>
+    <div class="work">
+      <span class="tag">卒業課題</span>
+      小さな機能改修を1つ担当し、<strong>仕様の質問リスト → 観点一覧 → テストケース（主要部分）→ 実行 → サマリーレポート1枚</strong>までを一人で通す。
+      各成果物を先輩がレビューし、この講座の観点でフィードバックする。
+    </div>
+    <p class="jstqb">シラバス対応: ISTQB CTFL 2023 V4.0 — 第5章（テスト活動のマネジメント: 5.1 テスト計画、5.3 テストモニタリング/コントロール/完了、5.5 欠陥マネジメント）、第6章（テストツール）は各自シラバス参照</p>
+  </section>
+
+  <footer class="pager">
+    <a href="phase2.html">← 第2回 仕様を読み、テストを設計する</a>
+    <a href="index.html">目次に戻る →</a>
+  </footer>
+</div>
+</body>
+</html>

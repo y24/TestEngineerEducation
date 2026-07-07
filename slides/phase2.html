@@ -186,6 +186,55 @@
       <li>回答は必ず記録し、チームに共有する。<em>口頭で得た仕様は、あなたが文書化した瞬間にチームの資産になる</em></li>
     </ul>
 
+    <h3>ドメイン知識とユーザー目線 — 仕様把握の土台になる武器</h3>
+    <p>
+      ここまでの「暗黙の仕様に気づく」「仕様の穴を嗅ぎ分ける」を支えているのは、実は読解テクニックではなく
+      <strong>ドメイン知識（業務の理解）とユーザー目線</strong>です。同じ画面を見ても、持っている知識によって気づけるものがまったく違います。
+    </p>
+    <figure>
+      <svg viewBox="0 0 800 310" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="同じ画面でも目線によって気づけるものが違う">
+        <g font-family="sans-serif" font-size="12">
+          <rect x="20" y="40" width="330" height="230" rx="10" fill="#fff" stroke="#9ca3af" stroke-width="1.5"/>
+          <rect x="20" y="40" width="330" height="36" rx="10" fill="#eef3f9"/>
+          <rect x="20" y="62" width="330" height="14" fill="#eef3f9"/>
+          <text x="185" y="64" text-anchor="middle" fill="#1e3a5f" font-weight="bold">経費一覧（2026年3月）</text>
+          <line x1="40" y1="105" x2="330" y2="105" stroke="#e5e7eb"/>
+          <text x="48" y="128" fill="#374151">会議費</text>
+          <text x="200" y="128" fill="#374151" text-anchor="end">12件</text>
+          <text x="320" y="128" fill="#374151" text-anchor="end">¥86,400</text>
+          <line x1="40" y1="140" x2="330" y2="140" stroke="#e5e7eb"/>
+          <text x="48" y="163" fill="#b91c1c">交通費</text>
+          <text x="200" y="163" fill="#b91c1c" text-anchor="end">0件</text>
+          <text x="320" y="163" fill="#b91c1c" text-anchor="end">¥0</text>
+          <line x1="40" y1="175" x2="330" y2="175" stroke="#e5e7eb"/>
+          <text x="48" y="198" fill="#374151">出張旅費</text>
+          <text x="200" y="198" fill="#374151" text-anchor="end">3件</text>
+          <text x="320" y="198" fill="#374151" text-anchor="end">¥215,000</text>
+          <line x1="40" y1="212" x2="330" y2="212" stroke="#e5e7eb"/>
+          <text x="48" y="240" fill="#1f2937" font-weight="bold">合計</text>
+          <text x="320" y="240" fill="#1f2937" text-anchor="end" font-weight="bold">¥301,400</text>
+          <line x1="350" y1="72" x2="386" y2="72" stroke="#9ca3af" stroke-width="1.5"/>
+          <line x1="350" y1="155" x2="386" y2="155" stroke="#1e3a5f" stroke-width="1.5"/>
+          <line x1="350" y1="235" x2="386" y2="235" stroke="#0f766e" stroke-width="1.5"/>
+          <rect x="390" y="40" width="390" height="64" rx="10" fill="#f3f4f6" stroke="#9ca3af"/>
+          <text x="406" y="65" fill="#4b5563" font-weight="bold">仕様の目</text>
+          <text x="406" y="88" fill="#374151">「仕様どおり表示 ✓ 合計も一致 ✓」→ ここまでは誰でも見える</text>
+          <rect x="390" y="123" width="390" height="64" rx="10" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="406" y="148" fill="#1e3a5f" font-weight="bold">業務の目（ドメイン知識）</text>
+          <text x="406" y="171" fill="#374151">「年度末の3月に交通費0件はおかしい。移行漏れか登録バグでは？」</text>
+          <rect x="390" y="206" width="390" height="64" rx="10" fill="#f0fdfa" stroke="#0f766e"/>
+          <text x="406" y="231" fill="#0f766e" font-weight="bold">ユーザーの目</text>
+          <text x="406" y="254" fill="#374151">「経理はこれを月末に数百件処理する。この操作数で業務が回る？」</text>
+        </g>
+      </svg>
+      <figcaption>期待結果と一致していても「業務的におかしい」に気づけるかどうかは、ドメイン知識とユーザー目線で決まる</figcaption>
+    </figure>
+    <ul>
+      <li><strong>テスト設計で効く</strong>: 経理の月次業務を知っていれば「締め後の修正」「年度またぎ」の観点が自然に出てくる。ドメイン知識は観点の源泉であり、暗黙の仕様に気づく力そのもの</li>
+      <li><strong>テスト実行で効く</strong>: テストケースは「期待結果との一致」しか教えてくれない。ケースが合格でも「この数字、業務的に変だ」と手を止められるのは、業務とユーザーを知っている人だけ。第1回の原則7（欠陥ゼロの落とし穴 — 仕様どおりでも業務が回らなければ意味がない）の実践編</li>
+      <li><strong>身につけ方</strong>: 業務マニュアルと問い合わせログを読む、業務部門の人に「普段どう使っているか」を聞く、可能なら実際の業務を見学する。<em>ドメイン知識は一朝一夕に付かないからこそ、テストエンジニアの代えの利かない強みになる</em></li>
+    </ul>
+
     <div class="mind">
       <span class="tag">マインドセット</span>
       仕様書を<strong>「正解が書いてある答案」ではなく「検証すべき主張」</strong>として読む。

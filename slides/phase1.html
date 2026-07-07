@@ -53,7 +53,7 @@
   .goal { background: var(--accent-light); border-radius: 10px; padding: 20px 26px; margin-bottom: 30px; }
   .goal h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--accent); }
   .goal ul { margin: 0; padding-left: 1.4em; }
-  .callout { border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .mind, .work, .example { border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
   .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
   .mind .tag { color: var(--mind); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
   .work { background: var(--work-bg); border-left: 5px solid var(--work); }
@@ -192,6 +192,32 @@
         <td>バグを全部直しても、そもそも業務に合わない仕様なら使われない。「仕様どおりか」だけでなく<strong>「業務が回るか」</strong>を見る。</td>
       </tr>
     </table>
+    <figure>
+      <svg viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="欠陥の発見が遅れるほど修正コストが増える">
+        <g font-family="sans-serif" font-size="13">
+          <line x1="50" y1="225" x2="770" y2="225" stroke="#9ca3af" stroke-width="1.5"/>
+          <text x="30" y="130" font-size="12" fill="#6b7280" text-anchor="middle" transform="rotate(-90 30 130)">修正コスト（相対）</text>
+          <rect x="80" y="211" width="90" height="14" rx="3" fill="#1e3a5f"/>
+          <rect x="220" y="187" width="90" height="38" rx="3" fill="#1e3a5f"/>
+          <rect x="360" y="157" width="90" height="68" rx="3" fill="#1e3a5f"/>
+          <rect x="500" y="117" width="90" height="108" rx="3" fill="#b45309"/>
+          <rect x="640" y="35" width="90" height="190" rx="3" fill="#b91c1c"/>
+          <text x="125" y="203" text-anchor="middle" fill="#374151" font-weight="bold">×1</text>
+          <text x="265" y="179" text-anchor="middle" fill="#374151" font-weight="bold">×5</text>
+          <text x="405" y="149" text-anchor="middle" fill="#374151" font-weight="bold">×10</text>
+          <text x="545" y="109" text-anchor="middle" fill="#374151" font-weight="bold">×20</text>
+          <text x="685" y="27" text-anchor="middle" fill="#b91c1c" font-weight="bold">×100〜</text>
+          <text x="125" y="246" text-anchor="middle" fill="#374151">要件定義</text>
+          <text x="265" y="246" text-anchor="middle" fill="#374151">設計</text>
+          <text x="405" y="246" text-anchor="middle" fill="#374151">実装</text>
+          <text x="545" y="246" text-anchor="middle" fill="#374151">テスト</text>
+          <text x="685" y="246" text-anchor="middle" fill="#374151">本番稼働後</text>
+          <text x="125" y="268" text-anchor="middle" fill="#6b7280" font-size="11">レビュー指摘なら数分</text>
+          <text x="685" y="268" text-anchor="middle" fill="#b91c1c" font-size="11">復旧＋謝罪＋信用の損失</text>
+        </g>
+      </svg>
+      <figcaption>原則3「早期テスト」のイメージ: 同じ欠陥でも、見つかる工程が遅いほど修正コストは跳ね上がる</figcaption>
+    </figure>
     <div class="mind">
       <span class="tag">マインドセット</span>
       7原則のうち半分は「テストには限界がある」という話。限界を認めた上で、
@@ -317,6 +343,38 @@
       <li><strong>優先度</strong> = いつ直すべきか。リリース日程・業務カレンダー・回避策の有無で決まる。<em>チーム／プロダクト側が決める</em></li>
       <li>「軽微だが月次締め日に必ず発生して経理を止める」→ 重要度は中でも優先度は高、ということが起きる。この2軸の区別は第3回のトリアージで再登場します</li>
     </ul>
+    <figure>
+      <svg viewBox="0 0 800 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="重要度と優先度は独立した2軸">
+        <defs>
+          <marker id="arrB" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="#6b7280"/>
+          </marker>
+        </defs>
+        <g font-family="sans-serif" font-size="12">
+          <line x1="120" y1="280" x2="770" y2="280" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrB)"/>
+          <line x1="120" y1="280" x2="120" y2="20" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrB)"/>
+          <text x="740" y="302" fill="#374151" font-weight="bold">優先度 高</text>
+          <text x="70" y="35" fill="#374151" font-weight="bold">重要度 高</text>
+          <rect x="455" y="40" width="300" height="110" rx="10" fill="#fef2f2" stroke="#b91c1c"/>
+          <text x="605" y="68" text-anchor="middle" fill="#b91c1c" font-weight="bold">議論の余地なし: 即時修正</text>
+          <text x="605" y="95" text-anchor="middle" fill="#374151">例: 月次締めバッチが異常終了し</text>
+          <text x="605" y="115" text-anchor="middle" fill="#374151">経理業務が止まる</text>
+          <rect x="140" y="40" width="300" height="110" rx="10" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="290" y="68" text-anchor="middle" fill="#1e3a5f" font-weight="bold">ダメージ大・急がない: 計画的に修正</text>
+          <text x="290" y="95" text-anchor="middle" fill="#374151">例: うるう年のみ発生する計算誤り</text>
+          <text x="290" y="115" text-anchor="middle" fill="#374151">（次の発生まで余裕があり回避策もある）</text>
+          <rect x="455" y="165" width="300" height="110" rx="10" fill="#fff7ed" stroke="#b45309"/>
+          <text x="605" y="193" text-anchor="middle" fill="#b45309" font-weight="bold">軽微だが急ぐ: リリース前に必ず</text>
+          <text x="605" y="220" text-anchor="middle" fill="#374151">例: トップ画面のロゴが旧社名のまま</text>
+          <text x="605" y="240" text-anchor="middle" fill="#374151">（動作に影響ないが外部の目に触れる）</text>
+          <rect x="140" y="165" width="300" height="110" rx="10" fill="#f3f4f6" stroke="#9ca3af"/>
+          <text x="290" y="193" text-anchor="middle" fill="#4b5563" font-weight="bold">「直さない」判断もあり</text>
+          <text x="290" y="220" text-anchor="middle" fill="#374151">例: 特定ブラウザの特定条件でのみ</text>
+          <text x="290" y="240" text-anchor="middle" fill="#374151">起きる軽微なレイアウト崩れ</text>
+        </g>
+      </svg>
+      <figcaption>重要度（ダメージの大きさ）と優先度（直す順番）は独立した軸。4象限すべてが現実に存在する</figcaption>
+    </figure>
 
     <div class="mind">
       <span class="tag">マインドセット</span>
@@ -362,18 +420,13 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>まとめと宿題 <span class="time">5分</span></h2>
+    <h2>まとめ <span class="time">5分</span></h2>
     <h3>今日の持ち帰り</h3>
     <ul>
       <li>テストは<strong>品質の情報を届けて意思決定を支える仕事</strong>。「テスト済み＝バグゼロ」とは言わない</li>
       <li>全数テストは不可能。だから<strong>どこを狙い、何をやらないかを決める</strong>のがテスト設計（→第2回）</li>
       <li>テストは実行だけでなく、計画〜完了までのプロセス。全体のどこにいるかを常に意識する</li>
       <li>バグ票は開発者への手紙。<strong>事実と推測を分け、悪い報せほど早く</strong></li>
-    </ul>
-    <h3>宿題（30分程度）</h3>
-    <ul>
-      <li>自分のプロジェクトの直近の不具合票を3件読み、今日の基準で「良い点・直したい点」をメモしてくる</li>
-      <li>次回使うので、担当プロダクトの仕様書（どれか1機能分）にざっと目を通しておく</li>
     </ul>
     <p class="jstqb">シラバス対応: ISTQB CTFL 2023 V4.0 — 第1章（テストの基礎）、第2章（SDLC全体を通してのテスト）、第3章（静的テスト）、5.5（欠陥マネジメント）</p>
   </section>

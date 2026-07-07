@@ -127,15 +127,56 @@
       <li><strong>業務の常識</strong>: 締め処理後の伝票は修正できない、退職者のアカウントでは申請できない、年度をまたぐ精算の扱い</li>
       <li><strong>エラー処理の欠落</strong>: 正常系しか書かれていない仕様書は非常に多い。「失敗したらどうなるか」は大抵書かれていない</li>
     </ul>
+    <figure>
+      <svg viewBox="0 0 800 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="仕様の氷山モデル">
+        <g font-family="sans-serif" font-size="13">
+          <rect x="0" y="130" width="800" height="200" fill="#dbeafe" opacity="0.45"/>
+          <line x1="0" y1="130" x2="800" y2="130" stroke="#60a5fa" stroke-width="2" stroke-dasharray="8 5"/>
+          <polygon points="250,40 350,40 385,130 215,130" fill="#eef3f9" stroke="#1e3a5f" stroke-width="1.5"/>
+          <polygon points="215,130 385,130 455,250 300,310 145,240" fill="#1e3a5f"/>
+          <text x="300" y="95" text-anchor="middle" fill="#1e3a5f" font-weight="bold">書かれた仕様</text>
+          <text x="300" y="185" text-anchor="middle" fill="#fff" font-weight="bold">暗黙の仕様</text>
+          <text x="300" y="212" text-anchor="middle" fill="#dbe6f2" font-size="12">当たり前すぎて書かれないこと</text>
+          <text x="300" y="232" text-anchor="middle" fill="#dbe6f2" font-size="12">業務の常識</text>
+          <text x="300" y="252" text-anchor="middle" fill="#dbe6f2" font-size="12">エラー処理の欠落</text>
+          <text x="530" y="75" fill="#374151" font-size="12">仕様書・設計書に明記されている部分。</text>
+          <text x="530" y="95" fill="#374151" font-size="12">ここの確認だけなら誰でもできる</text>
+          <text x="510" y="205" fill="#1e3a5f" font-size="12" font-weight="bold">水面下に気づけるかが</text>
+          <text x="510" y="225" fill="#1e3a5f" font-size="12" font-weight="bold">テスト設計者の腕の見せ所</text>
+          <text x="620" y="122" fill="#60a5fa" font-size="11">水面 = 文書化の境界</text>
+        </g>
+      </svg>
+      <figcaption>仕様は氷山。文書に書かれているのは一角で、守るべきことの大半は水面下にある</figcaption>
+    </figure>
 
     <h3>仕様の穴・矛盾の嗅ぎ分け方</h3>
     <table>
-      <tr><th style="width:36%">兆候</th><th>問いかけ</th></tr>
-      <tr><td>「◯◯以上」「◯◯を超える」の混在</td><td>境界ちょうどはどっち？（5万円「以上」と「超」は1円違う）</td></tr>
-      <tr><td>用語の揺れ（申請者/起票者/本人）</td><td>同じ意味？違う意味？代理申請だと誰を指す？</td></tr>
-      <tr><td>「原則として」「基本的に」</td><td>例外は何？誰が判断する？</td></tr>
-      <tr><td>主語がない受け身文</td><td>誰が／どのタイミングで行う処理？バッチ？画面操作？</td></tr>
-      <tr><td>更新系の記述だけがある</td><td>同時に操作したら？途中で失敗したら？取り消せる？</td></tr>
+      <tr><th style="width:22%">兆候</th><th style="width:44%">具体例</th><th>問いかけ</th></tr>
+      <tr>
+        <td>「◯◯以上」「◯◯を超える」の混在</td>
+        <td>画面仕様書には「5万円<strong>以上</strong>は部長承認」、承認フロー定義書には「5万円を<strong>超える</strong>場合は部長承認」— 50,000円ちょうどのルートが2通りに読める</td>
+        <td>境界ちょうどはどっち？（「以上」と「超」は1円違う）</td>
+      </tr>
+      <tr>
+        <td>用語の揺れ</td>
+        <td>§3では「<strong>申請者</strong>にメール通知」、§5では「<strong>起票者</strong>は修正可能」— 代理申請機能があると、この2つは別人を指しうる</td>
+        <td>同じ意味？違う意味？代理申請だと誰を指す？</td>
+      </tr>
+      <tr>
+        <td>「原則として」「基本的に」</td>
+        <td>「領収書は<strong>原則として</strong>添付すること」— 電車賃など領収書が出ない経費の扱いと、例外を認める手続きが未定義</td>
+        <td>例外は何？誰が判断する？</td>
+      </tr>
+      <tr>
+        <td>主語がない受け身文</td>
+        <td>「承認後、振込データ<strong>が作成される</strong>」— 承認した瞬間？夜間バッチ？失敗したら誰が気づいて再実行する？</td>
+        <td>誰が／どのタイミングで行う処理？バッチ？画面操作？</td>
+      </tr>
+      <tr>
+        <td>更新系の記述だけがある</td>
+        <td>「申請者は申請を<strong>修正できる</strong>」— 承認者が承認画面を開いている最中に修正されたら、どちらの内容が有効？</td>
+        <td>同時に操作したら？途中で失敗したら？取り消せる？</td>
+      </tr>
     </table>
 
     <h3>質問力 — 開発者・企画への聞き方</h3>
@@ -276,6 +317,46 @@
       「以上」なのか「超える」なのかをワーク①で確認したことが、ここで効いてくる。
       あわせて下限境界 <code>0 / 1</code> 円も（仕様は「1円以上」）。
     </div>
+    <figure>
+      <svg viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="金額の同値クラスと境界値">
+        <defs>
+          <marker id="arrN" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="#6b7280"/>
+          </marker>
+        </defs>
+        <g font-family="sans-serif" font-size="12">
+          <rect x="60" y="70" width="120" height="56" fill="#fef2f2" stroke="#b91c1c" stroke-dasharray="5 4"/>
+          <text x="120" y="50" text-anchor="middle" fill="#b91c1c" font-weight="bold">無効クラス</text>
+          <text x="120" y="98" text-anchor="middle" fill="#b91c1c" font-size="11">0円以下</text>
+          <text x="120" y="115" text-anchor="middle" fill="#b91c1c" font-size="11">（エラーになるはず）</text>
+          <rect x="180" y="70" width="290" height="56" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="325" y="50" text-anchor="middle" fill="#1e3a5f" font-weight="bold">有効クラス①: 課長承認</text>
+          <text x="325" y="98" text-anchor="middle" fill="#1e3a5f" font-size="11">1円 〜 50,000円</text>
+          <text x="325" y="115" text-anchor="middle" fill="#1e3a5f" font-size="11">この中はどの値でも「同じ扱い」</text>
+          <rect x="470" y="70" width="280" height="56" fill="#f0fdfa" stroke="#0f766e"/>
+          <text x="610" y="50" text-anchor="middle" fill="#0f766e" font-weight="bold">有効クラス②: 部長承認</text>
+          <text x="610" y="98" text-anchor="middle" fill="#0f766e" font-size="11">50,001円 〜</text>
+          <text x="610" y="115" text-anchor="middle" fill="#0f766e" font-size="11">（上限は？→ 仕様に質問）</text>
+          <line x1="40" y1="150" x2="780" y2="150" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrN)"/>
+          <text x="770" y="170" text-anchor="end" fill="#6b7280" font-size="11">金額</text>
+          <path d="M172,150 l-6,14 h12 z" fill="#b91c1c"/>
+          <text x="164" y="182" text-anchor="middle" fill="#b91c1c" font-weight="bold">0</text>
+          <path d="M190,150 l-6,14 h12 z" fill="#1e3a5f"/>
+          <text x="196" y="182" text-anchor="middle" fill="#1e3a5f" font-weight="bold">1</text>
+          <path d="M462,150 l-6,14 h12 z" fill="#1e3a5f"/>
+          <text x="440" y="182" text-anchor="middle" fill="#1e3a5f" font-weight="bold">50,000</text>
+          <path d="M480,150 l-6,14 h12 z" fill="#0f766e"/>
+          <text x="510" y="182" text-anchor="middle" fill="#0f766e" font-weight="bold">50,001</text>
+          <circle cx="325" cy="150" r="6" fill="#9ca3af"/>
+          <text x="325" y="182" text-anchor="middle" fill="#6b7280">25,000</text>
+          <circle cx="610" cy="150" r="6" fill="#9ca3af"/>
+          <text x="610" y="182" text-anchor="middle" fill="#6b7280">80,000</text>
+          <text x="60" y="222" fill="#374151" font-size="12">▲ 境界値: 境界の両側を必ず1点ずつ突く（バグは境界に潜む）</text>
+          <text x="470" y="222" fill="#6b7280" font-size="12">● 代表値: 同値クラスの中から1点でよい</text>
+        </g>
+      </svg>
+      <figcaption>入力を「同じ扱いのグループ」に分け、境界の両側＋各クラスの代表値だけテストする。これで無限の入力が数件に減る</figcaption>
+    </figure>
 
     <h3>② デシジョンテーブル — 条件の組み合わせに</h3>
     <p>複数の条件で挙動が変わるとき、条件の組み合わせを表にして<strong>全パターンの挙動を仕様に問う</strong>。埋まらないマスは仕様の穴。</p>
@@ -357,7 +438,7 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>まとめと宿題 <span class="time">5分</span></h2>
+    <h2>まとめ <span class="time">5分</span></h2>
     <h3>今日の持ち帰り</h3>
     <ul>
       <li>テストベースは仕様書だけではない。<strong>過去の不具合票と「人」</strong>は特に重要な情報源</li>
@@ -365,11 +446,6 @@
       <li>いきなりケースを書かない。<strong>観点 → 条件 → ケース</strong>。観点は7つの引き出しで機械的に出す</li>
       <li>濃淡はリスクで決め、「やらないこと」は宣言する</li>
       <li>技法は変換の道具。境界値・デシジョンテーブル・状態遷移は<strong>仕様の穴の発見器</strong>でもある</li>
-    </ul>
-    <h3>宿題（30分程度）</h3>
-    <ul>
-      <li>『ソフトウェアテスト技法練習帳』の同値分割・境界値の章を1章分解く</li>
-      <li>担当プロダクトの1機能について、7つの引き出しで観点を10個出してみる（次回冒頭で数人に共有してもらいます）</li>
     </ul>
     <p class="jstqb">シラバス対応: ISTQB CTFL 2023 V4.0 — 第4章（テスト分析と設計: 4.1 ブラックボックステスト技法、4.4 経験ベースのテスト技法）、第3章（静的テスト）</p>
   </section>

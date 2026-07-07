@@ -453,10 +453,14 @@
     <table>
       <tr><th></th><th class="c">ルール1</th><th class="c">ルール2</th><th class="c">ルール3</th><th class="c">ルール4</th></tr>
       <tr><td>金額が5万円を超える</td><td class="c">Y</td><td class="c">Y</td><td class="c">N</td><td class="c">N</td></tr>
-      <tr><td>申請者が部長職</td><td class="c">Y</td><td class="c">N</td><td class="c">Y</td><td class="c">N</td></tr>
-      <tr><td><strong>承認者は？</strong></td><td class="c" style="background:#fef2f2">仕様未定義!</td><td class="c">部長</td><td class="c" style="background:#fef2f2">仕様未定義!</td><td class="c">課長</td></tr>
+      <tr><td>領収書が添付されている</td><td class="c">Y</td><td class="c">N</td><td class="c">Y</td><td class="c">N</td></tr>
+      <tr><td><strong>どうなる？</strong></td><td class="c">部長承認へ</td><td class="c" style="background:#fef2f2">仕様未定義!</td><td class="c">課長承認へ</td><td class="c" style="background:#fef2f2">仕様未定義!</td></tr>
     </table>
-    <p>表にした瞬間、「部長本人が申請したら誰が承認するのか」という穴が<em>機械的に</em>見つかる。デシジョンテーブルは設計の道具であると同時に、仕様レビューの道具でもあります。</p>
+    <p>
+      表にした瞬間、「領収書を添付せずに申請したらどうなるのか」という穴が<em>機械的に</em>見つかる。
+      仕様書は「添付すること」という<strong>義務だけを書いていて、違反したときの挙動（システムが入力時に弾く？申請は通って承認者が差し戻す？）を書いていない</strong>
+      — セクション1で見た「エラー処理の欠落」の典型です。デシジョンテーブルは設計の道具であると同時に、仕様レビューの道具でもあります。
+    </p>
 
     <h3>③ 状態遷移テスト — 状態とフローの観点に</h3>
     <p>状態を持つ対象（申請ステータス、契約状態など）は、状態遷移図を描いて<strong>「できるはずの遷移」と「できてはいけない遷移」</strong>を確かめる。</p>

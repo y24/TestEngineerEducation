@@ -124,7 +124,7 @@
 
     <h3>見積りの現実 — 実行時間だけ数えると必ず破綻する</h3>
     <ul>
-      <li>テスト見積り ＝ 実行時間だけではない。<strong>分析・設計・データ準備・環境確認・バグ票起票・再テスト・リグレッション</strong>を含める</li>
+      <li>テスト見積り ＝ 実行時間だけではない。<strong>分析・設計・データ準備・環境確認・チケット起票・再テスト・リグレッション</strong>を含める</li>
       <li>経験則: バグ対応（起票・確認・再テスト）で実行工数と同等以上かかることも珍しくない。バグが多い前提の機能なら、なおさら</li>
       <li>業務システム特有の重さ: <strong>テストデータ作り</strong>（マスタ・権限・月次状態の組み合わせ）と<strong>環境・連携先の調整</strong>は、見積りから最も抜けやすく、最も遅延を生む</li>
       <li>締め日・月次処理があるシステムは「その日付にならないと確認できない」テストがある。カレンダーを最初に確認する</li>
@@ -145,7 +145,7 @@
           <text x="238" y="100" text-anchor="middle" fill="#fff" font-size="11">15%</text>
           <text x="400" y="77" text-anchor="middle" fill="#1e3a5f" font-weight="bold">テスト実行</text>
           <text x="400" y="94" text-anchor="middle" fill="#1e3a5f" font-size="11">30%</text>
-          <text x="598" y="72" text-anchor="middle" fill="#fff" font-size="11">バグ票起票・</text>
+          <text x="598" y="72" text-anchor="middle" fill="#fff" font-size="11">チケット起票・</text>
           <text x="598" y="86" text-anchor="middle" fill="#fff" font-size="11">修正確認・再テスト</text>
           <text x="598" y="100" text-anchor="middle" fill="#fff" font-size="11">25%</text>
           <text x="724" y="72" text-anchor="middle" fill="#fff" font-size="11">報告・</text>
@@ -288,7 +288,7 @@
         <li><strong>Aグラフ用</strong>: 消化率98%。ただし未消化の2%は権限×月次締めの組み合わせケース。残バグは重要度低が3件。→「順調に見えるが残りが急所」に気づけるか</li>
         <li><strong>Bグラフ用</strong>: バグの7割が新規機能「電子帳簿連携」に集中。他機能は収束傾向。→「全体NG」ではなく「特定機能の品質問題」と切り分けられるか</li>
         <li><strong>Cグラフ用</strong>: 10日前から検証環境が不安定でテストが半分止まっている。→ グラフが寝た理由は品質ではないと見抜けるか</li>
-        <li><strong>Dグラフ用</strong>: テスターがバグ票を週1でまとめて起票していた。→ プロセス改善の話であり、品質判断には起票遅延を補正した見方が必要と気づけるか</li>
+        <li><strong>Dグラフ用</strong>: テスターがチケットを週1でまとめて起票していた。→ プロセス改善の話であり、品質判断には起票遅延を補正した見方が必要と気づけるか</li>
       </ul>
     </details>
   </section>
@@ -362,7 +362,7 @@
     <h2>まとめ・これからの学び方 <span class="time">5分</span></h2>
     <h3>3回の講座の全体像</h3>
     <ul>
-      <li><strong>第1回</strong>: テストは品質情報で意思決定を支える仕事。限界を知り、バグ票という武器を持った</li>
+      <li><strong>第1回</strong>: テストは品質情報で意思決定を支える仕事。限界を知り、チケットという武器を持った</li>
       <li><strong>第2回</strong>: 仕様を疑って読み、観点→条件→ケースの順で、根拠を説明できる設計をする</li>
       <li><strong>第3回</strong>: 計画で合意し、グラフの裏を読み、トリアージで意思を出し、残存リスクを語って終える</li>
     </ul>

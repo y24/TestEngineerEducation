@@ -59,6 +59,18 @@
   .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
   .warn { background: var(--warn-bg); border-left: 5px solid var(--warn); border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
   .warn .tag { color: var(--warn); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .sit-common {
+    background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px;
+    padding: 16px 22px; margin: 18px 0; font-size: .92rem;
+  }
+  .sit-common .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 6px; }
+  .sit-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin: 18px 0; }
+  .sit-card { border: 1px solid #d1d5db; border-radius: 10px; background: #fff; overflow: hidden; font-size: .9rem; line-height: 1.7; }
+  .sit-card .head { padding: 8px 16px; color: #fff; font-weight: 700; }
+  .sit-card .body { padding: 6px 16px 14px; }
+  .sit-card dl { margin: 0; }
+  .sit-card dt { font-weight: 700; color: var(--accent); margin-top: 10px; font-size: .8rem; letter-spacing: .03em; }
+  .sit-card dd { margin: 2px 0 0; }
   table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
   th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
   th { background: var(--accent-light); color: var(--accent); }
@@ -275,20 +287,91 @@
     <div class="work">
       <span class="tag">ワーク（グループ15分 → 発表5分）</span>
       <p style="margin:6px 0;">
-        グループごとに、上のA〜Dいずれかのグラフ＋「状況カード」（講師が配布: 消化率、残バグの重要度内訳、残ケースの中身、チーム状況）を受け取ります。
+        グループごとに、上のA〜Dいずれかのグラフを担当し、対応する下の<strong>状況カード</strong>を読み込みます。
       </p>
       <ol style="margin:6px 0;">
         <li>リリース判定会議に出すつもりで、<strong>「現状の品質状況」「リリース可否の推奨」「可否を判断するために追加で確認すべきこと」</strong>を3分で説明できる形にまとめる</li>
         <li>各グループ発表。他グループは「その判断、数字の裏は取れてる？」の視点でツッコミを入れる</li>
       </ol>
     </div>
+
+    <div class="sit-common">
+      <span class="tag">プロジェクト共通設定（全カード共通）</span>
+      経費精算システム刷新プロジェクトのシステムテスト。テスト期間は<strong>20営業日</strong>で、本日は<strong>15日目</strong>。
+      テストケースは全<strong>500件</strong>。リリース判定会議は<strong>5営業日後</strong>。
+      終了基準は「消化率100%、未解決の重要度高チケット0件」で計画時に合意済み。
+    </div>
+
+    <div class="sit-cards">
+      <div class="sit-card">
+        <div class="head" style="background:#0f766e;">状況カード A（理想的なS字収束）</div>
+        <div class="body">
+          <dl>
+            <dt>消化状況</dt>
+            <dd>消化率 98%（490/500件）。予定に対しほぼオンスケジュール</dd>
+            <dt>チケット状況</dt>
+            <dd>累積58件。直近3日間の新規は1件のみ。未解決は重要度中1件（修正中）、低3件（対応方針が未決のまま放置）</dd>
+            <dt>残ケースの中身</dt>
+            <dd>未消化の10件はすべて「経理権限 × 月次締め当日」の組み合わせケース。締め処理のテストは<strong>3営業日後の月末にしか実行できない</strong></dd>
+            <dt>チーム状況</dt>
+            <dd>安定稼働。メンバーには「残りは消化するだけ」という空気が漂っている</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="sit-card">
+        <div class="head" style="background:#b91c1c;">状況カード B（増え続けて寝ない）</div>
+        <div class="body">
+          <dl>
+            <dt>消化状況</dt>
+            <dd>消化率 85%（425/500件）。予定より2日遅れ</dd>
+            <dt>チケット状況</dt>
+            <dd>累積142件。今も1日5件ペースで増加中。<strong>うち7割が新規機能「電子帳簿保存連携」に集中</strong>。既存機能側は10日目以降ほぼ収束。未解決の重要度高は12件（すべて連携機能）</dd>
+            <dt>残ケースの中身</dt>
+            <dd>残75件の大半が連携機能の異常系（連携先エラー・リトライ・整合性回復）</dd>
+            <dt>チーム状況</dt>
+            <dd>開発の修正が追いつかず、連携機能はブロックだらけ。テスターは他機能に回って消化を続けている</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="sit-card">
+        <div class="head" style="background:#b45309;">状況カード C（早々に寝た）</div>
+        <div class="body">
+          <dl>
+            <dt>消化状況</dt>
+            <dd>消化率 60%（300/500件）。計画では本日80%のはずで、<strong>大幅遅れ</strong></dd>
+            <dt>チケット状況</dt>
+            <dd>累積35件。10日目以降ほぼ横ばい。未解決は重要度高1件（検証環境で再現せず調査が止まっている）</dd>
+            <dt>残ケースの中身</dt>
+            <dd>消化済みは参照系・単純な登録系が中心。<strong>金額計算・承認フロー・外部連携の重いケースはほぼ手つかず</strong></dd>
+            <dt>チーム状況</dt>
+            <dd>10日目から検証環境が不安定（連携先モックが頻繁に停止）でテストが半分止まっている。復旧見込みは2営業日後。メンバーは待機時間が多い</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="sit-card">
+        <div class="head" style="background:#7c3aed;">状況カード D（階段状にガクガク）</div>
+        <div class="body">
+          <dl>
+            <dt>消化状況</dt>
+            <dd>消化率 90%（450/500件）。消化自体は毎日進んでいる</dd>
+            <dt>チケット状況</dt>
+            <dd>累積88件。グラフは週ごとの階段状。ヒアリングの結果、<strong>テスターが実行結果を手元メモに溜め、毎週金曜にまとめて起票する運用</strong>だったと判明。未解決は重要度高2件・中10件（起票日ベースで見ると「今週急増」に見える）</dd>
+            <dt>残ケースの中身</dt>
+            <dd>残50件は各機能に分散。特に偏りなし</dd>
+            <dt>チーム状況</dt>
+            <dd>起票遅れのせいで開発側の修正着手も遅れがち。起票ルールの見直しを検討中</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
     <details>
-      <summary>講師用: 状況カードの例</summary>
+      <summary>講師用: 各カードの狙い（発表後の講評で使う）</summary>
       <ul>
-        <li><strong>Aグラフ用</strong>: 消化率98%。ただし未消化の2%は権限×月次締めの組み合わせケース。残バグは重要度低が3件。→「順調に見えるが残りが急所」に気づけるか</li>
-        <li><strong>Bグラフ用</strong>: バグの7割が新規機能「電子帳簿連携」に集中。他機能は収束傾向。→「全体NG」ではなく「特定機能の品質問題」と切り分けられるか</li>
-        <li><strong>Cグラフ用</strong>: 10日前から検証環境が不安定でテストが半分止まっている。→ グラフが寝た理由は品質ではないと見抜けるか</li>
-        <li><strong>Dグラフ用</strong>: テスターがチケットを週1でまとめて起票していた。→ プロセス改善の話であり、品質判断には起票遅延を補正した見方が必要と気づけるか</li>
+        <li><strong>A</strong>: 「順調に見えるが残り2%が急所」に気づけるか。締め当日ケースの実行日がリリース判定に間に合うか逆算できるか。放置された重要度低3件を「対応しないと決めて残存リスクに記録する」まで言えれば合格</li>
+        <li><strong>B</strong>: 「全体NG」ではなく「特定機能の品質問題」と切り分けられるか。連携機能の作り直し・リリース分離（段階リリース）の提案まで出れば上出来</li>
+        <li><strong>C</strong>: グラフが寝た理由は品質ではなく<strong>テストが止まっているから</strong>と見抜けるか。消化曲線とセットで見る習慣、および「重いケース未着手のままの消化率60%」の危険性に言及できるか</li>
+        <li><strong>D</strong>: プロダクト品質の問題ではなく<strong>報告運用の問題</strong>と切り分けられるか。起票遅延を補正すれば実態は緩やかな収束かもしれない、と数字を疑えるか。悪い報せほど早く（第1回）の実例として締める</li>
       </ul>
     </details>
   </section>

@@ -38,10 +38,6 @@
   header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
   header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
   header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
-  .draft {
-    background: #fffbeb; border: 1px dashed #d97706; border-radius: 8px;
-    padding: 10px 18px; margin-bottom: 24px; font-size: .88rem; color: #92400e;
-  }
   section {
     background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
     padding: 30px 34px; margin-bottom: 30px;
@@ -67,8 +63,17 @@
   table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
   th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
   th { background: var(--accent-light); color: var(--accent); }
+  .c { text-align: center; }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; font-size: .93rem; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: .8rem; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: .8rem; }
   details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
   details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  figure { margin: 20px 0; text-align: center; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
   .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
   footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
   footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
@@ -86,11 +91,6 @@
     <p>最も安い不具合修正は、コードが書かれる前の修正。QAの主戦場をテストフェーズの外に広げる。</p>
   </header>
 
-  <div class="draft">
-    <strong>骨組み版:</strong> このページは構成とワークのみ確定した骨組みです。本文コンテンツは
-    <code>docs/learning-plan-step2-outline.md</code> の第5回タイムテーブルに沿って充填します。
-  </div>
-
   <div class="goal">
     <h2>今日のゴール</h2>
     <ul>
@@ -102,97 +102,417 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>1. シフトレフトの費用対効果 <span class="time">15分</span></h2>
-    <div class="example">
-      <span class="tag">盛り込む内容（骨組み）</span>
-      <ul>
-        <li>欠陥の発見が遅れるほど修正コストが跳ね上がる（第1回のグラフを再掲し、今回は「では上流で何をするか」へ）</li>
-        <li>Vモデル→Wモデル: 各開発工程に並走するテスト活動（インラインSVG図）</li>
-        <li>「品質の番人」から「品質のアクセラレーター」へ — 業界でQAの役割がどう再定義されつつあるか</li>
-        <li>経費精算の例: 要件レビューで「締め日をまたぐ申請」の仕様漏れを見つけたら、いくら節約できたか</li>
-      </ul>
-    </div>
+    <h2>1. 前回の振り返り <span class="time">5分</span></h2>
+    <p>
+      第4回では、リスク（影響度×発生確率）を共通のものさしにしてテストの濃淡を決める方法と、探索的テストの型を学びました。
+      あのリスク分析には続きがあります — <em>リスクが高いと分かっている場所なら、テストで捕まえるより前に、作り込ませないほうが安い</em>。
+      今日はテスト実行が始まる前、要件・設計の段階でQAが何をできるかの話です。
+    </p>
   </section>
 
   <!-- ========================================================= -->
   <section>
-    <h2>2. レビュー技法 — 観点を持って読む <span class="time">15分</span></h2>
+    <h2>2. シフトレフトの費用対効果 <span class="time">15分</span></h2>
+
+    <h3>なぜ「早く見つける」と安いのか</h3>
+    <p>
+      第1回で「欠陥の発見が遅れるほど修正コストが跳ね上がる」グラフを見ました（要件段階を1とすると、テストで見つけたら20、本番なら100以上）。
+      理由は3つあります。
+    </p>
+    <ul>
+      <li><strong>手戻りの連鎖</strong>: 要件の誤りに実装後に気づくと、設計→コード→テストケース→実施済みテストのすべてがやり直しになる</li>
+      <li><strong>巻き込む人数の増加</strong>: 要件段階なら関係者2人の会話で済む修正が、本番障害なら開発・QA・運用・営業・顧客対応まで巻き込む</li>
+      <li><strong>お金と信用</strong>: 本番の不具合は修正コストに加えて、業務停止・データ補正・信用毀損という「値札のつかないコスト」を伴う（第1回の端数処理の例）</li>
+    </ul>
+
     <div class="example">
-      <span class="tag">盛り込む内容（骨組み）</span>
-      <ul>
-        <li>「なんとなく読む」と欠陥は見つからない — 第2回の観点フレーム（機能/データ/状態/タイミング/環境/ユーザー/組み合わせ）をレビューに転用する</li>
-        <li>仕様の穴の嗅ぎ分け（第2回）の発展: 曖昧語（「適切に」「必要に応じて」）、未定義の異常系、暗黙の前提</li>
-        <li>レビューの形式: 非公式レビュー〜インスペクションの使い分け（軽く）</li>
-        <li>指摘の伝え方: 人ではなく成果物へ。「質問の形」で指摘する技術（第1回マインドセットの応用）</li>
-      </ul>
+      <span class="tag">同じ欠陥、見つかる時期でこう変わる</span>
+      <p style="margin:6px 0;">「締め日をまたいで承認された申請がどちらの月の精算になるか」が要件から漏れていたとする。</p>
+      <table style="margin:8px 0 4px;">
+        <tr><th style="width:26%">見つけた時期</th><th>何が起きるか</th></tr>
+        <tr><td>要件レビュー（30分の会議）</td><td>その場で質問→要件に1行追記。<strong>コストほぼゼロ</strong></td></tr>
+        <tr><td>システムテスト</td><td>不具合票→仕様確認→設計修正→実装修正→再テスト。<strong>関係者5人で1週間</strong></td></tr>
+        <tr><td>本番（月初の締め処理）</td><td>精算誤り→データ補正→全社アナウンス→経理の締めやり直し。<strong>金額換算不能</strong></td></tr>
+      </table>
     </div>
+
+    <h3>シフトレフト — テストを左（上流）へずらす</h3>
+    <p>
+      開発工程を左から右へ並べたとき、テスト活動を右端（テストフェーズ）に置くのではなく、
+      <em>各工程に並走させる</em>のがシフトレフトです。Vモデルを発展させて「各開発工程にテスト活動を対にして置く」考え方をWモデルと呼びます。
+    </p>
+
+    <figure>
+      <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="開発工程に並走するテスト活動">
+        <g font-family="sans-serif" font-size="13">
+          <!-- dev row -->
+          <rect x="20"  y="40" width="140" height="52" rx="8" fill="#7c2d5e"/>
+          <rect x="180" y="40" width="140" height="52" rx="8" fill="#7c2d5e"/>
+          <rect x="340" y="40" width="140" height="52" rx="8" fill="#7c2d5e"/>
+          <rect x="500" y="40" width="140" height="52" rx="8" fill="#7c2d5e"/>
+          <rect x="660" y="40" width="120" height="52" rx="8" fill="#7c2d5e"/>
+          <text x="90"  y="71" text-anchor="middle" fill="#fff">要件定義</text>
+          <text x="250" y="71" text-anchor="middle" fill="#fff">基本設計</text>
+          <text x="410" y="71" text-anchor="middle" fill="#fff">詳細設計</text>
+          <text x="570" y="71" text-anchor="middle" fill="#fff">実装</text>
+          <text x="720" y="71" text-anchor="middle" fill="#fff">テスト</text>
+          <!-- arrows between dev -->
+          <line x1="160" y1="66" x2="180" y2="66" stroke="#6b7280" stroke-width="2"/>
+          <line x1="320" y1="66" x2="340" y2="66" stroke="#6b7280" stroke-width="2"/>
+          <line x1="480" y1="66" x2="500" y2="66" stroke="#6b7280" stroke-width="2"/>
+          <line x1="640" y1="66" x2="660" y2="66" stroke="#6b7280" stroke-width="2"/>
+          <!-- vertical arrows -->
+          <line x1="90"  y1="92" x2="90"  y2="150" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3"/>
+          <line x1="250" y1="92" x2="250" y2="150" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3"/>
+          <line x1="410" y1="92" x2="410" y2="150" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3"/>
+          <line x1="570" y1="92" x2="570" y2="150" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3"/>
+          <line x1="720" y1="92" x2="720" y2="150" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3"/>
+          <!-- QA row -->
+          <rect x="20"  y="150" width="140" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+          <rect x="180" y="150" width="140" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+          <rect x="340" y="150" width="140" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+          <rect x="500" y="150" width="140" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+          <rect x="660" y="150" width="120" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+          <g fill="#134e4a" font-size="11.5">
+            <text x="90" y="178" text-anchor="middle">要件レビュー</text>
+            <text x="90" y="196" text-anchor="middle">受け入れ条件づくり</text>
+            <text x="90" y="214" text-anchor="middle">実例マッピング</text>
+            <text x="250" y="178" text-anchor="middle">設計レビュー</text>
+            <text x="250" y="196" text-anchor="middle">システムテストの</text>
+            <text x="250" y="214" text-anchor="middle">設計を開始</text>
+            <text x="410" y="178" text-anchor="middle">詳細設計レビュー</text>
+            <text x="410" y="196" text-anchor="middle">テストケース化</text>
+            <text x="410" y="214" text-anchor="middle">テストデータ準備</text>
+            <text x="570" y="178" text-anchor="middle">できた所から</text>
+            <text x="570" y="196" text-anchor="middle">早期テスト・</text>
+            <text x="570" y="214" text-anchor="middle">探索セッション</text>
+            <text x="720" y="178" text-anchor="middle">実行は</text>
+            <text x="720" y="196" text-anchor="middle">「答え合わせ」</text>
+            <text x="720" y="214" text-anchor="middle">になる</text>
+          </g>
+          <text x="400" y="278" text-anchor="middle" fill="#6b7280" font-size="12">← 左（上流）に行くほど、1件の指摘の価値が大きい</text>
+        </g>
+      </svg>
+      <figcaption>テストフェーズを待たない — 各工程に並走するQA活動。理想は、テスト実行が「答え合わせ」で済む状態</figcaption>
+    </figure>
+
+    <h3>「品質の番人」から「品質のアクセラレーター」へ</h3>
+    <p>
+      リリース直前に門番として立ち、問題を見つけて<em>止める</em>のが従来のQA像でした。
+      しかし止めるだけでは品質は上がらず、リリースが遅れるだけです。
+      いま業界全体で、QAの役割は<strong>初日から品質を作り込み、チームが安心して速く進めるようにする役割</strong>へ再定義されつつあります。
+      検出から予防へ — 上流での30分の指摘が、下流での1週間の手戻りを消す。これがQAが開発速度を「上げる」仕組みです。
+    </p>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>3. レビュー技法 — 観点を持って読む <span class="time">15分</span></h2>
+
+    <h3>「なんとなく読む」と誤字しか見つからない</h3>
+    <p>
+      要件書を頭から素直に読むと、書いてあることの正しさは追えても、<em>書かれていないこと</em>には気づけません。
+      レビューで欠陥を見つける人は、観点という「問いのリスト」を持って読んでいます。
+      実は武器はもう持っています — 第2回の観点フレーム（7つの引き出し）は、そのままレビューの問いに変換できます。
+    </p>
+    <table>
+      <tr><th style="width:20%">引き出し</th><th>レビューでの問い</th></tr>
+      <tr><td>機能</td><td>この要件の<strong>裏</strong>（〜でない場合、失敗した場合）はどこに書いてある？</td></tr>
+      <tr><td>データ</td><td>型・桁・単位・端数処理は定義されている？ 既存データとの整合は？</td></tr>
+      <tr><td>状態</td><td>途中で中断したら？ 差し戻されたら？ この状態遷移に行き止まりや抜け道はない？</td></tr>
+      <tr><td>タイミング</td><td>締め日・月末・年度末・同時操作のときはどうなる？</td></tr>
+      <tr><td>環境</td><td>この機能が動く環境（ブラウザ・端末・接続先システム）の前提は明記されている？</td></tr>
+      <tr><td>ユーザー</td><td>権限ごとに読んだか？（申請者・承認者・経理・管理者）初めての人がこの文で操作できる？</td></tr>
+      <tr><td>組み合わせ</td><td>要件Aと要件Cは同時に成立する？ 矛盾していない？</td></tr>
+    </table>
+
+    <h3>曖昧語アンテナ</h3>
+    <p>
+      レビュー中にこの言葉を見たら立ち止まる、という警報リストを持っておくと検出率が上がります:
+      <em>「適切に」「必要に応じて」「原則として」「〜など」「速やかに」「柔軟に」「基本的に」</em>。
+      いずれも「決めていないこと」を隠す言葉です。
+    </p>
+    <div class="bad-box">
+      <span class="tag">曖昧なまま実装に流れる要件</span>
+      「換算後の金額に小数が出た場合は<strong>適切に</strong>処理する」<br>
+      → 開発者Aは切り捨て、画面Bの担当者は四捨五入で実装。テストで初めて不一致が発覚する。
+    </div>
+    <div class="good-box">
+      <span class="tag">レビューで決めさせた要件</span>
+      「換算後の金額は<strong>小数第1位を切り捨て</strong>、円単位で精算する（既存の国内精算の端数処理と同一ルール）」<br>
+      → 実装前に全員の理解が一致。テストケースの期待結果も迷わず書ける。
+    </div>
+
+    <h3>指摘の伝え方 — 成果物へ、質問の形で</h3>
+    <p>
+      第1回のマインドセット「批判は人ではなく成果物に向ける」はレビューでこそ効きます。
+      同じ内容でも、伝え方で相手が受け取れる量が変わります。おすすめは<strong>質問の形にする</strong>こと。
+      指摘ではなく質問なら、書き手は防御ではなく思考で応じられます。
+    </p>
+    <div class="bad-box">
+      <span class="tag">悪い指摘</span>
+      「この仕様は穴だらけです。為替のことを何も考えていませんよね。」
+    </div>
+    <div class="good-box">
+      <span class="tag">良い指摘</span>
+      「為替レートは<strong>いつ時点</strong>のものを使う想定ですか？ 利用日と申請日でレートが変わると精算額に差が出るケースが気になっています。」
+    </div>
+    <p>
+      なお、レビューには非公式レビューからインスペクション（役割と手順を定めた公式レビュー）まで形式のレベルがあります。
+      まずは<strong>観点を持った非公式レビュー</strong>で十分。ここで成果を出せると「QAに早めに見せると得だ」という空気ができ、上流に呼ばれるようになります。
+    </p>
+
     <div class="mind">
       <span class="tag">マインドセット</span>
       レビューは「揚げ足取り」ではなく<strong>チーム全員の時間を守る共同作業</strong>。
-      実装後に見つけていたら手戻り数日の欠陥を、会議室の30分で潰している — その価値を自覚して臨む。
+      実装後なら手戻り数日の欠陥を、会議室の30分で潰している — その価値を自覚して、堂々と、しかし謙虚に問う。
     </div>
   </section>
 
   <!-- ========================================================= -->
   <section>
-    <h2>3. ワーク① 要件レビュー演習 <span class="time">15分</span></h2>
+    <h2>4. ワーク① 要件レビュー演習 <span class="time">15分</span></h2>
+
+    <div class="example">
+      <span class="tag">題材: 「海外出張精算機能」要件定義書ドラフト（抜粋）</span>
+      <ol style="margin:6px 0;">
+        <li>社員は海外出張の経費を現地通貨で入力できる。</li>
+        <li>入力された金額は為替レートで円換算して精算する。</li>
+        <li>換算後の金額に小数が出た場合は適切に処理する。</li>
+        <li>1回の出張の精算合計の上限は50万円とし、上限を超えた場合はエラーとする。</li>
+        <li>領収書は現地語のものも添付できる。</li>
+        <li>出張期間中は日当5,000円/日を自動加算する。</li>
+        <li>精算は帰国後速やかに行うこと。</li>
+        <li>対応通貨はUSD、EUR、GBPなど主要通貨とする。</li>
+      </ol>
+    </div>
+
     <div class="work">
       <span class="tag">ワーク（個人7分 → グループ共有8分）</span>
       <p style="margin:6px 0;">
-        経費精算システム「海外出張精算機能」の要件定義書ドラフト（意図的に曖昧さ・矛盾・漏れを仕込んだもの）を配布します。
-        <strong>テスト観点フレームを使ってレビューし、欠陥・懸念を指摘リストにして</strong>ください。
+        観点フレームと曖昧語アンテナを使ってこのドラフトをレビューし、<strong>欠陥・懸念を「質問の形」で指摘リストにして</strong>ください。目標は1人5件以上。
       </p>
       <p style="margin:6px 0;">グループで持ち寄り、「実装後に見つけたら一番高くついた指摘」を1つ選んで発表します。</p>
     </div>
+
     <details>
-      <summary>講師用: 仕込む欠陥の例（充填予定）</summary>
+      <summary>解答例を見る（仕込まれた欠陥と質問例）</summary>
+      <table>
+        <tr><th class="c" style="width:8%">項</th><th style="width:22%">観点</th><th>質問例（＝仕込まれた欠陥）</th></tr>
+        <tr>
+          <td class="c">2</td><td>データ×タイミング</td>
+          <td>為替レートは<strong>いつ時点・どこの</strong>レートですか？（利用日／申請日／承認日で金額が変わる。レートの取得元・更新頻度も未定義）</td>
+        </tr>
+        <tr>
+          <td class="c">3</td><td>曖昧語</td>
+          <td>「適切に処理」とは具体的に？（切り捨て／四捨五入。国内精算の既存ルールとの整合も要確認）</td>
+        </tr>
+        <tr>
+          <td class="c">4</td><td>データ／組み合わせ</td>
+          <td>上限50万円は<strong>円換算後</strong>の判定ですか？ また、Step1で学んだ「5万円超は部長承認」ルートとの関係は？（海外精算はほぼ全件5万円超になるが、全部部長承認でよい？）</td>
+        </tr>
+        <tr>
+          <td class="c">4</td><td>機能の裏</td>
+          <td>「エラーとする」の後、ユーザーは何ができますか？（分割申請は可能？ 例外承認の道は？）</td>
+        </tr>
+        <tr>
+          <td class="c">5</td><td>データ</td>
+          <td>添付ファイルの形式・サイズ上限は？ 現地語の領収書を経理は<strong>どう検証</strong>する想定ですか？</td>
+        </tr>
+        <tr>
+          <td class="c">6</td><td>タイミング</td>
+          <td>「出張期間中」に出発日・帰国日は含みますか？ 時差で現地泊数と日本時間の日数がずれる場合の数え方は？ 日当に上限（出張何日まで）はありますか？</td>
+        </tr>
+        <tr>
+          <td class="c">7</td><td>曖昧語</td>
+          <td>「速やかに」とは何営業日ですか？ 期限を過ぎた精算はどうなりますか？（締め処理との関係）</td>
+        </tr>
+        <tr>
+          <td class="c">8</td><td>曖昧語（〜など）</td>
+          <td>対応通貨の<strong>確定リスト</strong>はどこにありますか？ リスト外の通貨（例: 韓国ウォン）で出張したら？</td>
+        </tr>
+      </table>
+      <p style="margin:8px 0 0;">
+        「一番高くつく」候補は項2の<strong>為替レート適用日</strong>。全精算データの金額に波及し、本番で見つかれば経理の締めやり直し＋過去精算分の補正になる。
+        1つの文書から8つ以上の質問が出た — この30分が何日分の手戻りを消したか、を体感するのがこのワークの狙い。
+      </p>
+    </details>
+
+    <details>
+      <summary>講師用: このワークの狙いと展開例</summary>
       <ul>
-        <li>為替レートの適用日が未定義（利用日? 申請日? 承認日?）</li>
-        <li>「上限を超えた場合は適切に処理する」という曖昧語</li>
-        <li>通貨の小数点処理と既存の円処理の矛盾</li>
+        <li>指摘が「誤字・体裁」に偏る人には、観点フレームの表を指して「データの行で読み直してみて」と促す</li>
+        <li>指摘の<strong>形</strong>も講評対象: 断定・非難調になっていたら、質問形に言い換えさせる</li>
+        <li>項4の「承認ルートとの矛盾」は既存仕様（Step1第2回の5万円ルール）との組み合わせ欠陥。気づいたグループは大いに褒める — 新機能の要件は<strong>既存仕様と突き合わせて</strong>読む、が上級者の読み方</li>
+        <li>時間が余ったら「この8項目のうち、リスクが最も高いのはどれか」を第4回のマトリクスで議論させると前回と接続できる</li>
       </ul>
     </details>
   </section>
 
   <!-- ========================================================= -->
   <section>
-    <h2>4. 受け入れ条件と実例マッピング <span class="time">15分</span></h2>
-    <div class="example">
-      <span class="tag">盛り込む内容（骨組み）</span>
-      <ul>
-        <li>ユーザーストーリーと受け入れ条件 — 「完成の定義」を実装前に合意する</li>
-        <li>実例マッピング: ルール（受け入れ条件）ごとに具体例を出し、疑問を洗い出す手法（ストーリー/ルール/例/疑問の4色カード、インラインSVG図）</li>
-        <li>具体例が出せないルールは、まだ仕様が固まっていないサイン</li>
-        <li>ATDDの考え方: 合意した具体例がそのまま受け入れテストになる</li>
-      </ul>
-    </div>
+    <h2>5. 受け入れ条件と実例マッピング <span class="time">15分</span></h2>
+
+    <h3>「完成の定義」を実装前に合意する</h3>
+    <p>
+      アジャイル開発では要件をユーザーストーリー（「〈誰〉として〈何〉をしたい、なぜなら〈価値〉」）で表し、
+      <strong>受け入れ条件</strong>（Acceptance Criteria）で「何ができたら完成か」を定めます。
+      ただし、受け入れ条件は文章です。文章は人によって解釈が割れます。
+      そこで<em>具体例</em>で認識を揃えるのが実例マッピング（Example Mapping）です。
+    </p>
+
+    <h3>実例マッピングのやり方 — 4色のカード</h3>
+    <figure>
+      <svg viewBox="0 0 800 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="実例マッピングの4色カード構造">
+        <g font-family="sans-serif" font-size="12.5">
+          <!-- story (yellow) -->
+          <rect x="270" y="16" width="260" height="48" rx="6" fill="#fef9c3" stroke="#eab308"/>
+          <text x="400" y="36" text-anchor="middle" fill="#713f12" font-weight="bold">ストーリー（黄）</text>
+          <text x="400" y="54" text-anchor="middle" fill="#713f12" font-size="11.5">承認済みの経費申請を月次で締めたい</text>
+          <!-- rules (blue) -->
+          <rect x="40"  y="100" width="220" height="46" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+          <rect x="290" y="100" width="220" height="46" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+          <rect x="540" y="100" width="220" height="46" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+          <text x="150" y="119" text-anchor="middle" fill="#1e3a8a" font-weight="bold">ルール（青）＝受け入れ条件</text>
+          <text x="150" y="137" text-anchor="middle" fill="#1e3a8a" font-size="11.5">締め日までの承認分は当月精算</text>
+          <text x="400" y="119" text-anchor="middle" fill="#1e3a8a" font-weight="bold">ルール（青）</text>
+          <text x="400" y="137" text-anchor="middle" fill="#1e3a8a" font-size="11.5">締め後の承認分は翌月精算</text>
+          <text x="650" y="119" text-anchor="middle" fill="#1e3a8a" font-weight="bold">ルール（青）</text>
+          <text x="650" y="137" text-anchor="middle" fill="#1e3a8a" font-size="11.5">締め済みの月は編集不可</text>
+          <!-- examples (green) -->
+          <rect x="40"  y="162" width="220" height="42" rx="6" fill="#dcfce7" stroke="#22c55e"/>
+          <rect x="40"  y="212" width="220" height="42" rx="6" fill="#dcfce7" stroke="#22c55e"/>
+          <rect x="290" y="162" width="220" height="42" rx="6" fill="#dcfce7" stroke="#22c55e"/>
+          <rect x="540" y="162" width="220" height="42" rx="6" fill="#dcfce7" stroke="#22c55e"/>
+          <g fill="#14532d" font-size="11.5">
+            <text x="150" y="179" text-anchor="middle">具体例（緑）: 1/31 23:59承認</text>
+            <text x="150" y="196" text-anchor="middle">→ 1月分として精算される</text>
+            <text x="150" y="229" text-anchor="middle">具体例: 1/15承認 → 1月分</text>
+            <text x="150" y="246" text-anchor="middle">（代表値）</text>
+            <text x="400" y="179" text-anchor="middle">具体例: 2/1 00:00承認</text>
+            <text x="400" y="196" text-anchor="middle">→ 2月分として精算される</text>
+            <text x="650" y="179" text-anchor="middle">具体例: 締め済み1月分の申請を</text>
+            <text x="650" y="196" text-anchor="middle">開くと編集ボタンが非活性</text>
+          </g>
+          <!-- question (red) -->
+          <rect x="290" y="240" width="470" height="66" rx="6" fill="#fee2e2" stroke="#ef4444"/>
+          <text x="525" y="263" text-anchor="middle" fill="#7f1d1d" font-weight="bold">疑問（赤）＝その場で答えられなかったこと</text>
+          <text x="525" y="284" text-anchor="middle" fill="#7f1d1d" font-size="11.5">「締め日が土日の場合は？」「締めの瞬間に承認ボタンを押していたら？」</text>
+        </g>
+      </svg>
+      <figcaption>実例マッピング — ストーリー1枚・ルールは数枚・ルールごとに具体例・答えられない問いは「疑問」カードへ</figcaption>
+    </figure>
+    <p>
+      進め方はシンプルです。ストーリーを置き、受け入れ条件をルールとして並べ、<strong>ルールごとに具体的な値の入った例</strong>を出していく。
+      その場で答えられない問いが出たら、議論で止まらず<strong>赤カード（疑問）に書いて先へ進む</strong>。25分で1ストーリー、が目安です。
+    </p>
+
+    <h3>カードの枚数がそのまま診断になる</h3>
+    <ul>
+      <li><strong>緑（具体例）が出ないルール</strong> → 誰もそのルールを具体的に理解していない。実装に入るのは危険</li>
+      <li><strong>赤（疑問）が多い</strong> → 仕様が生煮え。持ち帰って要件を固めてから再度マッピング</li>
+      <li><strong>青（ルール）が多すぎる</strong> → ストーリーが大きすぎる。分割のサイン</li>
+    </ul>
+    <p>
+      そして合意した具体例は、そのまま<strong>受け入れテストのケース</strong>になります（この流れを仕組み化したものがATDD: 受け入れテスト駆動開発）。
+      テスト設計が実装より先に終わっている — シフトレフトの完成形です。
+    </p>
   </section>
 
   <!-- ========================================================= -->
   <section>
-    <h2>5. ワーク② 実例マッピング <span class="time">15分</span></h2>
+    <h2>6. ワーク② 実例マッピング <span class="time">15分</span></h2>
+
+    <div class="example">
+      <span class="tag">題材: ユーザーストーリーと受け入れ条件</span>
+      <p style="margin:6px 0;"><strong>ストーリー</strong>: 経理担当者として、承認済みの経費申請を月次で締めたい。なぜなら月次決算を確定させる必要があるから。</p>
+      <ul style="margin:6px 0;">
+        <li><strong>AC1</strong>: 締め日（毎月末日）までに承認された申請は、当月の精算対象になる</li>
+        <li><strong>AC2</strong>: 締め後に承認された申請は、翌月の精算対象になる</li>
+        <li><strong>AC3</strong>: 締め済みの月の申請は編集できない</li>
+      </ul>
+    </div>
+
     <div class="work">
       <span class="tag">ワーク（グループ12分 → 共有3分）</span>
       <p style="margin:6px 0;">
-        ユーザーストーリー「経理担当者として、承認済みの経費申請を月次で締めたい」と受け入れ条件3つを配布します。
-        <strong>実例マッピングでルールごとの具体例と「疑問」を洗い出して</strong>ください。
+        実例マッピングで、<strong>ルールごとの具体例（具体的な日時・金額入り）と「疑問」を洗い出して</strong>ください。
+        付箋3色（なければ枠線で色分け）: 青=ルール、緑=具体例、赤=疑問。
       </p>
       <p style="margin:6px 0;">出てきた「疑問」の数がこのワークの成果です。多いほど、実装前に救った手戻りが多いということ。</p>
     </div>
+
+    <details>
+      <summary>解答例を見る（具体例と疑問の例）</summary>
+      <p style="margin:6px 0;"><strong>緑（具体例）の例</strong>:</p>
+      <ul style="margin:4px 0;">
+        <li>AC1: 1/31 23:59に承認された5,000円の申請 → 1月分の精算に含まれる（境界の内側）</li>
+        <li>AC2: 2/1 00:00に承認された申請 → 2月分（境界の外側。<em>1分差で月が変わる</em>ことの確認）</li>
+        <li>AC2: 1/28に申請、承認者が放置して2/3に承認 → 2月分（申請日ではなく<strong>承認日</strong>基準であることの確認）</li>
+        <li>AC3: 締め済みの1月分申請を申請者が開く → 編集ボタン非活性。経理担当者が開いても同じく編集不可</li>
+      </ul>
+      <p style="margin:10px 0 6px;"><strong>赤（疑問）の例</strong> — 出てきたら大成功:</p>
+      <ul style="margin:4px 0;">
+        <li>「締め日が土日・祝日でも末日固定？ 前営業日に前倒し？」</li>
+        <li>「締め処理の実行中（23:59〜0:05）に承認ボタンを押したらどちらの月？」</li>
+        <li>「差し戻し中の申請は締め時点でどうなる？ 未承認扱い？」</li>
+        <li>「AC3の『編集』に削除・取り下げは含む？ 編集不可でも削除できたら統制の穴では？」</li>
+        <li>「締め後に金額誤りが発覚したら訂正の手段は？（編集不可なら赤伝処理？）」</li>
+      </ul>
+      <p style="margin:8px 0 0;">
+        AC3の「削除は含むか」は、第2回のデシジョンテーブルで「要確認」マスを見つけたのと同じ構造 —
+        <strong>具体例を作ろうとすると仕様の穴が機械的に見つかる</strong>。これが実例マッピングの価値。
+      </p>
+    </details>
+
+    <details>
+      <summary>講師用: このワークの狙いと展開例</summary>
+      <ul>
+        <li>具体例が「締め日までに承認→当月」のようにルールの言い換えになっているグループには「日付と金額を入れて」と促す。<strong>値が入って初めて解釈のズレが露出する</strong></li>
+        <li>境界（23:59/00:00）に自力で行けたら、第2回の境界値分析が身についている証拠。ワークの後に明示的に指摘して接続する</li>
+        <li>疑問が出ないグループには「承認者が月をまたいで放置したら？」を投げ込む</li>
+        <li>時間があれば「この緑カードをそのままテストケースの期待結果として書けるか」を確認 — ATDDへの橋渡し</li>
+      </ul>
+    </details>
   </section>
 
   <!-- ========================================================= -->
   <section>
-    <h2>6. アジャイル開発でのQAの動き方・まとめ <span class="time">10分</span></h2>
+    <h2>7. アジャイル開発でのQAの動き方・まとめ <span class="time">10分</span></h2>
+
+    <h3>スプリントの中でQAはいつ何をするか</h3>
+    <p>今日学んだ活動をスプリントに配置すると、QAの1週間はこうなります。</p>
+    <table>
+      <tr><th style="width:30%">場面</th><th>QAの動き</th></tr>
+      <tr><td>リファインメント／プランニング</td><td>ストーリーに観点で質問し、受け入れ条件を一緒に作る。必要なら実例マッピングを提案・進行する</td></tr>
+      <tr><td>実装中</td><td>できた画面から触る（早期の探索セッション）。開発者とペアで「これどう壊せる？」を試す</td></tr>
+      <tr><td>スプリントレビュー</td><td>合意した具体例が満たされているかをデモで確認する</td></tr>
+      <tr><td>ふりかえり</td><td>今スプリントで漏れた欠陥を「どの上流活動で防げたか」に翻訳してプロセスを直す</td></tr>
+    </table>
+
     <div class="example">
-      <span class="tag">盛り込む内容（骨組み）</span>
-      <ul>
-        <li>スプリント内でのQAの並走: 計画・リファインメントでの観点出し、実装中のペアテスト、レビューへの常時参加</li>
-        <li>「テストフェーズを待つQA」と「初日から品質を作るQA」の1スプリント比較（図解）</li>
-        <li>まとめ: 上流で防ぎ、下流で確かめる。第6回はここに自動化とAIを重ねて完成形にする</li>
-      </ul>
+      <span class="tag">同じスプリント、QAの居場所でこう変わる</span>
+      <table style="margin:8px 0 4px;">
+        <tr><th></th><th>テストフェーズを待つQA</th><th>初日から品質を作るQA</th></tr>
+        <tr><td>要件の欠陥</td><td>実装後にテストで発見 → 手戻り</td><td>リファインメントの質問で消える</td></tr>
+        <tr><td>テスト設計</td><td>実装完了後に着手 → スプリント末に渋滞</td><td>実例マッピングの緑カードが既に設計になっている</td></tr>
+        <tr><td>スプリント末</td><td>テストが終わらず持ち越し</td><td>実行は答え合わせ。探索に時間を使える</td></tr>
+      </table>
     </div>
-    <p class="jstqb">シラバス対応: CTFL 2章（シフトレフト・レビュー）、3章（静的テスト）、ISTQB Advanced Level Test Analyst（レビューへの参画）、アジャイルテスト担当者向けシラバス</p>
+
+    <h3>今日の持ち帰り</h3>
+    <ul>
+      <li>欠陥は<strong>見つける時期</strong>で値段が変わる。上流の30分は下流の1週間に等しい</li>
+      <li>レビューの武器は第2回の観点フレーム。<strong>書かれていないこと</strong>を問う。曖昧語（適切に・など・速やかに）は警報</li>
+      <li>指摘は成果物へ、<strong>質問の形</strong>で。「QAに早く見せると得」という信頼が上流への招待状になる</li>
+      <li>受け入れ条件は<strong>具体的な値の入った例</strong>で固める。具体例が出ないルールは実装してはいけない</li>
+      <li>疑問カードの数は成果。実装前に見つけた「決まっていないこと」の数だから</li>
+    </ul>
+    <p>
+      最終回の次回は、ここまでの全部 — リスク分析・上流での作り込み — に「自動化」と「AI」を重ねます。
+      QAの仕事がこれからどう変わるのか、キャリアの地図を持って卒業する回です。
+    </p>
+    <p class="jstqb">シラバス対応: ISTQB CTFL 2023 V4.0 — 第2章（2.1.5 シフトレフト）、第3章（静的テスト・レビュー）、第4章（4.5 コラボレーションベースのテストアプローチ: ユーザーストーリー・受け入れ条件・ATDD）</p>
   </section>
 
   <footer class="pager">

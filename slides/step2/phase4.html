@@ -38,10 +38,6 @@
   header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
   header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
   header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
-  .draft {
-    background: #fffbeb; border: 1px dashed #d97706; border-radius: 8px;
-    padding: 10px 18px; margin-bottom: 24px; font-size: .88rem; color: #92400e;
-  }
   section {
     background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
     padding: 30px 34px; margin-bottom: 30px;
@@ -67,8 +63,17 @@
   table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
   th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
   th { background: var(--accent-light); color: var(--accent); }
+  .c { text-align: center; }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; font-size: .93rem; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: .8rem; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: .8rem; }
   details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
   details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  figure { margin: 20px 0; text-align: center; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
   .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
   footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
   footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
@@ -86,11 +91,6 @@
     <p>時間は常に足りない。だからこそ「どこを厚く、どこを薄くするか」を意思を持って決める。それがテスト戦略。</p>
   </header>
 
-  <div class="draft">
-    <strong>骨組み版:</strong> このページは構成とワークのみ確定した骨組みです。本文コンテンツは
-    <code>docs/learning-plan-step2-outline.md</code> の第4回タイムテーブルに沿って充填します。
-  </div>
-
   <div class="goal">
     <h2>今日のゴール</h2>
     <ul>
@@ -102,31 +102,194 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>1. テスト戦略とアプローチ <span class="time">15分</span></h2>
+    <h2>1. Step1の振り返りとStep2のゴール <span class="time">5分</span></h2>
+    <p>
+      Step1では、テストという仕事の土台（第1回）、仕様を読んで設計する力（第2回）、テストを回して品質を語る力（第3回）を作りました。
+      言い換えると、<strong>与えられた範囲のテストを一人で回せる</strong>状態です。
+    </p>
+    <p>
+      Step2のテーマは「その範囲を自分で決める」こと。今日扱う<em>戦略とリスク</em>はStep2全体の土台です。
+      第5回（上流のどこに力を入れるか）も第6回（何を自動化しAIに何を任せるか）も、結局はリスクに基づく配分の話だからです。
+    </p>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>2. テスト戦略とアプローチ <span class="time">15分</span></h2>
+
+    <h3>「計画」の一段上にある「戦略」</h3>
+    <p>
+      第3回で学んだテスト計画は「何を・いつ・誰が・どの環境で」を決めるものでした。
+      その前に決めるべきことがあります。<em>そもそもどういう方針で攻めるのか</em> — これがテスト戦略（テストアプローチ）です。
+      戦略が曖昧なまま計画を作ると、「とりあえず全機能を一通り」という<strong>根拠のない均等配分</strong>になり、時間が足りなくなってから場当たり的に削ることになります。
+    </p>
+
+    <h3>アプローチの引き出し</h3>
+    <p>代表的なアプローチを知っておくと、状況に合わせて「配合」できるようになります。</p>
+    <table>
+      <tr><th style="width:26%">アプローチ</th><th>どう攻めるか</th><th style="width:30%">現場での例</th></tr>
+      <tr>
+        <td><strong>分析的</strong>（リスクベース／要件ベース）</td>
+        <td>リスクや要件を分析し、優先度に応じてテストを配分する</td>
+        <td>今日の主役。リスクの高い機能に技法と時間を集中させる</td>
+      </tr>
+      <tr>
+        <td><strong>モデルベース</strong></td>
+        <td>状態遷移図や業務フローなどのモデルからテストを導出する</td>
+        <td>第2回の状態遷移テストの延長。承認フローの遷移網羅</td>
+      </tr>
+      <tr>
+        <td><strong>系統的</strong>（チェックリストベース）</td>
+        <td>観点集・チェックリストなど既定のリストで漏れなく確認する</td>
+        <td>過去の不具合傾向から作った社内共通チェックリスト</td>
+      </tr>
+      <tr>
+        <td><strong>プロセス準拠</strong></td>
+        <td>業界標準や規制の定める手順・証跡に従う</td>
+        <td>金融・医療など監査要件があるプロジェクト</td>
+      </tr>
+      <tr>
+        <td><strong>経験ベース</strong>（リアクティブ）</td>
+        <td>実物を触りながら、経験と学びで次の一手を決める</td>
+        <td>今日の後半で扱う探索的テスト</td>
+      </tr>
+      <tr>
+        <td><strong>回帰的</strong></td>
+        <td>既存機能を壊していないことの確認を最優先する</td>
+        <td>毎月の保守リリース。自動リグレッションが主力（第6回）</td>
+      </tr>
+    </table>
+
     <div class="example">
-      <span class="tag">盛り込む内容（骨組み）</span>
-      <ul>
-        <li>テスト計画（第3回）の一段上にある「戦略」— なぜ戦略が要るのか</li>
-        <li>アプローチの種類: 分析的（リスクベース・要件ベース）／モデルベース／経験ベース（探索的・エラー推測）／回帰的 など</li>
-        <li>「テストは状況次第」（7原則）の実践 — プロジェクト特性に応じた選択と組み合わせ</li>
-        <li>経費精算システムの例: 法改正対応リリースと画面刷新リリースで戦略はどう変わるか</li>
-      </ul>
+      <span class="tag">同じ経費精算システムでも、リリースが違えば戦略は変わる</span>
+      <table style="margin:8px 0 4px;">
+        <tr><th style="width:30%"></th><th>インボイス制度改正対応リリース</th><th>申請画面の全面刷新リリース</th></tr>
+        <tr>
+          <td>何が怖いか</td>
+          <td>税額計算の誤り（お金に直結・全件に波及）</td>
+          <td>操作性の劣化、既存機能のデグレード</td>
+        </tr>
+        <tr>
+          <td>戦略の配合</td>
+          <td><strong>要件ベース</strong>で改正要件を1件ずつ潰す + 計算まわりの<strong>回帰的</strong>テストを厚く</td>
+          <td><strong>モデルベース</strong>で画面遷移を網羅 + <strong>探索的</strong>テストで使い勝手の穴を探す</td>
+        </tr>
+        <tr>
+          <td>薄くするところ</td>
+          <td>画面の見た目・操作性（変更していないため）</td>
+          <td>計算ロジック（変更していないため。スモークのみ）</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      「テストは状況次第」（7原則の6）を実行に移すのが戦略。<strong>前のプロジェクトのやり方をコピペした瞬間、戦略は死ぬ</strong>。
+      アプローチは単品で選ぶものではなく、リリースの性質に合わせて毎回配合し直すもの。
     </div>
   </section>
 
   <!-- ========================================================= -->
   <section>
-    <h2>2. リスクベースドテスト <span class="time">20分</span></h2>
+    <h2>3. リスクベースドテスト <span class="time">20分</span></h2>
+
+    <h3>優先順位の「根拠」を作る</h3>
+    <p>
+      全数テストは不可能（7原則の2）だから優先順位をつける — ここまではStep1で学びました。
+      では、その優先順位はどう決めるのか。勘や声の大きい人の意見ではなく、<em>リスク = 影響度 × 発生確率</em>という共通のものさしで決めるのがリスクベースドテストです。
+      ものさしが共通だから、チームで議論でき、あとから説明できます。
+    </p>
+
+    <h3>影響度 — 起きたらどれだけ痛いか</h3>
+    <ul>
+      <li><strong>お金に直結するか</strong>: 精算金額・仕訳・税額の誤りは1件でも重い（第1回の端数処理の例を思い出す）</li>
+      <li><strong>業務が止まるか</strong>: 月次の締め処理が失敗したら、経理部門全体が待ちになる</li>
+      <li><strong>影響範囲の広さ</strong>: 全社員が使う申請画面か、管理者数名しか使わない設定画面か</li>
+      <li><strong>回避策の有無</strong>: 画面で直せる誤りか、データパッチが必要な誤りか</li>
+      <li><strong>信用・コンプライアンス</strong>: 個人情報の漏えい、監査証跡の欠落は金額換算できない痛み</li>
+    </ul>
+
+    <h3>発生確率 — どれだけ壊れていそうか</h3>
+    <ul>
+      <li><strong>複雑さ</strong>: 条件分岐が多い（承認ルート、税率、按分計算）</li>
+      <li><strong>新規性・変更の集中</strong>: 新規機能、今回の改修で手が入った箇所、仕様変更が重なった箇所</li>
+      <li><strong>過去の欠陥の偏在</strong>: 「欠陥は偏在する」（7原則の4）。過去の不具合票は発生確率の一次情報</li>
+      <li><strong>作り手の状況</strong>: 引き継ぎ直後、新メンバーの担当箇所、突貫で作られた箇所</li>
+      <li><strong>外部との接続</strong>: 他システム連携・取込・出力は、こちらの想定が通用しない</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 760 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="影響度と発生確率のリスクマトリクス">
+        <g font-family="sans-serif" font-size="13">
+          <!-- axes -->
+          <line x1="90" y1="380" x2="720" y2="380" stroke="#6b7280" stroke-width="1.5"/>
+          <line x1="90" y1="380" x2="90" y2="40" stroke="#6b7280" stroke-width="1.5"/>
+          <polygon points="720,380 710,375 710,385" fill="#6b7280"/>
+          <polygon points="90,40 85,50 95,50" fill="#6b7280"/>
+          <text x="700" y="405" fill="#374151">発生確率 →</text>
+          <text x="40" y="210" fill="#374151" text-anchor="middle" transform="rotate(-90 40 210)">影響度 →</text>
+          <!-- quadrants -->
+          <rect x="100" y="55" width="300" height="155" rx="8" fill="#fef3c7" stroke="#f59e0b"/>
+          <rect x="410" y="55" width="300" height="155" rx="8" fill="#fee2e2" stroke="#ef4444"/>
+          <rect x="100" y="220" width="300" height="150" rx="8" fill="#f3f4f6" stroke="#9ca3af"/>
+          <rect x="410" y="220" width="300" height="150" rx="8" fill="#dbeafe" stroke="#3b82f6"/>
+          <!-- labels -->
+          <text x="560" y="85" text-anchor="middle" font-weight="bold" fill="#991b1b">最優先 — 厚くテスト</text>
+          <text x="560" y="110" text-anchor="middle" fill="#7f1d1d" font-size="12">技法でしっかり設計＋異常系＋</text>
+          <text x="560" y="128" text-anchor="middle" fill="#7f1d1d" font-size="12">探索的テストも重ねる</text>
+          <text x="560" y="152" text-anchor="middle" fill="#7f1d1d" font-size="12">例: IC連携の取込金額、承認ルート</text>
+          <text x="250" y="85" text-anchor="middle" font-weight="bold" fill="#92400e">重点確認 — 狙って確かめる</text>
+          <text x="250" y="110" text-anchor="middle" fill="#78350f" font-size="12">起きにくいが起きたら致命的。</text>
+          <text x="250" y="128" text-anchor="middle" fill="#78350f" font-size="12">シナリオを絞って確実に押さえる</text>
+          <text x="250" y="152" text-anchor="middle" fill="#78350f" font-size="12">例: 権限すり抜け、データ移行</text>
+          <text x="560" y="252" text-anchor="middle" font-weight="bold" fill="#1e40af">効率化 — 仕組みでカバー</text>
+          <text x="560" y="277" text-anchor="middle" fill="#1e3a8a" font-size="12">よく起きるが痛みは小さい。</text>
+          <text x="560" y="295" text-anchor="middle" fill="#1e3a8a" font-size="12">自動化・チェックリストで淡々と（第6回）</text>
+          <text x="560" y="319" text-anchor="middle" fill="#1e3a8a" font-size="12">例: 入力チェックの網羅、表示崩れ</text>
+          <text x="250" y="252" text-anchor="middle" font-weight="bold" fill="#4b5563">最小限 — 薄くてよいと宣言</text>
+          <text x="250" y="277" text-anchor="middle" fill="#4b5563" font-size="12">スモーク程度。ただし</text>
+          <text x="250" y="295" text-anchor="middle" fill="#4b5563" font-size="12">「薄くした」と計画に明記する</text>
+          <text x="250" y="319" text-anchor="middle" fill="#4b5563" font-size="12">例: ヘルプ画面、管理者用の稀な設定</text>
+        </g>
+      </svg>
+      <figcaption>リスクマトリクス — 場所によって「テストの濃さ」を変える。全マスを同じ濃さにするのは戦略の放棄</figcaption>
+    </figure>
+
+    <h3>リスクレベルをテストの濃淡に翻訳する</h3>
+    <p>分析して終わりではなく、リスクレベルごとに「何をするか」をあらかじめ決めておくと、そのまま計画になります。</p>
+    <table>
+      <tr><th style="width:14%" class="c">リスク</th><th>テスト設計の深さ</th><th>実行の厚み</th></tr>
+      <tr>
+        <td class="c"><strong>高</strong></td>
+        <td>技法で網羅的に設計（境界値・デシジョンテーブル・状態遷移）＋異常系を明示的に設計</td>
+        <td>スクリプトテスト＋探索的テストを重ねる。リグレッション対象に固定</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>中</strong></td>
+        <td>正常系＋主要な異常系。代表値中心</td>
+        <td>スクリプトテスト1周＋変更があった時のみ再テスト</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>低</strong></td>
+        <td>ケースは書かず、チェックリストレベル</td>
+        <td>スモークテストのみ。<strong>「低リスクと判断し薄くした」と計画に書く</strong></td>
+      </tr>
+    </table>
+
+    <h3>非機能リスクを忘れない</h3>
+    <p>
+      リスク分析の対象は機能だけではありません。業務システムでは、機能テストを全部パスしたのに本番で倒れる原因の多くが非機能です。
+      経費精算なら定番はこの3つ。
+    </p>
     <div class="example">
-      <span class="tag">盛り込む内容（骨組み）</span>
-      <ul>
-        <li>プロダクトリスク分析: 影響度×発生確率のマトリクス（インラインSVG図）</li>
-        <li>影響度の見立て: お金・業務停止・信用（第1回の不具合コストの再登場）</li>
-        <li>発生確率の見立て: 複雑さ・変更の集中・過去の欠陥の偏在（宝の地図）</li>
-        <li>リスクレベル→テストの濃淡への翻訳: 高=技法+異常系+探索、中=正常系+リグレッション、低=スモークのみ 等</li>
-        <li><strong>非機能リスクもここで扱う</strong>: 業務システムの定番 — 性能（月末の締め集中）、権限（承認フロー）、データ移行</li>
+      <span class="tag">業務システムの非機能リスク定番3点セット</span>
+      <ul style="margin:6px 0;">
+        <li><strong>性能</strong>: 月末月初に申請と承認が集中する。平常時の100倍のアクセスで応答は保てるか。夜間バッチは朝までに終わるか</li>
+        <li><strong>権限</strong>: 他人の申請が見えないか。承認者を自分に変更できないか。URL直打ちで管理画面に入れないか</li>
+        <li><strong>データ移行</strong>: 旧システムから引き継いだ過去データ（未精算の申請、旧税率の履歴）で新機能が正しく動くか</li>
       </ul>
     </div>
+
     <div class="mind">
       <span class="tag">マインドセット</span>
       薄くする箇所を決めるのは「手抜き」ではなく<strong>説明責任を伴う設計判断</strong>。
@@ -136,62 +299,165 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>3. ワーク① リスク分析マトリクス <span class="time">15分</span></h2>
+    <h2>4. ワーク① リスク分析マトリクス <span class="time">15分</span></h2>
+
+    <div class="example">
+      <span class="tag">題材: 交通系ICカード連携機能（新規追加）の概要</span>
+      <ul style="margin:6px 0;">
+        <li>社員は自分の交通系ICカードを<strong>1枚</strong>登録できる</li>
+        <li>カードの利用履歴を<strong>夜間バッチ</strong>で自動取込し、経費申請のたたき台を作る</li>
+        <li>取り込んだ履歴は金額・区間を<strong>編集して</strong>申請に変換できる</li>
+        <li>私用の履歴には<strong>除外フラグ</strong>を付けられる（申請対象から外れる）</li>
+        <li>取込は外部のICカード事業者APIを利用する</li>
+      </ul>
+    </div>
+
     <div class="work">
       <span class="tag">ワーク（グループ10分 → 共有5分）</span>
       <p style="margin:6px 0;">
-        経費精算システムに「交通系ICカード連携（利用履歴の自動取込）」機能が追加されます。
-        配布する機能概要をもとに、<strong>リスク分析マトリクスを作り、テストの濃淡（厚くする所・薄くする所）を決めて</strong>ください。
+        この機能のリスクを書き出し、<strong>影響度×発生確率のマトリクスに配置して、テストの濃淡（厚くする所・薄くする所）を決めて</strong>ください。
+        非機能リスク（性能・権限・データ）も最低1つは挙げること。
       </p>
       <p style="margin:6px 0;">最後に「一番薄くした箇所とその理由」をチームで1つ発表します。</p>
     </div>
+
     <details>
-      <summary>講師用: このワークの狙いと展開例（充填予定）</summary>
+      <summary>解答例を見る（マトリクス配置の一例）</summary>
+      <table>
+        <tr><th style="width:34%">リスク</th><th class="c" style="width:11%">影響度</th><th class="c" style="width:11%">発生確率</th><th>濃淡の判断</th></tr>
+        <tr>
+          <td>取込データの重複・欠落（同じ履歴が2回申請される／履歴が消える）</td>
+          <td class="c">高</td><td class="c">高</td>
+          <td><strong>最優先</strong>。精算金額に直結×外部API連携＋新規開発。境界（日またぎ・月またぎ・取込失敗後の再実行）を技法で設計＋探索も重ねる</td>
+        </tr>
+        <tr>
+          <td>除外フラグの誤り（私用の履歴が申請に混入する）</td>
+          <td class="c">高</td><td class="c">中</td>
+          <td><strong>厚く</strong>。「私費の経費化」はコンプライアンス問題。フラグ操作×申請変換の状態遷移を網羅</td>
+        </tr>
+        <tr>
+          <td>他人のカードを登録できてしまう（権限・本人確認）</td>
+          <td class="c">高</td><td class="c">低</td>
+          <td><strong>重点確認</strong>。起きにくいが起きたら信用問題。すり抜けシナリオを絞って確実に確認</td>
+        </tr>
+        <tr>
+          <td>夜間バッチが朝までに終わらない（全社員分の履歴取込の性能）</td>
+          <td class="c">中</td><td class="c">中</td>
+          <td>本番相当件数でのバッチ実行を1回は必ずやる（環境と data の準備を計画に入れる — 第3回の見積りの話）</td>
+        </tr>
+        <tr>
+          <td>履歴編集画面の入力チェック（金額のマイナス・全角など）</td>
+          <td class="c">中</td><td class="c">高</td>
+          <td><strong>効率化</strong>。よくあるバグだが直しやすい。チェックリスト＋自動化候補（第6回）</td>
+        </tr>
+        <tr>
+          <td>履歴一覧の表示崩れ・並び順</td>
+          <td class="c">低</td><td class="c">中</td>
+          <td><strong>薄く</strong>。スモークのみ。「業務影響が小さいため薄くする」と計画に明記</td>
+        </tr>
+      </table>
+      <p style="margin:8px 0 0;">
+        重要なのは配置の「正解」ではなく、<strong>チームで影響度・確率の根拠を議論して合意した</strong>こと。
+        本番のプロジェクトでは、この表を開発者・PMにも見せて認識を合わせてからテスト設計に入る。
+      </p>
+    </details>
+
+    <details>
+      <summary>講師用: このワークの狙いと展開例</summary>
       <ul>
-        <li>「全部高リスク」にしてしまうチームが出たら、相対評価であることを促す</li>
-        <li>非機能リスク（取込タイミングの性能、他人のカード誤登録＝権限）に気づけるかがポイント</li>
+        <li>「全部高リスク」にしてしまうチームには「では時間が半分になったらどれを削る？」と問い、<strong>相対評価</strong>であることを促す</li>
+        <li>非機能リスク（バッチの性能、他人のカード登録＝権限）に自力で気づけるかがポイント。出なければ「月末の朝、履歴が取り込まれていなかったら何が起きる？」とヒントを出す</li>
+        <li>「除外フラグ」は機能としては地味だが、コンプライアンス影響に気づくと影響度評価が跳ね上がる — 影響度は<strong>業務の文脈</strong>で決まることを体感させる</li>
+        <li>発表では「薄くした理由」が説明になっているか（「時間がないから」はNG、「影響が小さく回避策があるから」はOK）を講評する</li>
       </ul>
     </details>
   </section>
 
   <!-- ========================================================= -->
   <section>
-    <h2>4. 探索的テスト入門 <span class="time">15分</span></h2>
+    <h2>5. 探索的テスト入門 <span class="time">15分</span></h2>
+
+    <h3>スクリプトテストの死角を埋める</h3>
+    <p>
+      事前に書いたテストケース（スクリプトテスト）は、<em>書いた人の想像の範囲</em>しか確かめられません。
+      さらに同じケースを繰り返すほど新しいバグは見つからなくなります（殺虫剤のパラドックス — 7原則の5）。
+      この死角を埋めるのが探索的テスト。<strong>テストの設計・実行・学習を同時に行い、直前の結果から次の一手を決める</strong>やり方です。
+      第2回で「新機能はまず30分探索してからケースを書く」と触れました。今日はそれを仕事として成立させる型を学びます。
+    </p>
+
+    <h3>「行き当たりばったり」との違い — セッションという型</h3>
+    <p>探索的テストがただの「適当に触る」と違うのは、次の4点があるからです。この型をセッションベースドテスト（SBT）と呼びます。</p>
+    <table>
+      <tr><th style="width:22%">要素</th><th>内容</th></tr>
+      <tr><td><strong>チャーター</strong></td><td>このセッションで「何を・どんな観点で・何のために」探索するかのお題。1セッション1チャーター</td></tr>
+      <tr><td><strong>時間箱</strong></td><td>60〜120分で区切る（今日のワークは短縮版）。区切るから集中でき、報告の単位になる</td></tr>
+      <tr><td><strong>セッションノート</strong></td><td>試したこと・起きたこと・気になったことをメモしながら進める。<strong>記録がない探索は蒸発する</strong></td></tr>
+      <tr><td><strong>デブリーフィング</strong></td><td>セッション後にリーダーへ口頭報告。見つけた問題＋「次に探索すべき場所」の提案</td></tr>
+    </table>
+
+    <h3>チャーターの書き方</h3>
+    <p>テンプレートで書くと迷いません: <em>「〈対象〉を、〈リソース・データ〉を使って探索し、〈見つけたい情報〉を明らかにする」</em></p>
     <div class="example">
-      <span class="tag">盛り込む内容（骨組み）</span>
-      <ul>
-        <li>スクリプトテストの弱点（殺虫剤のパラドックス）を補う武器としての位置づけ</li>
-        <li>「行き当たりばったり」との違い: 目的（チャーター）・時間箱・記録を持つ＝セッションベースドテスト（SBTM）</li>
-        <li>チャーターの書き方: 「〜を対象に、〜の観点で、〜を探索する」テンプレート</li>
-        <li>探索中の思考法: 気になる挙動を追う、学んだことで次の一手を変える</li>
+      <span class="tag">チャーターの例（IC連携機能）</span>
+      <ul style="margin:6px 0;">
+        <li>「<strong>除外フラグまわり</strong>を、<strong>月またぎ・締め日直前の履歴データ</strong>を使って探索し、<strong>精算金額に影響する問題がないか</strong>を明らかにする」</li>
+        <li>「<strong>履歴の編集→申請変換の流れ</strong>を、<strong>編集途中の中断・二重操作</strong>を混ぜて探索し、<strong>データが壊れる操作列がないか</strong>を明らかにする」</li>
       </ul>
+      <p style="margin:6px 0 0;">ワーク①のリスク分析で「高」にした領域が、そのまま良いチャーターの候補になる — リスク分析と探索はセットで使う。</p>
+    </div>
+
+    <h3>探索中の思考法</h3>
+    <ul>
+      <li>「おや？」と思ったら深追いする。バグは群れている（欠陥の偏在）— 1匹見つけたら周辺を掘る</li>
+      <li>学んだことで次の一手を変える。「日付の編集が怪しい」と分かったら、日付が絡む操作を集中的に試す</li>
+      <li>チャーターから大きく外れたら、無理に追わずノートに「次のチャーター候補」として書き残す</li>
+    </ul>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      探索がうまい人は運がいいのではなく、<strong>仮説→実験→学習を高速に回している</strong>。
+      「この作りなら、ここが弱いはず」という仮説の質は、ドメイン知識と過去の不具合の記憶から来る。
+      探索的テストは経験が武器になる、キャリアと共に強くなるスキル。
     </div>
   </section>
 
   <!-- ========================================================= -->
   <section>
-    <h2>5. ワーク② ミニ探索セッション <span class="time">15分</span></h2>
+    <h2>6. ワーク② ミニ探索セッション <span class="time">15分</span></h2>
     <div class="work">
-      <span class="tag">ワーク（チャーター作成5分 → 探索7分 → 共有3分）</span>
+      <span class="tag">ワーク（チャーター作成5分 → 探索7分 → デブリーフィング3分）</span>
       <p style="margin:6px 0;">
-        ワーク①でリスク「高」とした領域を1つ選び、<strong>チャーターを書いてから</strong>探索的テストのセッションを行ってください。
-        （教材: 意図的に不具合を仕込んだ画面モック or 仕様書ベースの机上探索 — 教材形式は充填時に決定）
+        ワーク①でリスク「高」とした領域を1つ選び、テンプレートに沿って<strong>チャーターを書いてから</strong>探索セッションを行ってください。
+        探索は「講師がシステム役」の口頭形式で行います: あなたが操作を宣言すると、講師がシステムの挙動を答えます（不具合を仕込んであります）。
       </p>
-      <p style="margin:6px 0;">見つけたこと・気になったことをセッションノートに記録し、共有します。</p>
+      <p style="margin:6px 0;">セッションノート（試したこと／起きたこと／気になったこと）を取りながら進め、最後にデブリーフィング形式で報告します。</p>
     </div>
+    <details>
+      <summary>講師用: 「システム役」の進め方と仕込み例</summary>
+      <ul>
+        <li>デモ環境やモックがあればそれを使う。なければこの「口頭探索」形式が準備少なく機能する: 受講者「除外フラグを付けた履歴を、そのあと申請に変換してみます」→講師「変換できてしまいました」のように応答する</li>
+        <li>仕込み例: (a) 除外フラグ付き履歴が申請一覧の合計金額には含まれてしまう、(b) 履歴を編集中に別タブで同じ履歴を開くと古い内容で上書きできる、(c) 月末23時台の履歴が翌月分として取り込まれる</li>
+        <li>チャーターに沿わないランダムな操作宣言が続くグループには「今のチャーターは何だった？」と立ち返らせる</li>
+        <li>デブリーフィングでは「見つけた不具合の数」ではなく「<strong>次に探索すべき場所を提案できたか</strong>」を褒める — 探索の成果は情報である</li>
+      </ul>
+    </details>
   </section>
 
   <!-- ========================================================= -->
   <section>
-    <h2>6. まとめ <span class="time">5分</span></h2>
-    <div class="example">
-      <span class="tag">盛り込む内容（骨組み）</span>
-      <ul>
-        <li>戦略とは「やらないことを決めて、説明できること」</li>
-        <li>リスク分析は第5回（上流での品質作り込み）と第6回（自動化・AIの配分判断）の土台になる</li>
-      </ul>
-    </div>
-    <p class="jstqb">シラバス対応: ISTQB Advanced Level Test Management（リスクベースドテスト）、CTFL 5章（リスク分析）、経験ベースのテスト技法（CTFL 4.4）</p>
+    <h2>7. まとめ <span class="time">5分</span></h2>
+    <h3>今日の持ち帰り</h3>
+    <ul>
+      <li>戦略とは<strong>「やらないことを決めて、説明できること」</strong>。アプローチはリリースの性質に合わせて毎回配合し直す</li>
+      <li>優先順位のものさしは<em>リスク = 影響度 × 発生確率</em>。共通のものさしだからチームで議論でき、あとから説明できる</li>
+      <li>影響度は業務の文脈（お金・業務停止・信用）で決まる。発生確率は複雑さ・変更・過去の欠陥から読む</li>
+      <li>非機能リスク（性能・権限・データ移行）を機能リスクと同じ土俵で分析する</li>
+      <li>探索的テストは「チャーター・時間箱・ノート・報告」の型を持てば仕事になる。リスクの高い所に重ねて使う</li>
+    </ul>
+    <p>
+      次回は視点を上流へ移します。「テストで見つける」より安い「そもそも作り込ませない」— シフトレフトとレビューの話です。
+    </p>
+    <p class="jstqb">シラバス対応: ISTQB CTFL 2023 V4.0 — 第5章（5.2 リスクマネジメント）、第4章（4.4 経験ベースのテスト技法）／ISTQB Advanced Level Test Management — リスクベースドテスト</p>
   </section>
 
   <footer class="pager">

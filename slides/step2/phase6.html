@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第6回 テスト自動化とAI時代のQA — 実行者から品質の設計者へ</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #7c2d5e;
+    --accent-light: #faeef5;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 16px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 36px; margin-bottom: 36px;
+  }
+  header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
+  header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
+  .draft {
+    background: #fffbeb; border: 1px dashed #d97706; border-radius: 8px;
+    padding: 10px 18px; margin-bottom: 24px; font-size: .88rem; color: #92400e;
+  }
+  section {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 30px 34px; margin-bottom: 30px;
+  }
+  section > h2 {
+    margin: -30px -34px 24px; padding: 16px 34px;
+    background: var(--accent-light); border-radius: 12px 12px 0 0;
+    font-size: 1.25rem; color: var(--accent);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  section > h2 .time { float: right; font-size: .8rem; color: var(--muted); font-weight: normal; margin-top: 4px; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 28px 0 10px; }
+  .goal { background: var(--accent-light); border-radius: 10px; padding: 20px 26px; margin-bottom: 30px; }
+  .goal h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--accent); }
+  .goal ul { margin: 0; padding-left: 1.4em; }
+  .mind, .work, .example { border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .mind .tag { color: var(--mind); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; font-size: .93rem; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: .8rem; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: .8rem; }
+  details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
+  footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
+  footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  .refs { font-size: .85rem; }
+  .refs a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="crumb"><a href="index.html">← Step2 目次に戻る</a></nav>
+
+  <header class="hero">
+    <div class="label">テストエンジニア育成講座 Step2 — 第6回（90分）/ 最終回</div>
+    <h1>テスト自動化とAI時代のQA<br>— 実行者から品質の設計者へ</h1>
+    <p>AIはQAの仕事を奪わない。ただし「言われたテストを実行するだけの仕事」は残らない。何が変わり、何が変わらないのかを見極める。</p>
+  </header>
+
+  <div class="draft">
+    <strong>骨組み版:</strong> このページは構成とワーク、AIパートの事例データのみ確定した骨組みです。本文コンテンツは
+    <code>docs/learning-plan-step2-outline.md</code> の第6回タイムテーブルに沿って充填します。
+  </div>
+
+  <div class="goal">
+    <h2>今日のゴール</h2>
+    <ul>
+      <li>「何を自動化し、何を人がやるか」を、コストとリスクで説明できる</li>
+      <li>AI×QAの現在地 — <strong>できること・できないこと・失敗パターン</strong> — を実例で語れる</li>
+      <li>AIの出力を鵜呑みにせず検証する、というQAの新しい中核スキルを体感する</li>
+      <li>自分のキャリアの地図を持って、この講座を卒業する</li>
+    </ul>
+  </div>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>1. テスト自動化の判断軸 <span class="time">15分</span></h2>
+    <div class="example">
+      <span class="tag">盛り込む内容（骨組み）</span>
+      <ul>
+        <li>テストピラミッド: ユニット/インテグレーション/E2Eの層と、それぞれのコスト構造（インラインSVG図）</li>
+        <li>自動化のROI: 作成コスト+保守コスト vs 繰り返し回数。「1回しか実行しないテスト」は自動化しない</li>
+        <li>自動化に向くもの: リグレッション、スモーク、データバリエーションの多い確認</li>
+        <li>向かないもの: 探索的テスト、ユーザビリティ、頻繁に仕様が変わる新機能のUI</li>
+        <li>第4回のリスク分析との接続: 自動化の配分も「戦略」の一部</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>2. AI×QAの現在地マップ <span class="time">20分</span></h2>
+    <p>
+      「AIでテストが変わる」は未来の話ではなく、<em>数字が出ている現在の話</em>です。
+      ただし成功事例を読み解くと、全社に共通するパターンが見えてきます。5つの類型で現在地を整理します。
+    </p>
+
+    <h3>5つの活用類型と現在地（2026年時点）</h3>
+    <table>
+      <tr><th style="width:26%">類型</th><th>できること（実例）</th><th>人間に残る部分</th></tr>
+      <tr>
+        <td>① テストケース/観点の生成</td>
+        <td>仕様書からたたき台を数分で大量生成。食べログは実行工数<strong>52%削減</strong>、DMMは設計速度<strong>2倍</strong></td>
+        <td>網羅性の穴の検出、ドメイン知識による妥当性検証（「1を10に磨くのは人」）</td>
+      </tr>
+      <tr>
+        <td>② E2EツールのAI機能</td>
+        <td>自然言語からのテスト作成、UI変更への自己修復（MagicPod Autopilot、Autify、mabl）</td>
+        <td>仕様変更に伴う「意図の変化」の判断、業務ロジックの妥当性レビュー</td>
+      </tr>
+      <tr>
+        <td>③ 自律探索エージェント</td>
+        <td>アプリを探索しリスクの高い箇所からテスト生成・実行（まだ実験〜初期導入段階）</td>
+        <td>ビジネス文脈の理解、本物のバグとFlakyの区別、Human-in-the-loopの承認</td>
+      </tr>
+      <tr>
+        <td>④ レビュー・起票支援</td>
+        <td>仕様書レビュー、バグチケットのたたき台作成（Zenkigen、CyberAgent等がパイプライン運用）</td>
+        <td>起票の仕上げ、2段階レビュー、プロダクト固有知識の供給</td>
+      </tr>
+      <tr>
+        <td>⑤ LLMプロダクトの評価（Eval）</td>
+        <td>golden dataset・rubric・LLM-as-a-Judgeによる精度測定の仕組み化</td>
+        <td>評価基準の設計、「評価」と「テスト」の切り分け、抜き取り監査</td>
+      </tr>
+    </table>
+
+    <h3>失敗談から学ぶ — なぜ「AIに全部任せる」は失敗するか</h3>
+    <div class="bad-box">
+      <span class="tag">失敗パターン1: AIに直接テスト実行させる</span>
+      食べログはAIエージェント（Devin/Browser Use）に直接テストを実行させる方式を検証し、<strong>不採用</strong>にした。
+      理由は (1) AIの思考時間でタイミング依存のFlakyテストが増える、
+      (2) AIが「テストを通すこと」を優先し、<strong>仕様と異なる方法でパスさせる偽陽性</strong>が出る。
+    </div>
+    <div class="bad-box">
+      <span class="tag">失敗パターン2: 操作と判定を同じAIにやらせる</span>
+      iOSアプリQAの事例では、操作するAIと合否判定するAIを統合すると<strong>確証バイアス</strong>で不具合を見逃した。
+      「操作するAI（runner）」と「判定するAI（judge）」の分離で解決 — <em>AIが自分の仕事を自分で採点してはいけない</em>。
+    </div>
+    <div class="good-box">
+      <span class="tag">成功事例に共通する原則</span>
+      <strong>「たたき台はAI、検証は人間」</strong>。AI生成＋安定した既存の実行基盤＋人間レビューのハイブリッド構成が2026年時点の勝ちパターン。
+    </div>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      「AIの出力を疑い、検証する」— これは新しいスキルではなく、第1回で学んだ
+      <strong>「テスト済み＝不具合ゼロと言わない」批判的思考そのもの</strong>。
+      AI時代のQAの中核スキルは、あなたがこの講座でずっと鍛えてきたものの延長線上にある。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>3. ワーク① AI生成テストケースをレビューする <span class="time">15分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（個人8分 → グループ共有7分）</span>
+      <p style="margin:6px 0;">
+        経費精算「交通費上限チェック機能」の仕様に対して、<strong>AIが実際に生成したテストケース一覧</strong>（境界値の抜け・重複・「それらしいが仕様と違う」ケースを含む）を配布します。
+        テストリーダーとして<strong>このまま使ってよいか判定し、問題点をリストアップ</strong>してください。
+      </p>
+      <p style="margin:6px 0;">「見た目の網羅感」に騙されなかったか、境界値（第2回の技法）で抜けを検出できたかがポイントです。</p>
+    </div>
+    <details>
+      <summary>講師用: 教材の作り方と仕込む欠陥（充填予定）</summary>
+      <ul>
+        <li>教材は実際にClaude/ChatGPTに仕様を渡して生成させ、典型的な欠け方（境界値の直上直下の欠落、同値クラスの重複、仕様にない挙動の想定）を残す/加える</li>
+        <li>「ケース数が多い＝網羅されている、ではない」を体感させる（第4回のリスク濃淡と接続）</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>4. QAの仕事はどう変わるか <span class="time">15分</span></h2>
+    <div class="example">
+      <span class="tag">盛り込む内容（骨組み）</span>
+      <ul>
+        <li><strong>縮む業務</strong>: 定型的なテスト実行・リグレッション、ケース/コードの手作業での作成・保守、報告書の下書き</li>
+        <li><strong>残る・価値が上がる業務</strong>: リスクと優先順位の判断（ビジネス影響の見立て）、探索的テスト、リリース判断への責任、AIの出力と判断根拠の検証・監督</li>
+        <li><strong>新しく生まれる領域（QA4AI）</strong>: LLMプロダクト自体の品質保証 — ハルシネーション検証、非決定的挙動（テストオラクル問題）、モデルドリフト監視。「AIでテストする（AI4QA）」と「AIをテストする（QA4AI）」の両輪</li>
+        <li><strong>「LLMでも半分はいつものテスト」</strong>: サイボウズの実践報告 — AI機能のテストでも工数の大半は認証・権限・UIなど従来型。<em>基礎は無駄にならない、基礎の上にAIが乗る</em></li>
+        <li><strong>役割の再定義</strong>: 「確認する人」から「品質成立を設計・牽引する人」へ（守るQA→創るQA）。実装がAIで速くなるほど、品質の設計がボトルネック＝QAの出番になる</li>
+      </ul>
+    </div>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      問いは「AIに仕事を奪われるか」ではなく<strong>「AIに何を任せ、自分は何の責任を握るか」</strong>。
+      任せた仕事の品質に責任を持つ人は消えない。それがQAという仕事の本体。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>5. ワーク② AIに任せたい仕事・握り続けたい仕事 <span class="time">10分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（個人5分 → 共有5分）</span>
+      <p style="margin:6px 0;">
+        自分の現在の業務を書き出し、<strong>「AIに任せたい仕事」「自分が握り続けたい仕事」「AIと一緒に新しくやりたい仕事」</strong>の3つに分類してください。
+      </p>
+      <p style="margin:6px 0;">「握り続けたい」に分類した理由を1つ共有します。そこにあなたの提供価値の核があります。</p>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>6. キャリアの地図とこれからの学び方 <span class="time">10分</span></h2>
+    <div class="example">
+      <span class="tag">盛り込む内容（骨組み）</span>
+      <ul>
+        <li>キャリアの3方向: テストアナリスト深化（設計のスペシャリスト）／テストマネージャー（戦略と組織）／自動化・QE（品質エンジニアリング）— どの道でもStep2の3テーマ（戦略・上流・AI）は共通の土台</li>
+        <li>資格の地図: JSTQB FL → Advanced Level（TA/TM）、AI系は CT-AI（AIをテストする）/ CT-GenAI（AIでテストする）</li>
+        <li>情報の追い方: JaSST・SpeakerDeckのQA登壇資料・各社QAテックブログ — 「現在地」は毎年変わるので追い続ける</li>
+        <li>講座全体のクロージング: 第1回の「品質の情報を届けて意思決定を支える仕事」に立ち返る</li>
+      </ul>
+    </div>
+
+    <h3>参考資料（講座で紹介した事例の一次ソース）</h3>
+    <ul class="refs">
+      <li><a href="https://speakerdeck.com/lycorptech_jp/10x-speed-with-qa-agent-platform-how-we-scaled-adoption-from-individual-effort-to-organizational-capability">10x Speed With QA Agent Platform（LINEヤフー, 2026）</a></li>
+      <li><a href="https://speakerdeck.com/kkakizaki/aigabian-eta-pin-zhi-noshou-rifang">AIが変えた"品質の守り方"（GA technologies, 2026）</a></li>
+      <li><a href="https://speakerdeck.com/masamiyajiri/aishi-dai-niawasetaqazu-zhi-zhan-lue">AI時代にあわせたQA組織戦略（タイミー, 2026）</a></li>
+      <li><a href="https://speakerdeck.com/qa/llmwoda-zai-sitapurodakutonopin-zhi-bao-zheng-nomo-suo-toxue-bi">LLM搭載プロダクトの品質保証の模索と学び（SmartHR, 2025）</a></li>
+      <li><a href="https://speakerdeck.com/cybozuinsideout/jasst2026tokyo_mizutani">LLMでもいつものテスト技術（サイボウズ, JaSST'26 Tokyo）</a></li>
+      <li><a href="https://tech-blog.tabelog.com/entry/ai-for-qa-automation-test">AIによる手動QAの自動化: テスト実行工数52%削減（食べログ）</a></li>
+      <li><a href="https://tech.newmo.me/entry/2025/12/20/000000">Claude Code+Playwright MCPによるQA（newmo）</a></li>
+      <li><a href="https://zenn.dev/kyoichi/articles/ai-qa-agent-02-llm-as-judge">操作AIと判定AIの分離（LLM-as-a-Judge）</a></li>
+      <li><a href="https://service.valtes.co.jp/s-test/blog/ai-qualityassurance_vol91/">QA4AI・Eval・体制設計（VALTES）</a></li>
+      <li><a href="https://istqb.org/certifications/certified-tester-ai-testing-ct-ai/">ISTQB CT-AI（AIをテストする認定）</a></li>
+    </ul>
+    <p class="jstqb">シラバス対応: CTFL 6章（テスト支援ツール・自動化）、ISTQB CT-AI / CT-GenAI（スペシャリスト認定）、ISTQB Advanced Level（キャリアパス）</p>
+  </section>
+
+  <footer class="pager">
+    <a href="phase5.html">← 第5回 シフトレフトと上流品質</a>
+    <a href="index.html">Step2 目次へ →</a>
+  </footer>
+</div>
+</body>
+</html>

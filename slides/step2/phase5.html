@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第5回 シフトレフトと上流品質 — テスト実行前に品質を作り込む</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #7c2d5e;
+    --accent-light: #faeef5;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 16px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 36px; margin-bottom: 36px;
+  }
+  header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
+  header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
+  .draft {
+    background: #fffbeb; border: 1px dashed #d97706; border-radius: 8px;
+    padding: 10px 18px; margin-bottom: 24px; font-size: .88rem; color: #92400e;
+  }
+  section {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 30px 34px; margin-bottom: 30px;
+  }
+  section > h2 {
+    margin: -30px -34px 24px; padding: 16px 34px;
+    background: var(--accent-light); border-radius: 12px 12px 0 0;
+    font-size: 1.25rem; color: var(--accent);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  section > h2 .time { float: right; font-size: .8rem; color: var(--muted); font-weight: normal; margin-top: 4px; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 28px 0 10px; }
+  .goal { background: var(--accent-light); border-radius: 10px; padding: 20px 26px; margin-bottom: 30px; }
+  .goal h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--accent); }
+  .goal ul { margin: 0; padding-left: 1.4em; }
+  .mind, .work, .example { border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .mind .tag { color: var(--mind); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
+  footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
+  footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="crumb"><a href="index.html">← Step2 目次に戻る</a></nav>
+
+  <header class="hero">
+    <div class="label">テストエンジニア育成講座 Step2 — 第5回（90分）</div>
+    <h1>シフトレフトと上流品質<br>— テスト実行前に品質を作り込む</h1>
+    <p>最も安い不具合修正は、コードが書かれる前の修正。QAの主戦場をテストフェーズの外に広げる。</p>
+  </header>
+
+  <div class="draft">
+    <strong>骨組み版:</strong> このページは構成とワークのみ確定した骨組みです。本文コンテンツは
+    <code>docs/learning-plan-step2-outline.md</code> の第5回タイムテーブルに沿って充填します。
+  </div>
+
+  <div class="goal">
+    <h2>今日のゴール</h2>
+    <ul>
+      <li>「早期テストで時間とコストを節約」（7原則）を、レビューという<strong>実行可能な行動</strong>に変換できる</li>
+      <li>要件・設計ドキュメントを、テスト観点を武器にレビューできる</li>
+      <li>受け入れ条件と具体例（実例マッピング）で、実装前に仕様の認識を揃えられる</li>
+    </ul>
+  </div>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>1. シフトレフトの費用対効果 <span class="time">15分</span></h2>
+    <div class="example">
+      <span class="tag">盛り込む内容（骨組み）</span>
+      <ul>
+        <li>欠陥の発見が遅れるほど修正コストが跳ね上がる（第1回のグラフを再掲し、今回は「では上流で何をするか」へ）</li>
+        <li>Vモデル→Wモデル: 各開発工程に並走するテスト活動（インラインSVG図）</li>
+        <li>「品質の番人」から「品質のアクセラレーター」へ — 業界でQAの役割がどう再定義されつつあるか</li>
+        <li>経費精算の例: 要件レビューで「締め日をまたぐ申請」の仕様漏れを見つけたら、いくら節約できたか</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>2. レビュー技法 — 観点を持って読む <span class="time">15分</span></h2>
+    <div class="example">
+      <span class="tag">盛り込む内容（骨組み）</span>
+      <ul>
+        <li>「なんとなく読む」と欠陥は見つからない — 第2回の観点フレーム（機能/データ/状態/タイミング/環境/ユーザー/組み合わせ）をレビューに転用する</li>
+        <li>仕様の穴の嗅ぎ分け（第2回）の発展: 曖昧語（「適切に」「必要に応じて」）、未定義の異常系、暗黙の前提</li>
+        <li>レビューの形式: 非公式レビュー〜インスペクションの使い分け（軽く）</li>
+        <li>指摘の伝え方: 人ではなく成果物へ。「質問の形」で指摘する技術（第1回マインドセットの応用）</li>
+      </ul>
+    </div>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      レビューは「揚げ足取り」ではなく<strong>チーム全員の時間を守る共同作業</strong>。
+      実装後に見つけていたら手戻り数日の欠陥を、会議室の30分で潰している — その価値を自覚して臨む。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>3. ワーク① 要件レビュー演習 <span class="time">15分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（個人7分 → グループ共有8分）</span>
+      <p style="margin:6px 0;">
+        経費精算システム「海外出張精算機能」の要件定義書ドラフト（意図的に曖昧さ・矛盾・漏れを仕込んだもの）を配布します。
+        <strong>テスト観点フレームを使ってレビューし、欠陥・懸念を指摘リストにして</strong>ください。
+      </p>
+      <p style="margin:6px 0;">グループで持ち寄り、「実装後に見つけたら一番高くついた指摘」を1つ選んで発表します。</p>
+    </div>
+    <details>
+      <summary>講師用: 仕込む欠陥の例（充填予定）</summary>
+      <ul>
+        <li>為替レートの適用日が未定義（利用日? 申請日? 承認日?）</li>
+        <li>「上限を超えた場合は適切に処理する」という曖昧語</li>
+        <li>通貨の小数点処理と既存の円処理の矛盾</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>4. 受け入れ条件と実例マッピング <span class="time">15分</span></h2>
+    <div class="example">
+      <span class="tag">盛り込む内容（骨組み）</span>
+      <ul>
+        <li>ユーザーストーリーと受け入れ条件 — 「完成の定義」を実装前に合意する</li>
+        <li>実例マッピング: ルール（受け入れ条件）ごとに具体例を出し、疑問を洗い出す手法（ストーリー/ルール/例/疑問の4色カード、インラインSVG図）</li>
+        <li>具体例が出せないルールは、まだ仕様が固まっていないサイン</li>
+        <li>ATDDの考え方: 合意した具体例がそのまま受け入れテストになる</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>5. ワーク② 実例マッピング <span class="time">15分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（グループ12分 → 共有3分）</span>
+      <p style="margin:6px 0;">
+        ユーザーストーリー「経理担当者として、承認済みの経費申請を月次で締めたい」と受け入れ条件3つを配布します。
+        <strong>実例マッピングでルールごとの具体例と「疑問」を洗い出して</strong>ください。
+      </p>
+      <p style="margin:6px 0;">出てきた「疑問」の数がこのワークの成果です。多いほど、実装前に救った手戻りが多いということ。</p>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>6. アジャイル開発でのQAの動き方・まとめ <span class="time">10分</span></h2>
+    <div class="example">
+      <span class="tag">盛り込む内容（骨組み）</span>
+      <ul>
+        <li>スプリント内でのQAの並走: 計画・リファインメントでの観点出し、実装中のペアテスト、レビューへの常時参加</li>
+        <li>「テストフェーズを待つQA」と「初日から品質を作るQA」の1スプリント比較（図解）</li>
+        <li>まとめ: 上流で防ぎ、下流で確かめる。第6回はここに自動化とAIを重ねて完成形にする</li>
+      </ul>
+    </div>
+    <p class="jstqb">シラバス対応: CTFL 2章（シフトレフト・レビュー）、3章（静的テスト）、ISTQB Advanced Level Test Analyst（レビューへの参画）、アジャイルテスト担当者向けシラバス</p>
+  </section>
+
+  <footer class="pager">
+    <a href="phase4.html">← 第4回 テスト戦略とリスクベースドテスト</a>
+    <a href="phase6.html">第6回 テスト自動化とAI時代のQA →</a>
+  </footer>
+</div>
+</body>
+</html>

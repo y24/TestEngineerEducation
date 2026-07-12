@@ -1,0 +1,129 @@
+# テストエンジニア育成講座 Step2（応用編） 学習プラン（v0.1）
+
+## 対象と目的
+
+- **対象**: Step1（基礎編・全3回）を修了したメンバー
+- **ゴール**: 「仕様把握→設計→実行管理→報告を一人で回せる」から、**テスト戦略を自分で選び、上流とAIに品質活動を広げ、チームの品質を牽引できる人材**へ
+- **対象ドメイン**: Step1と同じく業務システム（例題は経費精算システムで統一）
+- **方針**:
+  - Step1と同様、考え方・マインドセット重視。ツールの操作方法ではなく「判断軸」を教える
+  - 中級QAの成長軸としてリサーチで共通して挙がった **①テスト戦略・リスク分析 ②シフトレフト（上流への関与） ③自動化とAI活用** に1回ずつ対応させる
+  - ISTQB Advanced Level（Test Analyst / Test Manager）および CT-AI / CT-GenAI の入口を薄くカバーする位置づけ（シラバス対応は各回末尾に小さく記載）
+  - 毎回ワークを入れる
+
+## 全体構成: 全3回（各90分）
+
+| 回 | テーマ | 対応HTML |
+|---|---|---|
+| 第4回 | テスト戦略とリスクベースドテスト — 「全部やる」から「賢く選ぶ」へ | `slides/step2/phase4.html` |
+| 第5回 | シフトレフトと上流品質 — テスト実行前に品質を作り込む | `slides/step2/phase5.html` |
+| 第6回 | テスト自動化とAI時代のQA — 実行者から品質の設計者へ | `slides/step2/phase6.html` |
+
+### 第4回 テスト戦略とリスクベースドテスト（90分）
+
+Step1第2回で触れた「リスクの濃淡」を本格化。テスト計画の一段上にある「戦略」を自分で選べるようになる回。
+
+| 時間 | 内容 |
+|---|---|
+| 5分 | Step1の振り返りとStep2のゴール |
+| 15分 | テスト戦略とアプローチ: 分析的・モデルベース・経験ベースなどアプローチの種類、プロジェクト特性に応じた選択・組み合わせ |
+| 20分 | リスクベースドテスト: プロダクトリスク分析（影響度×発生確率）、リスクに応じたテストの濃淡設計、非機能リスク（性能・権限・移行）もここで扱う |
+| 15分 | **ワーク①**: 経費精算システムの新機能追加シナリオでリスク分析マトリクスを作り、テスト配分を決める |
+| 15分 | 探索的テスト入門: スクリプトテストとの補完関係、セッションベースドテスト（SBTM）、チャーターの書き方 |
+| 15分 | **ワーク②**: チャーターを書いて15分のミニ探索的テストセッション |
+| 5分 | まとめ |
+
+### 第5回 シフトレフトと上流品質（90分）
+
+「テストフェーズで頑張る人」から「要件・設計段階から品質に関与する人」へ。QAの役割が「品質の番人」から「品質のアクセラレーター」に変わる業界トレンドに直結する回。Step1第2回の「質問力」の発展形。
+
+| 時間 | 内容 |
+|---|---|
+| 5分 | 前回の振り返り |
+| 15分 | シフトレフトの費用対効果: 欠陥の発見が遅いほど修正コストが跳ね上がる、Wモデル |
+| 15分 | レビュー技法: 観点を持った要件・設計レビュー、指摘の伝え方（人ではなく成果物へ） |
+| 15分 | **ワーク①**: 経費精算の要件定義書ドラフトをレビューし、テスト実行前に欠陥を検出する |
+| 15分 | 受け入れ条件と実例マッピング: 仕様の認識合わせを具体例で行う、ATDDの考え方 |
+| 15分 | **ワーク②**: ユーザーストーリー+受け入れ条件から実例マッピングで具体例を洗い出す |
+| 10分 | アジャイル開発でのQAの動き方・まとめ |
+
+### 第6回 テスト自動化とAI時代のQA（90分）
+
+自動化ツールの操作ではなく「何を・なぜ自動化するか」の判断軸を扱い、**AI活用の現在地を厚めに**扱う回。「QAの仕事はなくならないが、実行者から監督者・設計者に変わる」という一貫したストーリーで構成し、キャリアの地図を渡して講座全体を閉じる。
+
+| 時間 | 内容 |
+|---|---|
+| 5分 | 前回の振り返り |
+| 15分 | テスト自動化の判断軸: テストピラミッド、ROI、自動化すべきもの/すべきでないもの |
+| 20分 | **AI×QAの現在地マップ**: 5類型（①テストケース生成 ②E2EツールのAI機能 ③自律探索エージェント ④レビュー・起票支援 ⑤LLMプロダクトの評価）×「できること・できないこと」を企業事例の実数付きで。失敗談（AIに直接実行させるとFlaky化・偽陽性、runner/judge分離の必要性）から「たたき台はAI、検証は人間」の原則を導く |
+| 15分 | **ワーク①**: AIが生成した経費精算のテストケース一覧（意図的に境界値抜け・偽の網羅感を仕込んだもの）をレビューし、抜けを指摘する — 「AIの出力を検証する力」を体感 |
+| 15分 | **QAの仕事はどう変わるか**: 縮む業務（定型実行・ケース作成）/残る業務（リスク判断・優先順位・探索）/新領域（QA4AI）。「LLMでも半分はいつものテスト」で基礎の価値を確認し、「守るQA→創るQA」で締める |
+| 10分 | **ワーク②**: ディスカッション「AIに任せたい仕事・自分が握り続けたい仕事」を各自書き出して共有 |
+| 10分 | キャリアの地図とこれからの学び方: アナリスト/マネージャー/自動化・QEの3方向、JSTQB AL・CT-AI/CT-GenAI、JaSST・SpeakerDeckの追い方 — 講座全体のクロージング |
+
+#### 第6回 AI パートの教材ソース（2026-07リサーチ）
+
+講義スライド作成時の一次ソース。受講者への参考資料リストにも流用する。
+
+**登壇スライド（SpeakerDeck）**
+
+- [10x Speed With QA Agent Platform（LINEヤフー, 2026）](https://speakerdeck.com/lycorptech_jp/10x-speed-with-qa-agent-platform-how-we-scaled-adoption-from-individual-effort-to-organizational-capability) — QAエージェント基盤で成果物1.54倍・AI代替率49.4%、個人利用→組織展開
+- [AIが変えた"品質の守り方"（GA technologies, 2026）](https://speakerdeck.com/kkakizaki/aigabian-eta-pin-zhi-noshou-rifang) — QAは「確認者」から「品質成立を設計・牽引する役割」へ
+- [AI時代にあわせたQA組織戦略（タイミー, 2026）](https://speakerdeck.com/masamiyajiri/aishi-dai-niawasetaqazu-zhi-zhan-lue) — 「守るQA→創るQA」、給与計算プロジェクトでテスト工数97%削減
+- [LLM搭載プロダクトの品質保証の模索と学び（SmartHR, 2025）](https://speakerdeck.com/qa/llmwoda-zai-sitapurodakutonopin-zhi-bao-zheng-nomo-suo-toxue-bi) — 「評価」と「テスト」の切り分け
+- [LLMでもいつものテスト技術（サイボウズ, JaSST'26 Tokyo）](https://speakerdeck.com/cybozuinsideout/jasst2026tokyo_mizutani) — AI機能でも工数の大半は従来型テスト
+- [今日から始められるテスト自動化〜生成AI活用まで（MagicPod, JaSST'26）](https://speakerdeck.com/magicpod/jasst2026-magicpod2) — 自動生成・AIアサーション・自己修復
+- [AI時代に越境し、組織を変えるQAスキルの正体（令和トラベル, 2026）](https://speakerdeck.com/mii3king/qa-skills-for-transforming-an-organization) — QAスキルが全社AI推進に直結
+
+**企業テックブログ（定量効果・失敗談）**
+
+- [食べログ AI4QA: テスト実行工数52%削減](https://tech-blog.tabelog.com/entry/ai-for-qa-automation-test) — Devin/Browser Use直接実行は「Flaky化」「偽陽性」で不採用にした判断も重要
+- [newmo: Claude Code+Playwright MCPでテストプラン作成70%削減](https://tech.newmo.me/entry/2025/12/20/000000)
+- [DMM: Gemini+NotebookLMでテスト設計速度2倍](https://developersblog.dmm.com/entry/2025/06/05/110000)
+- [iOSアプリQA: 操作AIと判定AIの分離（runner/judge）](https://zenn.dev/kyoichi/articles/ai-qa-agent-02-llm-as-judge) — 同一AIだと確証バイアスで判定不能
+- [Zenkigen: Claude CodeでQAパイプライン構築](https://zenn.dev/zenkigen_tech/articles/58759228ca421a)
+- [CyberAgent ジャンプTOON: 仕様書レビューエージェント](https://developers.cyberagent.co.jp/blog/archives/62064/)
+
+**役割変化・QA4AI・資格**
+
+- [VALTES: QA4AI・Eval・体制設計](https://service.valtes.co.jp/s-test/blog/ai-qualityassurance_vol91/) — テストオラクル問題・ブラックボックス性・モデルドリフト
+- [AIエージェントがテストを自律化する世界（note/Jun Shikoda）](https://note.com/jun111/n/n7503413faa29) — 2026年の新領域4つ
+- [AI時代に輝くQAエンジニアになるために（MagicPod）](https://magicpod.com/blog/future-proof-qa-career-ai-driven-world/)
+- [ISTQB CT-AI v2.0（AIをテストする）](https://istqb.org/certifications/certified-tester-ai-testing-ct-ai/) / CT-GenAI（AIでテストする）
+
+## 成果物
+
+```
+slides/
+├── index.html          … 全体目次（Step1+Step2）
+├── phase1.html〜phase3.html … Step1（既存）
+└── step2/
+    ├── index.html      … Step2目次
+    ├── phase4.html     … 第4回
+    ├── phase5.html     … 第5回
+    └── phase6.html     … 第6回
+```
+
+- 形式はStep1と同一: スクロール型ドキュメント、1回=1ファイル、依存なしの単体HTML、図はインラインSVG
+- 各ページ共通構成: 今日のゴール → 講義パート → ワーク（解答例は折りたたみ） → まとめ
+
+## 運用案
+
+- ペース: Step1と同じく週1回 or 隔週。Step1修了から間を空けすぎない（目安1〜2ヶ月以内に開始）
+- 宿題は課さない。課題図書は任意の推奨にとどめる
+- 課題図書（案）: 『探索的テスト入門』系記事、JSTQB Advanced Level シラバス（TA/TM、無料PDF）、ISTQB CT-AI シラバス
+- 効果測定: 第6回後の卒業課題（案）— 新機能仕様に対して「リスク分析→テスト戦略1枚→AI生成ケースのレビュー」の通し演習をOJT側で実施
+- ワーク①（第6回）の教材は、実際にClaude/ChatGPTで経費精算のテストケースを生成させて作る（本物のAI出力の「それらしさ」を体感させる）
+
+## 決定事項の記録
+
+- Step2は全3回構成（各90分）、テーマは「戦略・上流・AI」— 2026-07-13決定
+- 第6回は「AI活用の現在地」を厚めに扱う（20分+ワーク15分+役割変化15分）— 2026-07-13決定
+- HTMLは `slides/step2/` に分離して配置 — 2026-07-13決定
+- 非機能テストは独立回にせず、第4回のリスク分析に「非機能リスク」として組み込む
+
+## 未確定事項
+
+- phase4〜6.html の本文コンテンツ充填（現状は骨組み版）
+- 第6回ワーク①用のAI生成テストケース教材の作成
+- 卒業課題の詳細設計

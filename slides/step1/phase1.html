@@ -103,7 +103,7 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>1. なぜテストをするのか <span class="time">20分</span></h2>
+    <h2>1. なぜテストをするのか <span class="time">18分</span></h2>
 
     <h3>テストの仕事は「バグ探し」だけではない</h3>
     <p>
@@ -213,16 +213,6 @@
       できあがったものを動かして<em>故障を発生させ、欠陥特定につなげる</em>のが、私たちが日々やっている
       <strong>テスト＝QC（品質管理）</strong>です。
     </p>
-
-    <div class="mind">
-      <span class="tag">この区別が効く場面</span>
-      <strong>不具合報告で書くべきは「故障」</strong>です（セクション5）。
-      観測した事実 —「100円を入力すると『上限を超えています』と表示され登録できない」— が報告の中身であって、
-      「境界の実装ミスです」という<em>欠陥の断定は推測</em>にすぎません。
-      推測は「参考情報」として添えるのは歓迎されますが、事実と混ぜて書くと開発者の調査を誤らせます。
-      また、欠陥は<strong>成果物の属性であって、人の属性ではない</strong>。
-      だから指摘は人ではなく成果物に向けます。
-    </div>
 
     <h3>テストで何が示せて、何が示せないか</h3>
     <ul>
@@ -466,7 +456,7 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>5. 良い不具合報告 — テスターの最初の武器 <span class="time">15分</span></h2>
+    <h2>5. 良い不具合報告 — テスターの最初の武器 <span class="time">17分</span></h2>
 
     <h3>不具合チケットは「開発者への報告文書」</h3>
     <p>
@@ -485,16 +475,32 @@
 
     <h3>書き方の作法</h3>
     <ul>
-      <li><strong>事実と推測を分ける</strong>。「〜になる（事実）」と「おそらく〜が原因と思われる（推測）」を明示的に区別する。推測を書くこと自体は歓迎される。<em>セクション1の言葉で言えば、本文に書くのは観測した「故障」、推測で語るのが「欠陥」</em></li>
+      <li><strong>事実と推測を分ける</strong>。「〜になる（事実）」と「おそらく〜が原因と思われる（推測）」を明示的に区別する。推測を書くこと自体は歓迎される</li>
       <li><strong>1票1事象</strong>。複数の問題を1枚に詰めない（片方だけ直って迷子になる）</li>
       <li><strong>感情を入れない</strong>。「早く直してくれないと困ります」は何も生まない。不具合チケットは成果物であって、メッセージアプリではない</li>
     </ul>
 
+    <p>
+      この「事実と推測」の境目は、セクション1で分けた<strong>故障と欠陥</strong>の境目とちょうど同じです。
+      本文に書くのは自分が観測した<strong>故障</strong>。その裏にある<strong>欠陥</strong>がどこにあるかは、
+      コードを見ていないテスターにとっては推測にすぎません。
+    </p>
+
+
+      <span class="tag">エラー・欠陥・故障に分解すると:
+      </span>
+      <table style="margin:8px 0 4px;">
+        <tr><th style="width:12%"></th><th style="width:36%">チケットでの示し方</th><th>例</th></tr>
+        <tr><td><strong>故障</strong></td><td><strong>本文に書く</strong>（観測した事実）</td><td>3万円ちょうどの経費申請が登録できない</td></tr>
+        <tr><td><strong>欠陥</strong></td><td>備考に<strong>推測として</strong>添える</td><td>判定が「以下(≦)」ではなく「未満(＜)」で実装されている</td></tr>
+        <tr><td><strong>エラー</strong></td><td><strong>書かない</strong>（人の話は報告に不要）</td><td>開発者の考慮が漏れていた</td></tr>
+      </table>
+
     <h3>重要度（Severity）と優先度（Priority）</h3>
     <ul>
-      <li><strong>重要度</strong> = その欠陥がシステム・業務に与えるダメージの大きさ。<em>テスターが事実に基づいて提案する</em></li>
-      <li><strong>優先度</strong> = いつ直すべきか。リリース日程・業務カレンダー・回避策の有無で決まる。<em>チーム／プロダクト側が決める</em></li>
-      <li>「軽微だが月次締め日に必ず発生して経理を止める」→ 重要度は中でも優先度は高、ということが起きる。この2軸の区別は第3回のトリアージで再登場します</li>
+      <li><strong>重要度</strong> = その欠陥がシステム・業務に与えるダメージの大きさ。<em>品質の立場から事実に基づいて判断する</em></li>
+      <li><strong>優先度</strong> = いつ直すべきか。リリース日程・修正コスト・費用対効果などで決まる。<em>チーム／プロダクト側が判断する</em></li>
+      <li>「軽微だが月次締め日に必ず発生して経理を止める」→ 重要度は中でも優先度は高、ということが起きる。</li>
     </ul>
     <figure>
       <svg viewBox="0 0 800 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="重要度と優先度は独立した2軸">
@@ -514,12 +520,12 @@
           <text x="605" y="115" text-anchor="middle" fill="#374151">経理業務が止まる</text>
           <rect x="140" y="40" width="300" height="110" rx="10" fill="#eef3f9" stroke="#1e3a5f"/>
           <text x="290" y="68" text-anchor="middle" fill="#1e3a5f" font-weight="bold">ダメージ大・急がない: 計画的に修正</text>
-          <text x="290" y="95" text-anchor="middle" fill="#374151">例: うるう年のみ発生する計算誤り</text>
-          <text x="290" y="115" text-anchor="middle" fill="#374151">（次の発生まで余裕があり回避策もある）</text>
+          <text x="290" y="95" text-anchor="middle" fill="#374151">例: うるう年のみ発生する異常終了</text>
+          <text x="290" y="115" text-anchor="middle" fill="#374151">（次の発生まで余裕がある）</text>
           <rect x="455" y="165" width="300" height="110" rx="10" fill="#fff7ed" stroke="#b45309"/>
-          <text x="605" y="193" text-anchor="middle" fill="#b45309" font-weight="bold">軽微だが急ぐ: リリース前に必ず</text>
-          <text x="605" y="220" text-anchor="middle" fill="#374151">例: トップ画面のロゴが旧社名のまま</text>
-          <text x="605" y="240" text-anchor="middle" fill="#374151">（動作に影響ないが外部の目に触れる）</text>
+          <text x="605" y="193" text-anchor="middle" fill="#b45309" font-weight="bold">軽微だが急いで修正</text>
+          <text x="605" y="220" text-anchor="middle" fill="#374151">例: 一度登録したデータが初期化できない</text>
+          <text x="605" y="240" text-anchor="middle" fill="#374151">（利用に支障はないが、後続テストに影響がある等）</text>
           <rect x="140" y="165" width="300" height="110" rx="10" fill="#f3f4f6" stroke="#9ca3af"/>
           <text x="290" y="193" text-anchor="middle" fill="#4b5563" font-weight="bold">「直さない」判断もあり</text>
           <text x="290" y="220" text-anchor="middle" fill="#374151">例: 特定ブラウザの特定条件でのみ</text>
@@ -531,8 +537,8 @@
 
     <div class="mind">
       <span class="tag">マインドセット</span>
-      <strong>悪い報せほど、早く・正確に。</strong>重大なバグを見つけたとき、テスターの価値が最も試される。
-      抱え込まず、盛らず、事実で速報する。「言った/言わない」ではなく記録で語る習慣をつける。
+      <strong>悪い報せほど、早く・正確に。</strong>重大なバグに遭遇したとき、テスターの価値が最も試される。
+      抱え込まず、盛らず、事実で速報する。重大さを、相手に正しく認識してもらうことを意識する。
     </div>
   </section>
 

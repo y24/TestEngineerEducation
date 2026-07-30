@@ -329,30 +329,32 @@
       </tr>
     </table>
     <figure>
-      <svg viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="欠陥の発見が遅れるほど修正コストが増える">
+      <svg viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="欠陥の発見が遅れるほど修正コストが増える。要件定義×1、設計×5、実装×10、テスト×20に対し、本番稼働後は×100以上に跳ね上がる">
         <g font-family="sans-serif" font-size="13">
-          <line x1="50" y1="225" x2="770" y2="225" stroke="#9ca3af" stroke-width="1.5"/>
-          <text x="30" y="130" font-size="12" fill="#6b7280" text-anchor="middle" transform="rotate(-90 30 130)">修正コスト（相対）</text>
-          <rect x="80" y="211" width="90" height="14" rx="3" fill="#1e3a5f"/>
-          <rect x="220" y="187" width="90" height="38" rx="3" fill="#1e3a5f"/>
-          <rect x="360" y="157" width="90" height="68" rx="3" fill="#1e3a5f"/>
-          <rect x="500" y="117" width="90" height="108" rx="3" fill="#b45309"/>
-          <rect x="640" y="35" width="90" height="190" rx="3" fill="#b91c1c"/>
-          <text x="125" y="203" text-anchor="middle" fill="#374151" font-weight="bold">×1</text>
-          <text x="265" y="179" text-anchor="middle" fill="#374151" font-weight="bold">×5</text>
-          <text x="405" y="149" text-anchor="middle" fill="#374151" font-weight="bold">×10</text>
-          <text x="545" y="109" text-anchor="middle" fill="#374151" font-weight="bold">×20</text>
-          <text x="685" y="27" text-anchor="middle" fill="#b91c1c" font-weight="bold">×100〜</text>
-          <text x="125" y="246" text-anchor="middle" fill="#374151">要件定義</text>
-          <text x="265" y="246" text-anchor="middle" fill="#374151">設計</text>
-          <text x="405" y="246" text-anchor="middle" fill="#374151">実装</text>
-          <text x="545" y="246" text-anchor="middle" fill="#374151">テスト</text>
-          <text x="685" y="246" text-anchor="middle" fill="#374151">本番稼働後</text>
-          <text x="125" y="268" text-anchor="middle" fill="#6b7280" font-size="11">レビュー指摘なら数分</text>
-          <text x="685" y="268" text-anchor="middle" fill="#b91c1c" font-size="11">復旧＋謝罪＋信用の損失</text>
+          <line x1="50" y1="250" x2="770" y2="250" stroke="#9ca3af" stroke-width="1.5"/>
+          <text x="30" y="145" font-size="12" fill="#6b7280" text-anchor="middle" transform="rotate(-90 30 145)">修正コスト（相対）</text>
+          <!-- コスト比に比例した高さ（×100 = 210px）。折れ線が「跳ね上がり」を強調する -->
+          <polyline points="125,243 265,235 405,225 545,204 685,40" fill="none" stroke="#b91c1c" stroke-width="2" stroke-dasharray="5 4" opacity="0.55"/>
+          <rect x="80" y="243" width="90" height="7" rx="2" fill="#1e3a5f"/>
+          <rect x="220" y="235" width="90" height="15" rx="2" fill="#1e3a5f"/>
+          <rect x="360" y="225" width="90" height="25" rx="2" fill="#1e3a5f"/>
+          <rect x="500" y="204" width="90" height="46" rx="3" fill="#b45309"/>
+          <rect x="640" y="40" width="90" height="210" rx="3" fill="#b91c1c"/>
+          <text x="125" y="235" text-anchor="middle" fill="#374151" font-weight="bold">×1</text>
+          <text x="265" y="227" text-anchor="middle" fill="#374151" font-weight="bold">×5</text>
+          <text x="405" y="217" text-anchor="middle" fill="#374151" font-weight="bold">×10</text>
+          <text x="545" y="196" text-anchor="middle" fill="#b45309" font-weight="bold">×20</text>
+          <text x="685" y="32" text-anchor="middle" fill="#b91c1c" font-weight="bold" font-size="16">×100〜</text>
+          <text x="125" y="271" text-anchor="middle" fill="#374151">要件定義</text>
+          <text x="265" y="271" text-anchor="middle" fill="#374151">設計</text>
+          <text x="405" y="271" text-anchor="middle" fill="#374151">実装</text>
+          <text x="545" y="271" text-anchor="middle" fill="#374151">テスト</text>
+          <text x="685" y="271" text-anchor="middle" fill="#374151">本番稼働後</text>
+          <text x="125" y="293" text-anchor="middle" fill="#6b7280" font-size="11">レビュー指摘なら数分</text>
+          <text x="685" y="293" text-anchor="middle" fill="#b91c1c" font-size="11">復旧＋謝罪＋信用の損失</text>
         </g>
       </svg>
-      <figcaption>原則3「早期テスト」のイメージ: 同じ欠陥でも、見つかる工程が遅いほど修正コストは跳ね上がる</figcaption>
+      <figcaption>原則3「早期テスト」のイメージ: 同じ欠陥でも、見つかる工程が遅いほど修正コストは跳ね上がる（縦軸はコスト比に比例）</figcaption>
     </figure>
     <div class="mind">
       <span class="tag">マインドセット</span>
@@ -399,7 +401,7 @@
           <text x="390" y="129" fill="#1e3a5f" font-size="13">モニタリングとコントロール（全体を通して進捗と品質を見張る）</text>
           <text x="190" y="30" fill="#6b7280" font-size="12">何を確かめるか</text>
           <text x="320" y="30" fill="#6b7280" font-size="12">どう確かめるか</text>
-          <text x="450" y="30" fill="#6b7280" font-size="12">手順・データ準備</text>
+          <text x="450" y="30" fill="#6b7280" font-size="12">手順とデータの準備</text>
         </g>
       </svg>
       <figcaption>テストプロセス: 第2回で「分析・設計」を、第3回で「計画・モニタリング・完了」を深掘りします</figcaption>
@@ -436,13 +438,13 @@
     </figure>
     <ul>
       <li><strong>テストレベル</strong>: 単体 → 統合 → システム → 受け入れ。QAチームが主に担うのはシステムテスト以降が多いが、<em>上流のレビューに参加することにも大きな価値がある</em>（早期テストの原則）</li>
-      <li><strong>テストタイプ</strong>: 機能テストのほかに、性能・セキュリティ・ユーザビリティなどの非機能テスト、修正の影響を確認するリグレッションテストがある</li>
-      <li>アジャイル開発ではこのVが小さく高速に何度も回る。だからこそ「どのレベル・タイプの確認か」を意識しないとテストが混乱する</li>
+      <li><strong>テストタイプ</strong>: 機能テストのほかに、性能・セキュリティ・ユーザビリティなどの非機能テスト、修正の影響を確認するリグレッションテストなどがある</li>
+      <li>アジャイル開発ではこのVが小さく高速に何度も回る。だからこそ「どのレベル・タイプの確認か」をより意識する必要がある</li>
     </ul>
 
     <h3>アジャイルテストの4象限 — チーム全体でテストを分担する地図</h3>
     <p>
-      アジャイルの文脈でテストを整理するときによく使われるのが<strong>「アジャイルテストの4象限」</strong>（Brian Marick が原型を作り、Lisa Crispin と Janet Gregory が広めた分類）です。
+      アジャイルの文脈でテストを整理するときによく使われるのが<strong>「アジャイルテストの4象限」</strong>です。
       テストを「<strong>ビジネス面か技術面か</strong>」×「<strong>チームを支援するか、製品を批評するか</strong>」の2軸で4つに分けます。
     </p>
     <figure>
@@ -484,25 +486,12 @@
       </svg>
       <figcaption>アジャイルテストの4象限: Q1→Q4の番号は順番ではない。4つを並行して回し、チーム全体でカバーする</figcaption>
     </figure>
-    <ul>
-      <li>番号は<strong>実施する順番ではありません</strong>。スプリントの中で4つが並行して回ります</li>
-      <li>この図の使い所は「<strong>いま自分がやっているテストはどの象限か</strong>」「<strong>チームとしてどの象限が手薄か</strong>」を確認すること。Q3だけ頑張ってもQ1が薄ければバグの洪水になり、逆も然り</li>
-      <li>QAチームの主戦場はQ2・Q3ですが、Q1・Q4を知っていると開発者と「どこで何を守るか」の分担の会話ができます（Q1・Q4に軸足を移すのが第3回で触れるSETというキャリアです）</li>
-    </ul>
 
     <h3>静的テスト — 動かさずに見つける</h3>
     <p>
       仕様書や設計書の<strong>レビューも立派なテスト</strong>です（静的テスト）。動かして見つける欠陥より、
       文書上で見つける欠陥のほうが圧倒的に安く直せます。第2回で扱う「仕様の読み方」は、実は静的テストの技術でもあります。
     </p>
-    <details>
-      <summary>講師用: 12分で回すには</summary>
-      <ul>
-        <li>時間をかけるのは<strong>テストプロセスの図とVモデルの2枚</strong>。「自分の持ち場を知る」という本節の目的は、この2枚でほぼ達成できる</li>
-        <li><strong>アジャイルテストの4象限は紹介にとどめる</strong>。2軸の意味と「QAの主戦場はQ2・Q3」「Q1が薄いとQ3がバグの洪水になる」の2点だけ話し、象限ごとの詳細は資料を各自参照とする。開発との分担の話は第3回（SET）とStep2で改めて扱う</li>
-        <li>静的テストは1〜2文で通過してよい。第2回「仕様の読み方」がそのまま静的テストの実践なので、そこで回収する</li>
-      </ul>
-    </details>
   </section>
 
   <!-- ========================================================= -->

@@ -95,6 +95,7 @@
     <h2>今日のゴール</h2>
     <ul>
       <li>「早期テストで時間とコストを節約」（7原則）を、レビューという<strong>実行可能な行動</strong>に変換できる</li>
+      <li><strong>テスト（QC）とQA</strong>の違いを説明でき、自分の活動がどちらなのかを意識できる</li>
       <li>要件・設計ドキュメントを、テスト観点を武器にレビューできる</li>
       <li>受け入れ条件と具体例（実例マッピング）で、実装前に仕様の認識を揃えられる</li>
     </ul>
@@ -112,7 +113,7 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>2. シフトレフトの費用対効果 <span class="time">15分</span></h2>
+    <h2>2. シフトレフトの費用対効果 <span class="time">18分</span></h2>
 
     <h3>なぜ「早く見つける」と安いのか</h3>
     <p>
@@ -196,6 +197,107 @@
       <figcaption>テストフェーズを待たない — 各工程に並走するQA活動。理想は、テスト実行が「答え合わせ」で済む状態</figcaption>
     </figure>
 
+    <h3>テストとQAは同じではない</h3>
+    <p>
+      第1回で「テスト＝QCは連鎖の右側、QAは左端に働きかける活動」と一度だけ触れました。
+      Step2の中身に入る前に、ここでその対比をきちんと整理します。私たちは「QA」と名乗っていますが、
+      <em>テストとQAは本来まったく別の活動</em>です。
+    </p>
+    <figure>
+      <svg viewBox="0 0 800 226" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="根本原因からエラー、欠陥、故障、利用者への影響へと連鎖する図。左端の根本原因にアプローチするのがQA、右側の欠陥と故障にアプローチするのがテスト・QC">
+        <g font-family="sans-serif" font-size="13">
+          <defs>
+            <marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+            </marker>
+          </defs>
+
+          <text x="83"  y="26" text-anchor="middle" fill="#6b7280" font-size="11">プロセス・組織側</text>
+          <text x="241" y="26" text-anchor="middle" fill="#6b7280" font-size="11">人間側</text>
+          <text x="399" y="26" text-anchor="middle" fill="#6b7280" font-size="11">成果物側</text>
+          <text x="557" y="26" text-anchor="middle" fill="#6b7280" font-size="11">実行結果側</text>
+          <text x="715" y="26" text-anchor="middle" fill="#6b7280" font-size="11">利用者・業務側</text>
+
+          <rect x="20"  y="38" width="126" height="54" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <rect x="178" y="38" width="126" height="54" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <rect x="336" y="38" width="126" height="54" rx="8" fill="#1e3a5f"/>
+          <rect x="494" y="38" width="126" height="54" rx="8" fill="#b45309"/>
+          <rect x="652" y="38" width="126" height="54" rx="8" fill="#b91c1c"/>
+
+          <text x="83"  y="62" text-anchor="middle" fill="#1e3a5f" font-weight="bold">根本原因</text>
+          <text x="83"  y="80" text-anchor="middle" fill="#374151" font-size="11">root cause</text>
+          <text x="241" y="62" text-anchor="middle" fill="#1e3a5f" font-weight="bold">エラー</text>
+          <text x="241" y="80" text-anchor="middle" fill="#374151" font-size="11">error</text>
+          <text x="399" y="62" text-anchor="middle" fill="#fff" font-weight="bold">欠陥</text>
+          <text x="399" y="80" text-anchor="middle" fill="#fff" font-size="11">defect / bug</text>
+          <text x="557" y="62" text-anchor="middle" fill="#fff" font-weight="bold">故障</text>
+          <text x="557" y="80" text-anchor="middle" fill="#fff" font-size="11">failure</text>
+          <text x="715" y="62" text-anchor="middle" fill="#fff" font-weight="bold" font-size="12.5">利用者への影響</text>
+          <text x="715" y="80" text-anchor="middle" fill="#fff" font-size="11">業務・お金・信用</text>
+
+          <line x1="146" y1="65" x2="174" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+          <line x1="304" y1="65" x2="332" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+          <line x1="462" y1="65" x2="490" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+          <line x1="620" y1="65" x2="648" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+
+          <!-- QA（品質保証）が働きかける範囲 -->
+          <path d="M20,110 V102 H146 V110" fill="none" stroke="#0f766e" stroke-width="2"/>
+          <line x1="83" y1="102" x2="83" y2="120" stroke="#0f766e" stroke-width="2"/>
+          <text x="83" y="140" text-anchor="middle" fill="#0f766e" font-size="12.5" font-weight="bold">QA（品質保証）</text>
+          <text x="83" y="159" text-anchor="middle" fill="#0f766e" font-size="11">仕事のやり方に働きかけ、</text>
+          <text x="83" y="176" text-anchor="middle" fill="#0f766e" font-size="11">欠陥が生まれにくくする</text>
+
+          <!-- テスト／QC（品質管理）が働きかける範囲 -->
+          <path d="M336,110 V102 H620 V110" fill="none" stroke="#b45309" stroke-width="2"/>
+          <line x1="478" y1="102" x2="478" y2="120" stroke="#b45309" stroke-width="2"/>
+          <text x="478" y="140" text-anchor="middle" fill="#b45309" font-size="12.5" font-weight="bold">テスト／QC（品質管理）</text>
+          <text x="478" y="159" text-anchor="middle" fill="#b45309" font-size="11">できあがったものを動かして故障を見つけ、欠陥を取り除く</text>
+
+          <text x="400" y="204" text-anchor="middle" fill="#6b7280" font-size="12">テストが直接見つけられるのは「故障」。そこから「欠陥」を特定するのは開発者の仕事（デバッグ）</text>
+        </g>
+      </svg>
+    </figure>
+    <table>
+      <tr>
+        <th style="width:22%"></th>
+        <th style="width:39%">テスト／品質管理（QC）</th>
+        <th>品質保証（QA）</th>
+      </tr>
+      <tr>
+        <td><strong>向く先</strong></td>
+        <td><strong>製品</strong>志向</td>
+        <td><strong>プロセス</strong>志向</td>
+      </tr>
+      <tr>
+        <td><strong>スタンス</strong></td>
+        <td><strong>是正的</strong> — できたものを評価する</td>
+        <td><strong>予防的</strong> — 問題が起きない作り方にする</td>
+      </tr>
+      <tr>
+        <td><strong>やること</strong></td>
+        <td>故障を発生させ、欠陥を発見し、製品の品質を評価する</td>
+        <td>良い成果物が作られるよう、開発・テストプロセスを整備・改善する</td>
+      </tr>
+      <tr>
+        <td><strong>テスト結果<br>の使い道</strong></td>
+        <td>その欠陥を修正するために使う</td>
+        <td>「なぜこの欠陥が生まれたか」を読み、プロセスの改善材料として使う</td>
+      </tr>
+    </table>
+    <p>
+      第1回で「根本原因 → エラー → 欠陥 → 故障」という連鎖を見ました。
+      連鎖の<strong>右側（故障）を捕まえるのがテスト、左端（根本原因）に手を入れて連鎖そのものを起こさせないのがQA</strong>です。
+      同じ不具合票を見ても、テストの目で見れば「直すべき1件」、QAの目で見れば
+      「要件に『以下／未満』を書く欄がない」というプロセスの欠落が見えます。
+    </p>
+    <div class="mind">
+      <span class="tag">この講座の地図で言うと</span>
+      Step1（第1〜3回）で扱ったのは、ほぼ<strong>テスト＝QC</strong>の技術でした。
+      Step2の今日から先が<strong>QA＝プロセスに手を入れる</strong>側の話です。
+      レビューも、受け入れ条件づくりも、「欠陥を見つける」ためだけでなく
+      <em>そもそも欠陥が入り込まないプロセスに変える</em>ための活動だと捉えてください。
+    </div>
+
     <h3>「品質の番人」から「品質のアクセラレーター」へ</h3>
     <p>
       リリース直前に門番として立ち、問題を見つけて<em>止める</em>のが従来のQA像でした。
@@ -246,6 +348,8 @@
     <h3>指摘の伝え方 — 成果物へ、質問の形で</h3>
     <p>
       第1回のマインドセット「批判は人ではなく成果物に向ける」はレビューでこそ効きます。
+      用語で言えば、レビューで見つけているのは<strong>成果物の中にある「欠陥」</strong>であって、
+      書き手の「エラー」を裁く場ではありません。
       同じ内容でも、伝え方で相手が受け取れる量が変わります。おすすめは<strong>質問の形にする</strong>こと。
       指摘ではなく質問なら、書き手は防御ではなく思考で応じられます。
     </p>
@@ -478,7 +582,7 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>7. アジャイル開発でのQAの動き方・まとめ <span class="time">10分</span></h2>
+    <h2>7. アジャイル開発でのQAの動き方・まとめ <span class="time">7分</span></h2>
 
     <h3>スプリントの中でQAはいつ何をするか</h3>
     <p>今日学んだ活動をスプリントに配置すると、QAの1週間はこうなります。</p>
@@ -503,6 +607,7 @@
     <h3>今日の持ち帰り</h3>
     <ul>
       <li>欠陥は<strong>見つける時期</strong>で値段が変わる。上流の30分は下流の1週間に等しい</li>
+      <li><strong>テスト（QC）は製品志向・是正的、QAはプロセス志向・予防的</strong>。同じ不具合票から「1件の修正」だけでなく「プロセスの欠落」を読む</li>
       <li>レビューの武器は第2回の観点フレーム。<strong>書かれていないこと</strong>を問う。曖昧語（適切に・など・速やかに）は警報</li>
       <li>指摘は成果物へ、<strong>質問の形</strong>で。「QAに早く見せると得」という信頼が上流への招待状になる</li>
       <li>受け入れ条件は<strong>具体的な値の入った例</strong>で固める。具体例が出ないルールは実装してはいけない</li>

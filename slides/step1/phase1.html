@@ -93,7 +93,8 @@
   <div class="goal">
     <h2>今日のゴール</h2>
     <ul>
-      <li>テストの仕事を「バグ探し」ではなく<strong>「品質の情報を届けて意思決定を支える仕事」</strong>として説明できる</li>
+      <li>「テスト」とはどのような仕事か説明できる</li>
+      <li><strong>エラー・欠陥・故障</strong>を区別し、自分が見ているのがどれかを言える</li>
       <li>テストの7原則を、自分たちの現場の言葉で言い換えられる</li>
       <li>自分の担当テストが開発全体のどこに位置するかを図で指させる</li>
       <li>開発者が動ける不具合報告を書ける</li>
@@ -102,7 +103,7 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>1. なぜテストをするのか <span class="time">15分</span></h2>
+    <h2>1. なぜテストをするのか <span class="time">20分</span></h2>
 
     <h3>テストの仕事は「バグ探し」だけではない</h3>
     <p>
@@ -121,9 +122,111 @@
       だからこそ、リリース前に「どこにどんなリスクが残っているか」を語れる人が必要なのです。
     </div>
 
+    <h3>テストが相手にしているものを分解する — エラー・欠陥・故障</h3>
+    <p>
+      日常会話ではぜんぶ「バグ」で済ませますが、テストの世界では
+      <em>誰の・どこにある・どういう問題なのか</em>を分けて呼びます。この分解ができると、
+      自ずと不具合報告の書き方も変わります。
+    </p>
+
+    <figure>
+      <svg viewBox="0 0 800 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="根本原因からエラー、欠陥、故障、利用者への影響へと連鎖する図。左端の根本原因にアプローチするのがQA、右側の欠陥と故障にアプローチするのがテスト・QC">
+        <g font-family="sans-serif" font-size="13">
+          <defs>
+            <marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+            </marker>
+          </defs>
+
+          <text x="83"  y="26" text-anchor="middle" fill="#6b7280" font-size="11">プロセス・組織側</text>
+          <text x="241" y="26" text-anchor="middle" fill="#6b7280" font-size="11">人間側</text>
+          <text x="399" y="26" text-anchor="middle" fill="#6b7280" font-size="11">成果物側</text>
+          <text x="557" y="26" text-anchor="middle" fill="#6b7280" font-size="11">実行結果側</text>
+          <text x="715" y="26" text-anchor="middle" fill="#6b7280" font-size="11">利用者・業務側</text>
+
+          <rect x="20"  y="38" width="126" height="54" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <rect x="178" y="38" width="126" height="54" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <rect x="336" y="38" width="126" height="54" rx="8" fill="#1e3a5f"/>
+          <rect x="494" y="38" width="126" height="54" rx="8" fill="#b45309"/>
+          <rect x="652" y="38" width="126" height="54" rx="8" fill="#b91c1c"/>
+
+          <text x="83"  y="62" text-anchor="middle" fill="#1e3a5f" font-weight="bold">根本原因</text>
+          <text x="83"  y="80" text-anchor="middle" fill="#374151" font-size="11">root cause</text>
+          <text x="241" y="62" text-anchor="middle" fill="#1e3a5f" font-weight="bold">エラー</text>
+          <text x="241" y="80" text-anchor="middle" fill="#374151" font-size="11">error</text>
+          <text x="399" y="62" text-anchor="middle" fill="#fff" font-weight="bold">欠陥</text>
+          <text x="399" y="80" text-anchor="middle" fill="#fff" font-size="11">defect / bug</text>
+          <text x="557" y="62" text-anchor="middle" fill="#fff" font-weight="bold">故障</text>
+          <text x="557" y="80" text-anchor="middle" fill="#fff" font-size="11">failure</text>
+          <text x="715" y="62" text-anchor="middle" fill="#fff" font-weight="bold" font-size="12.5">利用者への影響</text>
+          <text x="715" y="80" text-anchor="middle" fill="#fff" font-size="11">業務・お金・信用</text>
+
+          <line x1="146" y1="65" x2="174" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+          <line x1="304" y1="65" x2="332" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+          <line x1="462" y1="65" x2="490" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+          <line x1="620" y1="65" x2="648" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+
+          <!-- QA（品質保証）が働きかける範囲 -->
+          <path d="M20,110 V102 H146 V110" fill="none" stroke="#0f766e" stroke-width="2"/>
+          <line x1="83" y1="102" x2="83" y2="120" stroke="#0f766e" stroke-width="2"/>
+          <text x="83" y="140" text-anchor="middle" fill="#0f766e" font-size="12.5" font-weight="bold">ここはQA（品質保証）の領域</text>
+
+          <!-- テスト／QC（品質管理）が働きかける範囲 -->
+          <path d="M336,110 V102 H620 V110" fill="none" stroke="#b45309" stroke-width="2"/>
+          <line x1="478" y1="102" x2="478" y2="120" stroke="#b45309" stroke-width="2"/>
+          <text x="478" y="140" text-anchor="middle" fill="#b45309" font-size="12.5" font-weight="bold">QC（品質管理）：テストして故障を発生させ、欠陥特定につなげる</text>
+        </g>
+      </svg>
+    </figure>
+
+    <table>
+      <tr><th style="width:16%">用語</th><th style="width:36%">意味</th><th>経費精算システムでの例</th></tr>
+      <tr>
+        <td><strong>エラー</strong><br><span style="font-size:.85em;color:#6b7280;">error</span></td>
+        <td>人間が行う誤った判断・行為</td>
+        <td>開発者が「上限額の境界をどちらに含めるか」を勘違いする</td>
+      </tr>
+      <tr>
+        <td><strong>欠陥</strong><br><span style="font-size:.85em;color:#6b7280;">defect</span></td>
+        <td>仕様書・コード・テストケースなど<strong>成果物に入り込んだ不備</strong></td>
+        <td><code>金額 &lt;= 100</code> とすべきところを <code>金額 &lt; 100</code> と実装している</td>
+      </tr>
+      <tr>
+        <td><strong>故障</strong><br><span style="font-size:.85em;color:#6b7280;">failure</span></td>
+        <td>実行時に観測される、<strong>期待した動作からの逸脱</strong></td>
+        <td>100円ちょうどの申請がエラーになって登録できない</td>
+      </tr>
+      <tr>
+        <td><strong>根本原因</strong><br><span style="font-size:.85em;color:#6b7280;">root cause</span></td>
+        <td>そのエラーを発生させた背景</td>
+        <td>要件に「以下／未満」が書かれていない、レビューがない、繁忙で確認する余裕がない</td>
+      </tr>
+    </table>
+
+    <p>
+      ポイントは、<strong>エラーは人間側、欠陥は成果物側、故障は実行結果側</strong>にあるということです。
+      そして<em>すべての欠陥が故障につながるわけではありません</em>。特定の条件でしか現れない欠陥、
+      そもそもそのコードが一度も実行されないまま残る欠陥もあります。
+    </p>
+    <p>
+      また、この連鎖の<strong>どこに手を入れるか</strong>で、活動の呼び名が変わります。
+      できあがったものを動かして<em>故障を発生させ、欠陥特定につなげる</em>のが、私たちが日々やっている
+      <strong>テスト＝QC（品質管理）</strong>です。
+    </p>
+
+    <div class="mind">
+      <span class="tag">この区別が効く場面</span>
+      <strong>不具合報告で書くべきは「故障」</strong>です（セクション5）。
+      観測した事実 —「100円を入力すると『上限を超えています』と表示され登録できない」— が報告の中身であって、
+      「境界の実装ミスです」という<em>欠陥の断定は推測</em>にすぎません。
+      推測は「参考情報」として添えるのは歓迎されますが、事実と混ぜて書くと開発者の調査を誤らせます。
+      また、欠陥は<strong>成果物の属性であって、人の属性ではない</strong>。
+      だから指摘は人ではなく成果物に向けます。
+    </div>
+
     <h3>テストで何が示せて、何が示せないか</h3>
     <ul>
-      <li>テストは「欠陥がある」ことは示せるが、<strong>「欠陥がない」ことは証明できない</strong></li>
+      <li>テストは「欠陥がある」ことは示せるが、<strong>「欠陥がない」ことは証明できない</strong>（実行しなければ故障として現れない欠陥が、常に残りうるため）</li>
       <li>だから「テストしたので不具合ゼロです」とは絶対に言わない。言えるのは「この範囲をこう確認し、結果はこうだった」まで</li>
       <li>この誠実さが、テストエンジニアの信用の源泉になる</li>
     </ul>
@@ -159,7 +262,7 @@
 
   <!-- ========================================================= -->
   <section>
-    <h2>3. テストの7原則 — 先人の知恵 <span class="time">15分</span></h2>
+    <h2>3. テストの7原則 — 先人の知恵 <span class="time">10分</span></h2>
     <p>ISTQBがまとめている「テストの7原則」は、標語ではなく<strong>日々の判断に効く道具</strong>です。現場の言葉に翻訳しながら見ていきます。</p>
     <table>
       <tr><th style="width:38%">原則</th><th>現場ではこういうこと</th></tr>
@@ -382,7 +485,7 @@
 
     <h3>書き方の作法</h3>
     <ul>
-      <li><strong>事実と推測を分ける</strong>。「〜になる（事実）」と「おそらく〜が原因と思われる（推測）」を明示的に区別する。推測を書くこと自体は歓迎される</li>
+      <li><strong>事実と推測を分ける</strong>。「〜になる（事実）」と「おそらく〜が原因と思われる（推測）」を明示的に区別する。推測を書くこと自体は歓迎される。<em>セクション1の言葉で言えば、本文に書くのは観測した「故障」、推測で語るのが「欠陥」</em></li>
       <li><strong>1票1事象</strong>。複数の問題を1枚に詰めない（片方だけ直って迷子になる）</li>
       <li><strong>感情を入れない</strong>。「早く直してくれないと困ります」は何も生まない。不具合チケットは成果物であって、メッセージアプリではない</li>
     </ul>
@@ -474,6 +577,7 @@
     <h3>今日の持ち帰り</h3>
     <ul>
       <li>テストは<strong>品質の情報を届けて意思決定を支える仕事</strong>。「テスト済み＝不具合ゼロ」とは言わない</li>
+      <li><strong>エラー（人）→ 欠陥（成果物）→ 故障（実行結果）</strong>を分けて考える。テストが見つけるのは故障、報告に書くのも故障</li>
       <li>全数テストは不可能。だから<strong>どこを狙い、何をやらないかを決める</strong>のがテスト設計（→第2回）</li>
       <li>テストは実行だけでなく、計画〜完了までのプロセス。全体のどこにいるかを常に意識する</li>
       <li>チケットは開発者への報告文書。<strong>事実と推測を分け、悪い報せほど早く</strong></li>

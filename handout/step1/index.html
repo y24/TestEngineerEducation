@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テストエンジニア育成講座 — 目次</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #1e3a5f;
+    --accent-light: #eef3f9;
+    --muted: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.8;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 48px 24px 80px; }
+  header.hero {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 12px;
+    padding: 40px 36px;
+    margin-bottom: 32px;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 1.7rem; }
+  header.hero p { margin: 0; opacity: .9; }
+  .card {
+    display: block;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-left: 6px solid var(--accent);
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-bottom: 18px;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow .15s ease;
+  }
+  .card:hover { box-shadow: 0 4px 14px rgba(30,58,95,.15); }
+  .card .no { color: var(--accent); font-weight: 700; font-size: .85rem; letter-spacing: .05em; }
+  .card h2 { margin: 4px 0 6px; font-size: 1.2rem; }
+  .card p { margin: 0; color: var(--muted); font-size: .92rem; }
+  .meta { background: var(--accent-light); border-radius: 10px; padding: 18px 24px; font-size: .92rem; margin-top: 28px; }
+  .meta h3 { margin: 0 0 8px; font-size: 1rem; color: var(--accent); }
+  .meta ul { margin: 0; padding-left: 1.3em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>テストエンジニア育成講座</h1>
+    <p>ただのテスターから、テスト設計・管理を一人で回せるエンジニアへ — 全3回 / 各90分</p>
+  </header>
+
+  <a class="card" href="phase1.html">
+    <span class="no">第1回（90分）</span>
+    <h2>テストとは何か — マインドセットと基礎</h2>
+    <p>テストの目的と7原則、テストの全体地図、良い不具合報告。テスターとしての土台を作る。</p>
+  </a>
+
+  <a class="card" href="phase2.html">
+    <span class="no">第2回（90分）</span>
+    <h2>仕様を読み、テストを設計する</h2>
+    <p>仕様を鵜呑みにせず、テスト観点とテスト条件を整理し、根拠のあるケースへ落とす。仕様把握の勘所、質問力、技法ダイジェスト。</p>
+  </a>
+
+  <a class="card" href="phase3.html">
+    <span class="no">第3回（90分）</span>
+    <h2>テストを管理し、品質を語る</h2>
+    <p>テスト計画と見積り、PB曲線の読み方、バグトリアージ、テストの終わり方。「回す」力を作る。</p>
+  </a>
+
+  <div class="meta">
+    <h3>この講座の進め方</h3>
+    <ul>
+      <li>講義とワークのセットで進めます。ワークは手を動かしてこそ意味があります。</li>
+      <li>例題はすべて「経費精算システム」を題材にした業務システムです。</li>
+      <li>細かいテスト技法の練習は課題図書で補います。講座では「考え方」を扱います。</li>
+      <li>体系は ISTQB Foundation Level（CTFL 2023 V4.0）に沿っています。興味が湧いたらJSTQB認定試験にも挑戦してみてください。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

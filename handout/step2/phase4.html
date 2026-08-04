@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第4回 テスト戦略とリスクベースドテスト — 「全部やる」から「賢く選ぶ」へ</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #7c2d5e;
+    --accent-light: #faeef5;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 16px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 36px; margin-bottom: 36px;
+  }
+  header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
+  header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
+  section {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 30px 34px; margin-bottom: 30px;
+  }
+  section > h2 {
+    margin: -30px -34px 24px; padding: 16px 34px;
+    background: var(--accent-light); border-radius: 12px 12px 0 0;
+    font-size: 1.25rem; color: var(--accent);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  section > h2 .time { float: right; font-size: .8rem; color: var(--muted); font-weight: normal; margin-top: 4px; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 28px 0 10px; }
+  .goal { background: var(--accent-light); border-radius: 10px; padding: 20px 26px; margin-bottom: 30px; }
+  .goal h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--accent); }
+  .goal ul { margin: 0; padding-left: 1.4em; }
+  .mind, .work, .example { border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .mind .tag { color: var(--mind); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  .c { text-align: center; }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; font-size: .93rem; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: .8rem; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: .8rem; }
+  details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  figure { margin: 20px 0; text-align: center; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
+  .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
+  footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
+  footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="crumb"><a href="index.html">← Step2 目次に戻る</a></nav>
+
+  <header class="hero">
+    <div class="label">テストエンジニア育成講座 Step2 — 第4回（90分）</div>
+    <h1>テスト戦略とリスクベースドテスト<br>— 「全部やる」から「賢く選ぶ」へ</h1>
+    <p>時間は常に足りない。だからこそ「どこを厚く、どこを薄くするか」を意思を持って決める。それがテスト戦略。</p>
+  </header>
+
+  <div class="goal">
+    <h2>今日のゴール</h2>
+    <ul>
+      <li>「全数テストは不可能」（第1回）の続き — <strong>何をやらないかを意思を持って決める</strong>方法を持てる</li>
+      <li><strong>リスクを自力で洗い出す手順</strong>（分解のレンズ・引き金の質問・リスク文の型）を身につける</li>
+      <li>洗い出したリスクを影響度×発生確率で評価し、テストの濃淡に翻訳できる</li>
+      <li>探索的テストを「行き当たりばったり」ではなく、チャーターを持ったセッションとして捉えられる</li>
+    </ul>
+  </div>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>1. Step1の振り返りとStep2のゴール <span class="time">5分</span></h2>
+    <p>
+      Step1では、テストという仕事の土台（第1回）、仕様を読んで設計する力（第2回）、テストを回して品質を語る力（第3回）を作りました。
+      言い換えると、<strong>与えられた範囲のテストを一人で回せる</strong>状態です。
+    </p>
+    <p>
+      Step2のテーマは「その範囲を自分で決める」こと。今日扱う<em>戦略とリスク</em>はStep2全体の土台です。
+      第5回（上流のどこに力を入れるか）も第6回（何を自動化しAIに何を任せるか）も、結局はリスクに基づく配分の話だからです。
+    </p>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>2. テスト戦略とアプローチ <span class="time">15分</span></h2>
+
+    <h3>「計画」の一段上にある「戦略」</h3>
+    <p>
+      第3回で学んだテスト計画は「何を・いつ・誰が・どの環境で」を決めるものでした。
+      その前に決めるべきことがあります。<em>そもそもどういう方針で攻めるのか</em> — これがテスト戦略（テストアプローチ）です。
+      戦略が曖昧なまま計画を作ると、「とりあえず全機能を一通り」という<strong>根拠のない均等配分</strong>になり、時間が足りなくなってから場当たり的に削ることになります。
+    </p>
+
+    <h3>アプローチの引き出し</h3>
+    <p>代表的なアプローチを知っておくと、状況に合わせて「配合」できるようになります。</p>
+    <table>
+      <tr><th style="width:26%">アプローチ</th><th>どう攻めるか</th><th style="width:30%">現場での例</th></tr>
+      <tr>
+        <td><strong>分析的</strong>（リスクベース／要件ベース）</td>
+        <td>リスクや要件を分析し、優先度に応じてテストを配分する</td>
+        <td>今日の主役。リスクの高い機能に技法と時間を集中させる</td>
+      </tr>
+      <tr>
+        <td><strong>モデルベース</strong></td>
+        <td>状態遷移図や業務フローなどのモデルからテストを導出する</td>
+        <td>第2回の状態遷移テストの延長。承認フローの遷移網羅</td>
+      </tr>
+      <tr>
+        <td><strong>系統的</strong>（チェックリストベース）</td>
+        <td>観点集・チェックリストなど既定のリストで漏れなく確認する</td>
+        <td>過去の不具合傾向から作った社内共通チェックリスト</td>
+      </tr>
+      <tr>
+        <td><strong>プロセス準拠</strong></td>
+        <td>業界標準や規制の定める手順・証跡に従う</td>
+        <td>金融・医療など監査要件があるプロジェクト</td>
+      </tr>
+      <tr>
+        <td><strong>経験ベース</strong>（リアクティブ）</td>
+        <td>実物を触りながら、経験と学びで次の一手を決める</td>
+        <td>今日の後半で扱う探索的テスト</td>
+      </tr>
+      <tr>
+        <td><strong>回帰的</strong></td>
+        <td>既存機能を壊していないことの確認を最優先する</td>
+        <td>毎月の保守リリース。自動リグレッションが主力（第6回）</td>
+      </tr>
+    </table>
+
+    <div class="example">
+      <span class="tag">同じ経費精算システムでも、リリースが違えば戦略は変わる</span>
+      <table style="margin:8px 0 4px;">
+        <tr><th style="width:30%"></th><th>インボイス制度改正対応リリース</th><th>申請画面の全面刷新リリース</th></tr>
+        <tr>
+          <td>何が怖いか</td>
+          <td>税額計算の誤り（お金に直結・全件に波及）</td>
+          <td>操作性の劣化、既存機能のデグレード</td>
+        </tr>
+        <tr>
+          <td>戦略の配合</td>
+          <td><strong>要件ベース</strong>で改正要件を1件ずつ潰す + 計算まわりの<strong>回帰的</strong>テストを厚く</td>
+          <td><strong>モデルベース</strong>で画面遷移を網羅 + <strong>探索的</strong>テストで使い勝手の穴を探す</td>
+        </tr>
+        <tr>
+          <td>薄くするところ</td>
+          <td>画面の見た目・操作性（変更していないため）</td>
+          <td>計算ロジック（変更していないため。スモークのみ）</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      「テストは状況次第」（7原則の6）を実行に移すのが戦略。<strong>前のプロジェクトのやり方をコピペした瞬間、戦略は死ぬ</strong>。
+      アプローチは単品で選ぶものではなく、リリースの性質に合わせて毎回配合し直すもの。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>3. リスクベースドテスト — 評価のものさし <span class="time">15分</span></h2>
+
+    <h3>優先順位の「根拠」を作る</h3>
+    <p>
+      全数テストは不可能（7原則の2）だから優先順位をつける — ここまではStep1で学びました。
+      では、その優先順位はどう決めるのか。勘や声の大きい人の意見ではなく、<em>リスク = 影響度 × 発生確率</em>という共通のものさしで決めるのがリスクベースドテストです。
+      ものさしが共通だから、チームで議論でき、あとから説明できます。
+    </p>
+    <p>
+      リスクベースドテストは<strong>「①洗い出す → ②評価する → ③濃淡に翻訳する」</strong>の3ステップです。
+      このセクションでは②と③のものさしを先に固めます。<strong>①の洗い出しは次のセクション4で手順として扱います</strong>
+      — 実務でつまずくのは評価より洗い出しの方だからです（評価するものが出てこなければ、ものさしは使えません）。
+    </p>
+
+    <h3>影響度 — 起きたらどれだけ痛いか</h3>
+    <ul>
+      <li><strong>お金に直結するか</strong>: 精算金額・仕訳・税額の誤りは1件でも重い（第1回の端数処理の例を思い出す）</li>
+      <li><strong>業務が止まるか</strong>: 月次の締め処理が失敗したら、経理部門全体が待ちになる</li>
+      <li><strong>影響範囲の広さ</strong>: 全社員が使う申請画面か、管理者数名しか使わない設定画面か</li>
+      <li><strong>回避策の有無</strong>: 画面で直せる誤りか、データパッチが必要な誤りか</li>
+      <li><strong>信用・コンプライアンス</strong>: 個人情報の漏えい、監査証跡の欠落は金額換算できない痛み</li>
+    </ul>
+
+    <h3>発生確率 — どれだけ壊れていそうか</h3>
+    <ul>
+      <li><strong>複雑さ</strong>: 条件分岐が多い（承認ルート、税率、按分計算）</li>
+      <li><strong>新規性・変更の集中</strong>: 新規機能、今回の改修で手が入った箇所、仕様変更が重なった箇所</li>
+      <li><strong>過去の欠陥の偏在</strong>: 「欠陥は偏在する」（7原則の4）。過去の不具合票は発生確率の一次情報</li>
+      <li><strong>作り手の状況</strong>: 引き継ぎ直後、新メンバーの担当箇所、突貫で作られた箇所</li>
+      <li><strong>外部との接続</strong>: 他システム連携・取込・出力は、こちらの想定が通用しない</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 760 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="影響度と発生確率のリスクマトリクス">
+        <g font-family="sans-serif" font-size="13">
+          <!-- axes -->
+          <line x1="90" y1="380" x2="720" y2="380" stroke="#6b7280" stroke-width="1.5"/>
+          <line x1="90" y1="380" x2="90" y2="40" stroke="#6b7280" stroke-width="1.5"/>
+          <polygon points="720,380 710,375 710,385" fill="#6b7280"/>
+          <polygon points="90,40 85,50 95,50" fill="#6b7280"/>
+          <text x="700" y="405" fill="#374151">発生確率 →</text>
+          <text x="40" y="210" fill="#374151" text-anchor="middle" transform="rotate(-90 40 210)">影響度 →</text>
+          <!-- quadrants -->
+          <rect x="100" y="55" width="300" height="155" rx="8" fill="#fef3c7" stroke="#f59e0b"/>
+          <rect x="410" y="55" width="300" height="155" rx="8" fill="#fee2e2" stroke="#ef4444"/>
+          <rect x="100" y="220" width="300" height="150" rx="8" fill="#f3f4f6" stroke="#9ca3af"/>
+          <rect x="410" y="220" width="300" height="150" rx="8" fill="#dbeafe" stroke="#3b82f6"/>
+          <!-- labels -->
+          <text x="560" y="85" text-anchor="middle" font-weight="bold" fill="#991b1b">最優先 — 厚くテスト</text>
+          <text x="560" y="110" text-anchor="middle" fill="#7f1d1d" font-size="12">技法でしっかり設計＋異常系＋</text>
+          <text x="560" y="128" text-anchor="middle" fill="#7f1d1d" font-size="12">探索的テストも重ねる</text>
+          <text x="560" y="152" text-anchor="middle" fill="#7f1d1d" font-size="12">例: IC連携の取込金額、承認ルート</text>
+          <text x="250" y="85" text-anchor="middle" font-weight="bold" fill="#92400e">重点確認 — 狙って確かめる</text>
+          <text x="250" y="110" text-anchor="middle" fill="#78350f" font-size="12">起きにくいが起きたら致命的。</text>
+          <text x="250" y="128" text-anchor="middle" fill="#78350f" font-size="12">シナリオを絞って確実に押さえる</text>
+          <text x="250" y="152" text-anchor="middle" fill="#78350f" font-size="12">例: 権限すり抜け、データ移行</text>
+          <text x="560" y="252" text-anchor="middle" font-weight="bold" fill="#1e40af">効率化 — 仕組みでカバー</text>
+          <text x="560" y="277" text-anchor="middle" fill="#1e3a8a" font-size="12">よく起きるが痛みは小さい。</text>
+          <text x="560" y="295" text-anchor="middle" fill="#1e3a8a" font-size="12">自動化・チェックリストで淡々と（第6回）</text>
+          <text x="560" y="319" text-anchor="middle" fill="#1e3a8a" font-size="12">例: 入力チェックの網羅、表示崩れ</text>
+          <text x="250" y="252" text-anchor="middle" font-weight="bold" fill="#4b5563">最小限 — 薄くてよいと宣言</text>
+          <text x="250" y="277" text-anchor="middle" fill="#4b5563" font-size="12">スモーク程度。ただし</text>
+          <text x="250" y="295" text-anchor="middle" fill="#4b5563" font-size="12">「薄くした」と計画に明記する</text>
+          <text x="250" y="319" text-anchor="middle" fill="#4b5563" font-size="12">例: ヘルプ画面、管理者用の稀な設定</text>
+        </g>
+      </svg>
+      <figcaption>リスクマトリクス — 場所によって「テストの濃さ」を変える。全マスを同じ濃さにするのは戦略の放棄</figcaption>
+    </figure>
+
+    <h3>リスクレベルをテストの濃淡に翻訳する</h3>
+    <p>分析して終わりではなく、リスクレベルごとに「何をするか」をあらかじめ決めておくと、そのまま計画になります。</p>
+    <table>
+      <tr><th style="width:14%" class="c">リスク</th><th>テスト設計の深さ</th><th>実行の厚み</th></tr>
+      <tr>
+        <td class="c"><strong>高</strong></td>
+        <td>技法で網羅的に設計（境界値・デシジョンテーブル・状態遷移）＋異常系を明示的に設計</td>
+        <td>スクリプトテスト＋探索的テストを重ねる。リグレッション対象に固定</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>中</strong></td>
+        <td>正常系＋主要な異常系。代表値中心</td>
+        <td>スクリプトテスト1周＋変更があった時のみ再テスト</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>低</strong></td>
+        <td>ケースは書かず、チェックリストレベル</td>
+        <td>スモークテストのみ。<strong>「低リスクと判断し薄くした」と計画に書く</strong></td>
+      </tr>
+    </table>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      薄くする箇所を決めるのは「手抜き」ではなく<strong>説明責任を伴う設計判断</strong>。
+      「なぜそこを薄くしたか」を語れるなら、それは戦略。語れないなら、それはただの抜け。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>4. リスクはどう洗い出すか <span class="time">15分</span></h2>
+
+    <p>
+      「影響度×発生確率で評価する」と言われても、<em>評価する対象そのものが出てこない</em> — これが実務での最初の壁です。
+      白紙の前で「リスクを挙げてください」と言われて出てくるのは、せいぜい思いついた3つか4つ。
+      洗い出しは<strong>ひらめきではなく手順</strong>でやります。
+    </p>
+
+    <h3>大原則: 出す作業と、評価する作業を分ける</h3>
+    <p>
+      出しながら「これはリスクとして小さいかな…」と評価を始めると、手が止まり、数が出ません。
+      <strong>まず量を出し切ってから、評価する</strong>。これは会議のブレストと同じ原則です。
+      評価しないと決めておけば、自信がない項目も口に出せます — そして<em>自信がない項目こそ、あとで高リスクだと分かる</em>ことがよくあります。
+    </p>
+
+    <h3>ステップ1: 対象を分解する（4つのレンズ）</h3>
+    <p>いきなり全体を眺めず、決まった切り口＝レンズを順番に当てます。レンズを変えると、見えるリスクの種類が変わります。</p>
+    <table>
+      <tr><th style="width:20%">レンズ</th><th>当て方</th><th style="width:36%">IC連携機能に当てると</th></tr>
+      <tr>
+        <td><strong>① データの流れ</strong></td>
+        <td>入力 → 処理・計算 → 保存 → 出力 → 外部連携、と川下りする。<strong>リスクは「つなぎ目」に溜まる</strong></td>
+        <td>取込（連携）→ 履歴の保存 → 編集（入力）→ 申請への変換（処理）→ 精算金額（出力）</td>
+      </tr>
+      <tr>
+        <td><strong>② 変更点</strong></td>
+        <td>新規に作った所／今回手を入れた所／<strong>手は入れていないが影響を受ける既存機能</strong>の3つに分ける</td>
+        <td>新規=取込バッチ・除外フラグ／影響を受ける既存=経費申請の一覧・承認・月次締め</td>
+      </tr>
+      <tr>
+        <td><strong>③ 品質特性</strong></td>
+        <td>機能適合性・性能効率性・セキュリティ・使用性・信頼性・互換性…と特性名を順に唱えて当てはめる。<strong>非機能リスクはここで機械的に出る</strong></td>
+        <td>性能=全社員分の夜間バッチ／セキュリティ=他人のカード登録／互換性=外部APIの仕様変更</td>
+      </tr>
+      <tr>
+        <td><strong>④ 過去と現場</strong></td>
+        <td>過去の不具合票、問い合わせ・ヒヤリ、他社の障害事例、そして<strong>開発者が不安だと言っている所</strong></td>
+        <td>過去に「重複取込」の障害があった／開発者が「日またぎの扱いが危ない」と言っている</td>
+      </tr>
+    </table>
+
+    <figure>
+      <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="データの流れに沿ってリスクを洗い出す図">
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="13.5" font-weight="bold" fill="#7c2d5e">レンズ① データの流れで追う — リスクは「つなぎ目」に溜まる</text>
+          <g font-size="13">
+            <rect x="18" y="46" width="126" height="46" rx="8" fill="#faeef5" stroke="#7c2d5e"/>
+            <text x="81" y="75" text-anchor="middle" fill="#7c2d5e" font-weight="bold">入力</text>
+            <rect x="167" y="46" width="126" height="46" rx="8" fill="#faeef5" stroke="#7c2d5e"/>
+            <text x="230" y="75" text-anchor="middle" fill="#7c2d5e" font-weight="bold">処理・計算</text>
+            <rect x="316" y="46" width="126" height="46" rx="8" fill="#faeef5" stroke="#7c2d5e"/>
+            <text x="379" y="75" text-anchor="middle" fill="#7c2d5e" font-weight="bold">保存</text>
+            <rect x="465" y="46" width="126" height="46" rx="8" fill="#faeef5" stroke="#7c2d5e"/>
+            <text x="528" y="75" text-anchor="middle" fill="#7c2d5e" font-weight="bold">出力・集計</text>
+            <rect x="614" y="46" width="126" height="46" rx="8" fill="#fff7ed" stroke="#b45309"/>
+            <text x="677" y="75" text-anchor="middle" fill="#b45309" font-weight="bold">外部連携</text>
+          </g>
+          <g stroke="#9ca3af" stroke-width="1.5" fill="none">
+            <path d="M144 69 H163" marker-end="url(#ar)"/>
+            <path d="M293 69 H312" marker-end="url(#ar)"/>
+            <path d="M442 69 H461" marker-end="url(#ar)"/>
+            <path d="M591 69 H610" marker-end="url(#ar)"/>
+          </g>
+          <defs>
+            <marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+              <polygon points="0,0 7,3.5 0,7" fill="#9ca3af"/>
+            </marker>
+          </defs>
+          <g font-size="11.5" fill="#4b5563">
+            <text x="81" y="118" text-anchor="middle">境界・形式・必須</text>
+            <text x="81" y="136" text-anchor="middle">誰が入れられるか</text>
+            <text x="81" y="154" text-anchor="middle">途中で中断したら</text>
+            <text x="230" y="118" text-anchor="middle">端数・税率・按分</text>
+            <text x="230" y="136" text-anchor="middle">条件の組合せ</text>
+            <text x="230" y="154" text-anchor="middle">日またぎ・月またぎ</text>
+            <text x="379" y="118" text-anchor="middle">同時に2人が触る</text>
+            <text x="379" y="136" text-anchor="middle">移行した過去データ</text>
+            <text x="379" y="154" text-anchor="middle">消える・重複する</text>
+            <text x="528" y="118" text-anchor="middle">合計が合わない</text>
+            <text x="528" y="136" text-anchor="middle">締めのタイミング</text>
+            <text x="528" y="154" text-anchor="middle">見えてはいけない人に</text>
+            <text x="677" y="118" text-anchor="middle" fill="#92400e">落ちている・遅い</text>
+            <text x="677" y="136" text-anchor="middle" fill="#92400e">想定外の値が来る</text>
+            <text x="677" y="154" text-anchor="middle" fill="#92400e">二重に取り込む</text>
+          </g>
+          <rect x="18" y="180" width="722" height="52" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+          <text x="34" y="203" font-size="12.5" fill="#0f766e" font-weight="bold">問い方のコツ</text>
+          <text x="34" y="223" font-size="12.5" fill="#134e4a">各ブロックで「ここが間違ったら、誰が・いつ気づくか？」と問う。誰も気づかないまま流れる所ほど、リスクは高い。</text>
+        </g>
+      </svg>
+      <figcaption>レンズ①の当て方 — 機能名ではなく、データが通る順に沿って「壊れ方」を探す</figcaption>
+    </figure>
+
+    <h3>ステップ2: 引き金の質問を当てる</h3>
+    <p>レンズで場所を決めたら、次はこの質問を機械的にぶつけます。手が止まったらこのリストに戻ってください。</p>
+    <table>
+      <tr><th style="width:50%">影響度を掘り起こす質問</th><th>発生確率を掘り起こす質問</th></tr>
+      <tr>
+        <td>
+          <ul style="margin:4px 0; padding-left:1.2em;">
+            <li>ここが間違うと、<strong>お金の額</strong>は変わるか</li>
+            <li>間違いに<strong>誰がいつ気づく</strong>か。誰も気づかず流れるか</li>
+            <li>気づいたとき<strong>戻せる</strong>か（画面で直せる／データパッチが要る）</li>
+            <li>止まったら<strong>何人が待つ</strong>か。締め処理は止まるか</li>
+            <li>社外・監査・個人情報に<strong>波及</strong>するか</li>
+          </ul>
+        </td>
+        <td>
+          <ul style="margin:4px 0; padding-left:1.2em;">
+            <li>ここは<strong>新規</strong>か、<strong>今回触った</strong>か</li>
+            <li><strong>条件分岐</strong>がいくつあるか（多いほど壊れる）</li>
+            <li>過去に<strong>似た不具合</strong>が出ていないか</li>
+            <li>作った人は<strong>不安だと言っている</strong>か</li>
+            <li><strong>自分たちの外側</strong>（外部API・他チーム・移行データ）に依存しているか</li>
+          </ul>
+        </td>
+      </tr>
+    </table>
+    <div class="example">
+      <span class="tag">業務システムで毎回効く「時と人」の5問</span>
+      <ul style="margin:6px 0;">
+        <li><strong>月末・締め日・年度替わり</strong>に、この機能は何をしているか</li>
+        <li><strong>同時に2人</strong>が同じデータを触ったら</li>
+        <li><strong>権限の違う人</strong>（一般社員・承認者・管理者・退職者）が同じ操作をしたら</li>
+        <li><strong>旧システムから移ってきたデータ</strong>（旧税率・未精算の申請）が来たら</li>
+        <li><strong>一番よく使われる操作</strong>は何か（頻度が高い＝壊れたときに全員が踏む）</li>
+      </ul>
+    </div>
+
+    <h3>ステップ3: リスクを「文」の形で書く</h3>
+    <p>
+      ここが一番差が出ます。<em>機能名を並べただけのものはリスクではありません</em> — 評価も対策もできないからです。
+      <strong>&lt;どこで&gt; &lt;何が起きて&gt; &lt;業務上どう困るか&gt;</strong> の形で1文にします。
+    </p>
+    <div class="bad-box">
+      <span class="tag">NG</span>
+      <ul style="margin:6px 0;">
+        <li>「取込機能」 → ただの機能名。何が怖いのか誰にも伝わらない</li>
+        <li>「バグがあるかもしれない」 → 全部に当てはまる＝何も言っていない</li>
+        <li>「取込がうまくいかない」 → 「困りごと」がないので影響度を付けられない</li>
+      </ul>
+    </div>
+    <div class="good-box">
+      <span class="tag">OK</span>
+      <ul style="margin:6px 0;">
+        <li>「<strong>夜間バッチ</strong>が再実行されたとき<strong>同じ履歴が2件取り込まれ</strong>、<strong>二重申請で過払いが起きる</strong>」</li>
+        <li>「<strong>除外フラグ</strong>を付けた私用の履歴が<strong>申請の合計金額に含まれ</strong>、<strong>私費が経費で精算される</strong>」</li>
+        <li>「<strong>月末23時台</strong>の利用履歴が<strong>翌月分として取り込まれ</strong>、<strong>締め後の申請漏れになる</strong>」</li>
+      </ul>
+    </div>
+    <p>
+      文にすると、後半の「どう困るか」がそのまま<strong>影響度</strong>の判断材料になり、前半の「どこで・何が起きて」が<strong>発生確率</strong>の判断材料になります。
+      つまり、書き方を揃えるだけで次の評価ステップが軽くなります。
+    </p>
+
+    <h3>ステップ4: 数を整える</h3>
+    <ul>
+      <li><strong>まず15〜20個</strong>を目標に出す。少なすぎるときはレンズを1つ飛ばしている（たいてい③品質特性か④過去）</li>
+      <li>粒度は「機能ごとに1つ」ではなく<strong>「怖さの単位」</strong>。1つの機能から3つ出てもよい</li>
+      <li>同じことを言っている項目は<strong>統合</strong>。逆に「〜まわり全般」のような大きすぎる項目は<strong>分割</strong>する</li>
+      <li>出し切ったら評価へ。全部を評価表に載せる必要はなく、<strong>上位を絞って濃淡を決める</strong></li>
+    </ul>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      リスクの洗い出しは<strong>一人でやらない</strong>のが本来の姿。開発者は「壊れやすい所」を、企画・業務担当は「起きたら困る所」を知っている。
+      それぞれの立場が集まった場でのQAの価値は、一番たくさんリスクを思いつくことではなく、<strong>それぞれが持っている不安を引き出して1枚の表にまとめる</strong>ことにある。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>5. ワーク① リスク分析（2ステップ） <span class="time">25分</span></h2>
+
+    <p>
+      セクション4の手順（レンズ → 質問 → リスク文）をそのまま使います。
+      <strong>Step A で出し切り、それらを Step B で評価します</strong>。Step A の途中で「これは低リスクかな」と考えないようにしてください。
+    </p>
+
+    <div class="example">
+      <span class="tag">題材: 交通系ICカード連携機能（新規追加）の概要</span>
+      <ul style="margin:6px 0;">
+        <li>社員は自分の交通系ICカードを<strong>1枚</strong>登録できる</li>
+        <li>カードの利用履歴を<strong>夜間バッチ</strong>で自動取込し、経費申請のたたき台を作る</li>
+        <li>取り込んだ履歴は金額・区間を<strong>編集して</strong>申請に変換できる</li>
+        <li>私用の履歴には<strong>除外フラグ</strong>を付けられる（申請対象から外れる）</li>
+        <li>取込は外部のICカード事業者APIを利用する</li>
+      </ul>
+      <p style="margin:8px 0 0; font-size:.92rem;">
+        <strong>現場からの情報（レンズ④用）</strong>: 過去に別システムとの連携で「同じデータが二重に取り込まれる」障害を起こしたことがある。
+        また開発者から「日またぎ・月またぎの履歴の扱いは自信がない」と聞いている。
+      </p>
+    </div>
+
+    <div class="work">
+      <span class="tag">Step A — リスクを出し切る（個人3分 → グループ7分 → 共有3分）</span>
+      <p style="margin:6px 0;">
+        <strong>評価はしません。数を出すことだけに集中してください。</strong>
+        4つのレンズ（データの流れ／変更点／品質特性／過去と現場）を<em>順番に</em>当て、引き金の質問をぶつけて、リスク文の形で書き出します。
+      </p>
+      <p style="margin:6px 0;"><strong>目標: チームで15個以上。</strong>レンズごとに最低2個は出すこと（特に③品質特性＝非機能を飛ばさない）。</p>
+      <table style="margin:10px 0 4px;">
+        <tr><th style="width:12%" class="c">レンズ</th><th>リスク文（&lt;どこで&gt;&lt;何が起きて&gt;&lt;どう困るか&gt;）</th></tr>
+        <tr><td class="c">①流れ</td><td style="color:#6b7280;">例）取込バッチが再実行され、同じ履歴が2件登録され、二重申請で過払いになる</td></tr>
+        <tr><td class="c">①流れ</td><td></td></tr>
+        <tr><td class="c">②変更点</td><td></td></tr>
+        <tr><td class="c">②変更点</td><td></td></tr>
+        <tr><td class="c">③品質特性</td><td></td></tr>
+        <tr><td class="c">③品質特性</td><td></td></tr>
+        <tr><td class="c">④過去/現場</td><td></td></tr>
+        <tr><td class="c">④過去/現場</td><td></td></tr>
+      </table>
+      <p style="margin:8px 0 0;">共有3分では<strong>各チーム「他のチームが出していなさそうな1つ」</strong>を紹介します。ここで全体のリストを合流させてからStep Bへ進みます。</p>
+    </div>
+
+    <div class="work">
+      <span class="tag">Step B — 評価して濃淡に翻訳する（グループ9分 → 共有3分）</span>
+      <p style="margin:6px 0;">
+        Step A のリストから<strong>6件を選び</strong>、影響度・発生確率を<strong>高／中／低</strong>で付けてマトリクスに配置し、
+        テストの濃淡（厚くする所・薄くする所）を決めてください。
+      </p>
+      <p style="margin:6px 0;">
+        評価は<strong>相対</strong>です。全部「高」になったら「時間が半分になったらどれを削るか」で並べ替えてください。
+        6件のうち<strong>非機能（性能・セキュリティ・信頼性など）を最低1つ</strong>、<strong>「薄くする」判断を最低1つ</strong>含めること。
+      </p>
+      <p style="margin:6px 0;">共有では「<strong>一番薄くした箇所とその理由</strong>」をチームで1つ発表します。</p>
+    </div>
+
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>6. 探索的テスト入門 <span class="time">10分</span></h2>
+
+    <h3>スクリプトテストの死角を埋める</h3>
+    <p>
+      事前に書いたテストケース（スクリプトテスト）は、<em>書いた人の想像の範囲</em>しか確かめられません。
+      さらに同じケースを繰り返すほど新しいバグは見つからなくなります（殺虫剤のパラドックス — 7原則の5）。
+      この死角を埋めるのが探索的テスト。<strong>テストの設計・実行・学習を同時に行い、直前の結果から次の一手を決める</strong>やり方です。
+      第2回で「仕様だけでは挙動を掴みにくい新機能は、短時間の探索を先に行うと設計材料が増える」と触れました。今日はそれを仕事として成立させる型を学びます。
+    </p>
+
+    <h3>「行き当たりばったり」との違い — セッションという型</h3>
+    <p>探索的テストがただの「適当に触る」と違うのは、次の4点があるからです。この型をセッションベースドテスト（SBT）と呼びます。</p>
+    <table>
+      <tr><th style="width:22%">要素</th><th>内容</th></tr>
+      <tr><td><strong>チャーター</strong></td><td>このセッションで「何を・どんな観点で・何のために」探索するかのお題。1セッション1チャーター</td></tr>
+      <tr><td><strong>時間箱</strong></td><td>60〜120分で区切る（それ以上は集中が切れる）。区切るから集中でき、報告の単位になる</td></tr>
+      <tr><td><strong>セッションノート</strong></td><td>試したこと・起きたこと・気になったことをメモしながら進める。<strong>記録がない探索は蒸発する</strong></td></tr>
+      <tr><td><strong>デブリーフィング</strong></td><td>セッション後にリーダーへ口頭報告。見つけた問題＋「次に探索すべき場所」の提案</td></tr>
+    </table>
+
+    <h3>チャーターの書き方</h3>
+    <p>テンプレートで書くと迷いません: <em>「〈対象〉を、〈リソース・データ〉を使って探索し、〈見つけたい情報〉を明らかにする」</em></p>
+    <div class="example">
+      <span class="tag">チャーターの例（IC連携機能）</span>
+      <ul style="margin:6px 0;">
+        <li>「<strong>除外フラグまわり</strong>を、<strong>月またぎ・締め日直前の履歴データ</strong>を使って探索し、<strong>精算金額に影響する問題がないか</strong>を明らかにする」</li>
+        <li>「<strong>履歴の編集→申請変換の流れ</strong>を、<strong>編集途中の中断・二重操作</strong>を混ぜて探索し、<strong>データが壊れる操作列がないか</strong>を明らかにする」</li>
+      </ul>
+      <p style="margin:6px 0 0;">ワーク①で「高」にしたリスクが、そのまま良いチャーターになる — <strong>リスク分析と探索はセットで使う</strong>。洗い出したリスク文の「何が起きて」の部分が、探索で確かめにいく仮説そのものだから。</p>
+    </div>
+
+    <h3>探索中の思考法</h3>
+    <ul>
+      <li>「おや？」と思ったら深追いする。バグは群れている（欠陥の偏在）— 1匹見つけたら周辺を掘る</li>
+      <li>学んだことで次の一手を変える。「日付の編集が怪しい」と分かったら、日付が絡む操作を集中的に試す</li>
+      <li>チャーターから大きく外れたら、無理に追わずノートに「次のチャーター候補」として書き残す</li>
+    </ul>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      探索がうまい人は運がいいのではなく、<strong>仮説→実験→学習を高速に回している</strong>。
+      「この作りなら、ここが弱いはず」という仮説の質は、ドメイン知識と過去の不具合の記憶から来る。
+      探索的テストは経験が武器になる、キャリアと共に強くなるスキル。
+    </div>
+
+    <details>
+      <summary>任意: ミニ探索セッションをやってみる（時間が余ったとき／OJT用）</summary>
+      <p style="margin:6px 0;">
+        15分あれば「講師がシステム役」の口頭形式で体験できます（チャーター作成5分 → 探索7分 → デブリーフィング3分）。デモ環境やモックがあればそれを使うのが理想。
+      </p>
+      <ul>
+        <li>口頭形式の進め方: 受講者「除外フラグを付けた履歴を、そのあと申請に変換してみます」→講師「変換できてしまいました」のように応答する</li>
+        <li>仕込み例: (a) 除外フラグ付き履歴が申請一覧の合計金額には含まれてしまう、(b) 履歴を編集中に別タブで同じ履歴を開くと古い内容で上書きできる、(c) 月末23時台の履歴が翌月分として取り込まれる</li>
+        <li>チャーターに沿わないランダムな操作宣言が続くグループには「今のチャーターは何だった？」と立ち返らせる</li>
+        <li>デブリーフィングでは「見つけた不具合の数」ではなく「<strong>次に探索すべき場所を提案できたか</strong>」を褒める — 探索の成果は情報である</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>7. まとめ <span class="time">5分</span></h2>
+    <h3>今日の持ち帰り</h3>
+    <ul>
+      <li>戦略とは<strong>「やらないことを決めて、説明できること」</strong>。アプローチはリリースの性質に合わせて毎回配合し直す</li>
+      <li>リスク分析は<strong>①洗い出す → ②評価する → ③濃淡に翻訳する</strong>の3ステップ。<strong>①と②は混ぜない</strong>（出しながら評価すると数が出ない）</li>
+      <li>洗い出しは手順でやる — <strong>4つのレンズ</strong>（流れ・変更点・品質特性・過去と現場）→ <strong>引き金の質問</strong> → <strong>リスク文</strong>（どこで・何が起きて・どう困るか）</li>
+      <li>非機能リスク（性能・セキュリティ・信頼性）は<strong>品質特性のレンズ</strong>で機械的に出す。思い出そうとしない</li>
+      <li>優先順位のものさしは<em>リスク = 影響度 × 発生確率</em>。影響度は業務の文脈（お金・業務停止・信用）、発生確率は複雑さ・変更・過去の欠陥から読む</li>
+      <li>探索的テストは「チャーター・時間箱・ノート・報告」の型を持てば仕事になる。<strong>「高」にしたリスクがそのままチャーターになる</strong></li>
+    </ul>
+    <p>
+      次回は視点を上流へ移します。「テストで見つける」より安い「そもそも作り込ませない」— シフトレフトとレビューの話です。
+    </p>
+    <p class="jstqb">シラバス対応: ISTQB CTFL 2023 V4.0 — 第5章（5.2 リスクマネジメント）、第4章（4.4 経験ベースのテスト技法）／ISTQB Advanced Level Test Management — リスクベースドテスト</p>
+  </section>
+
+  <footer class="pager">
+    <a href="index.html">← Step2 目次</a>
+    <a href="phase5.html">第5回 シフトレフトと上流品質 →</a>
+  </footer>
+</div>
+</body>
+</html>

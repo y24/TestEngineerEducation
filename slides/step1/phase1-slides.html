@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第1回 テストとは何か — マインドセットと基礎（スライド）</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #1e3a5f;
+    --accent-light: #eef3f9;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #0b1220;
+    color: var(--ink);
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    overflow: hidden;
+  }
+
+  /* ---------- ステージ（1280×720を画面いっぱいに拡大縮小） ---------- */
+  #stage {
+    position: absolute; left: 50%; top: 50%;
+    width: 1280px; height: 720px;
+    transform-origin: center center;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    background: #fff;
+    padding: 76px 62px 54px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    line-height: 1.75;
+    font-size: 21px;
+  }
+  .slide.active { display: flex; }
+  .slide::before {
+    content: attr(data-section);
+    position: absolute; left: 62px; top: 30px;
+    font-size: 15px; letter-spacing: .06em; color: var(--muted);
+  }
+  .slide::after {
+    content: ""; position: absolute; left: 0; top: 0;
+    width: 100%; height: 7px; background: var(--accent);
+  }
+  .slide > h2 {
+    margin: 0 0 20px; padding-bottom: 12px;
+    font-size: 33px; line-height: 1.35; color: var(--accent);
+    border-bottom: 2px solid var(--accent-light);
+  }
+  .slide > h2 small { display: block; font-size: 17px; color: var(--muted); font-weight: normal; margin-top: 6px; }
+  .body { flex: 1; min-height: 0; }
+  .body > :first-child { margin-top: 0; }
+  .body > :last-child { margin-bottom: 0; }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 1.4em; }
+  li { margin-bottom: 8px; }
+  li:last-child { margin-bottom: 0; }
+  em { font-style: normal; background: linear-gradient(transparent 62%, #fde68a 62%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  .small { font-size: .86em; color: var(--muted); }
+
+  /* ---------- 表紙・中扉 ---------- */
+  .slide.cover, .slide.sec {
+    background: var(--accent); color: #fff;
+    justify-content: center;
+  }
+  .slide.cover::before, .slide.sec::before { color: rgba(255,255,255,.7); }
+  .slide.cover::after, .slide.sec::after { background: var(--work); }
+  .slide.cover .label { font-size: 19px; letter-spacing: .1em; opacity: .85; margin-bottom: 18px; }
+  .slide.cover h1 { margin: 0 0 26px; font-size: 54px; line-height: 1.35; }
+  .slide.cover .lead { font-size: 22px; opacity: .92; margin: 0; }
+  .slide.cover .meta { margin-top: 46px; font-size: 17px; opacity: .7; }
+  .slide.sec .num { font-size: 20px; letter-spacing: .18em; opacity: .75; margin-bottom: 14px; }
+  .slide.sec h1 { margin: 0; font-size: 46px; line-height: 1.35; }
+  .slide.sec .time-badge {
+    display: inline-block; margin-top: 26px; padding: 5px 18px;
+    border: 1px solid rgba(255,255,255,.55); border-radius: 999px; font-size: 17px;
+  }
+  .slide.sec .agenda { margin-top: 30px; font-size: 19px; opacity: .85; line-height: 2; }
+
+  /* ---------- 講師用スライド ---------- */
+  .slide.teacher { background: #fffdf7; }
+  .slide.teacher::after { background: var(--work); }
+  .slide.teacher > h2 { color: var(--work); border-bottom-color: #fde9c8; }
+  .badge {
+    position: absolute; right: 62px; top: 26px;
+    background: var(--work); color: #fff;
+    font-size: 13px; letter-spacing: .08em; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px;
+  }
+
+  /* ---------- 箱 ---------- */
+  .mind, .work, .example { border-radius: 10px; padding: 16px 22px; margin: 16px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .mind .tag, .work .tag, .example .tag {
+    display: block; margin-bottom: 6px;
+    font-weight: 700; font-size: 15px; letter-spacing: .05em;
+  }
+  .mind .tag { color: var(--mind); }
+  .work .tag { color: var(--work); }
+  .example .tag { color: #4b5563; }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
+  .memo {
+    background: #fff; border: 1px dashed var(--work); border-radius: 8px;
+    padding: 14px 20px; margin: 12px 0;
+    font-size: 17.5px; line-height: 1.75; color: #374151;
+    white-space: pre-wrap;
+  }
+  .memo .memo-head { display: block; margin-bottom: 6px; font-weight: 700; color: var(--work); }
+
+  /* ---------- 表 ---------- */
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 18.5px; line-height: 1.65; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  .teacher th { background: #fdf3e3; color: var(--work); }
+
+  /* ---------- 図 ---------- */
+  figure { margin: 10px 0; text-align: center; }
+  figure svg { display: block; margin: 0 auto; height: auto; max-width: 100%; }
+  figcaption { font-size: 15.5px; color: var(--muted); margin-top: 8px; line-height: 1.65; text-align: left; }
+
+  /* ---------- 2カラム ---------- */
+  .cols { display: flex; gap: 24px; }
+  .cols > * { flex: 1; min-width: 0; }
+
+  /* ---------- UI（ページ番号・進捗・TOC・ヘルプ） ---------- */
+  .pnum {
+    position: absolute; right: 62px; bottom: 22px;
+    font-size: 15px; color: #9ca3af; letter-spacing: .05em;
+  }
+  .cover .pnum, .sec .pnum { color: rgba(255,255,255,.6); }
+  .teacher .pnum { color: #c9a06a; }
+  #progress {
+    position: fixed; left: 0; bottom: 0; height: 4px;
+    background: var(--work); width: 0; transition: width .18s ease; z-index: 30;
+  }
+  #hud {
+    position: fixed; left: 14px; bottom: 12px; z-index: 30;
+    font-size: 12px; color: #64748b; letter-spacing: .04em;
+  }
+  #hud b { color: #94a3b8; font-weight: 600; }
+  .overlay {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(8,14,26,.94); color: #e5e7eb;
+    display: none; flex-direction: column;
+    padding: 34px 42px;
+    font-size: 14px;
+  }
+  .overlay.open { display: flex; }
+  .overlay h3 { margin: 0 0 16px; font-size: 18px; color: #fff; font-weight: 700; }
+  #tocList { flex: 1; overflow: auto; column-count: 3; column-gap: 34px; }
+  #tocList .toc-sec {
+    break-inside: avoid; margin: 0 0 6px; padding-top: 10px;
+    font-size: 12px; letter-spacing: .08em; color: #7dd3fc; font-weight: 700;
+  }
+  #tocList a {
+    display: block; break-inside: avoid;
+    color: #cbd5e1; text-decoration: none;
+    padding: 3px 8px; border-radius: 5px; line-height: 1.5;
+  }
+  #tocList a:hover { background: #1e293b; color: #fff; }
+  #tocList a .n { color: #64748b; margin-right: 8px; font-variant-numeric: tabular-nums; }
+  #tocList a.t .n { color: var(--work); }
+  #tocList a.cur { background: #1e3a5f; color: #fff; }
+  .keys { display: grid; grid-template-columns: 130px 1fr; gap: 8px 16px; max-width: 560px; }
+  .keys kbd {
+    background: #1e293b; border: 1px solid #334155; border-radius: 5px;
+    padding: 2px 8px; font-family: inherit; font-size: 12px; color: #e2e8f0;
+  }
+  .overlay .hint { margin-top: 20px; color: #64748b; }
+
+  /* ---------- 印刷 ---------- */
+  @media print {
+    body { background: #fff; overflow: visible; }
+    #stage { position: static; transform: none !important; width: auto; height: auto; }
+    .slide { position: static; display: flex !important; width: 1280px; height: 720px; page-break-after: always; }
+    #progress, #hud, .overlay { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <!-- ============ 表紙 ============ -->
+  <section class="slide cover" data-section="テストエンジニア育成講座 — Step1" data-toc="表紙">
+    <div class="label">第 1 回（90分）</div>
+    <h1>テストとは何か<br>— マインドセットと基礎</h1>
+    <p class="lead">テストの目的と7原則、テストの全体地図、<br>そして最初の武器「良い不具合報告」。</p>
+    <div class="meta">← / → キーでページ送り　　O: 目次　　T: 講師用スライドの表示切替　　? : ヘルプ</div>
+  </section>
+
+  <!-- ============ ゴール ============ -->
+  <section class="slide" data-section="オリエンテーション" data-toc="今日のゴール">
+    <h2>今日のゴール</h2>
+    <div class="body">
+      <ul>
+        <li>「テスト」とはどのような仕事か説明できる</li>
+        <li><strong>エラー・欠陥・故障</strong>を区別し、自分が見ているのがどれかを言える</li>
+        <li>テストの7原則の意味を、現場の例と結びつけて説明できる</li>
+        <li>テストプロセス・テストレベル・テストタイプの違いを説明できる</li>
+        <li>開発者が動ける不具合報告を書ける</li>
+      </ul>
+      <div class="example">
+        <span class="tag">今日の流れ</span>
+        1. なぜテストをするのか（18分）／ 2. ワーク①（15分）／ 3. テストの7原則（8分）／
+        4. テストの全体地図（12分）／ 5. 良い不具合報告（17分）／ 6. ワーク②（10分）／ まとめ（5分）
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 1. なぜテストをするのか ============ -->
+  <section class="slide sec" data-section="Section 1" data-toc="【中扉】なぜテストをするのか">
+    <div class="num">SECTION 1</div>
+    <h1>なぜテストをするのか</h1>
+    <div><span class="time-badge">18分</span></div>
+    <div class="agenda">テストの目的 ／ エラー・欠陥・故障 ／ QAとQC ／ 動的テストと静的テスト</div>
+  </section>
+
+  <section class="slide" data-section="1. なぜテストをするのか" data-toc="テストの仕事は「バグ探し」だけではない">
+    <h2>テストの仕事は「バグ探し」だけではない</h2>
+    <div class="body">
+      <p>
+        テストの目的としてまず思い浮かぶのは「欠陥（バグ）を見つけること」でしょう。
+        それは正しいのですが、<strong>半分</strong>です。
+      </p>
+      <p>
+        もう半分は、<em>テスト対象の品質について信頼できる情報を集め、関係者に届けること</em>。
+        「この機能はここまで確認できていて、ここにリスクが残っています」と語れることが、
+        リリースする／しないという<strong>ビジネスの意思決定</strong>を支えます。
+      </p>
+      <div class="mind">
+        <span class="tag">言い換えると</span>
+        テストエンジニアの成果物は<strong>不具合チケットの山ではなく、「品質に関する判断材料」</strong>。
+        私たちが届けるのは、<em>確認できた範囲・得られた結果・残っているリスクと不確実性</em>。
+        この視点を持つと、日々の仕事の優先順位が変わってきます。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. なぜテストをするのか" data-toc="業務システムの現場から">
+    <h2>業務システムの不具合は、画面の中で終わらない</h2>
+    <div class="body">
+      <div class="example">
+        <span class="tag">業務システムの現場から</span>
+        経費精算システムで消費税の端数処理に誤りがあったとします。1件あたりの差額は1円でも、
+        月末に全社員の精算・仕訳データに波及し、経理の締めがやり直しになります。
+      </div>
+      <p>
+        業務システムの不具合は「画面が変」では済まず、<strong>お金・業務・信用</strong>に直結します。
+      </p>
+      <p>
+        だからこそ、リリース前に<em>「どこにどんなリスクが残っているか」を語れる人</em>が必要なのです。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. なぜテストをするのか" data-toc="エラー・欠陥・故障（連鎖図）">
+    <h2>テストが相手にしているものを分解する<small>日常会話ではぜんぶ「バグ」。テストの世界では、誰の・どこにある・どういう問題なのかを分けて呼ぶ</small></h2>
+    <div class="body">
+      <figure>
+        <svg viewBox="0 -26 800 208" style="width:1010px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="根本原因からエラー、欠陥、故障、利用者への影響へと連鎖する典型例の図。左端の根本原因にアプローチするのがQA、右側の欠陥と故障にアプローチするのがテスト・QC">
+          <g font-family="sans-serif" font-size="13">
+            <defs>
+              <marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+              </marker>
+            </defs>
+            <text x="400" y="-8" text-anchor="middle" fill="#374151" font-size="14" font-weight="bold">問題が発生する典型的な連鎖</text>
+            <text x="83"  y="26" text-anchor="middle" fill="#6b7280" font-size="11">背景・仕組み・作業条件側</text>
+            <text x="241" y="26" text-anchor="middle" fill="#6b7280" font-size="11">人間側</text>
+            <text x="399" y="26" text-anchor="middle" fill="#6b7280" font-size="11">成果物側</text>
+            <text x="557" y="26" text-anchor="middle" fill="#6b7280" font-size="11">実行結果側</text>
+            <text x="715" y="26" text-anchor="middle" fill="#6b7280" font-size="11">利用者・業務側</text>
+            <rect x="20"  y="38" width="126" height="54" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+            <rect x="178" y="38" width="126" height="54" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+            <rect x="336" y="38" width="126" height="54" rx="8" fill="#1e3a5f"/>
+            <rect x="494" y="38" width="126" height="54" rx="8" fill="#b45309"/>
+            <rect x="652" y="38" width="126" height="54" rx="8" fill="#b91c1c"/>
+            <text x="83"  y="62" text-anchor="middle" fill="#1e3a5f" font-weight="bold">根本原因</text>
+            <text x="83"  y="80" text-anchor="middle" fill="#374151" font-size="11">root cause</text>
+            <text x="241" y="62" text-anchor="middle" fill="#1e3a5f" font-weight="bold">エラー</text>
+            <text x="241" y="80" text-anchor="middle" fill="#374151" font-size="11">error</text>
+            <text x="399" y="62" text-anchor="middle" fill="#fff" font-weight="bold">欠陥</text>
+            <text x="399" y="80" text-anchor="middle" fill="#fff" font-size="11">defect / bug</text>
+            <text x="557" y="62" text-anchor="middle" fill="#fff" font-weight="bold">故障</text>
+            <text x="557" y="80" text-anchor="middle" fill="#fff" font-size="11">failure</text>
+            <text x="715" y="62" text-anchor="middle" fill="#fff" font-weight="bold" font-size="12.5">利用者への影響</text>
+            <text x="715" y="80" text-anchor="middle" fill="#fff" font-size="11">業務・お金・信用</text>
+            <line x1="146" y1="65" x2="174" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+            <line x1="304" y1="65" x2="332" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+            <line x1="462" y1="65" x2="490" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+            <line x1="620" y1="65" x2="648" y2="65" stroke="#6b7280" stroke-width="2" marker-end="url(#ar1)"/>
+            <path d="M20,110 V102 H146 V110" fill="none" stroke="#0f766e" stroke-width="2"/>
+            <line x1="83" y1="102" x2="83" y2="120" stroke="#0f766e" stroke-width="2"/>
+            <text x="83" y="140" text-anchor="middle" fill="#0f766e" font-size="12.5" font-weight="bold">QA（品質保証）</text>
+            <text x="83" y="159" text-anchor="middle" fill="#0f766e" font-size="11">仕事のやり方に働きかけ、</text>
+            <text x="83" y="176" text-anchor="middle" fill="#0f766e" font-size="11">欠陥が生まれにくくする</text>
+            <path d="M336,110 V102 H620 V110" fill="none" stroke="#b45309" stroke-width="2"/>
+            <line x1="478" y1="102" x2="478" y2="120" stroke="#b45309" stroke-width="2"/>
+            <text x="478" y="140" text-anchor="middle" fill="#b45309" font-size="12.5" font-weight="bold">テスト／QC（品質管理）</text>
+            <text x="478" y="159" text-anchor="middle" fill="#b45309" font-size="11">動的テストは故障を発生させて欠陥特定につなげ、</text>
+            <text x="478" y="176" text-anchor="middle" fill="#b45309" font-size="11">静的テストは成果物中の欠陥を直接見つける</text>
+          </g>
+        </svg>
+        <figcaption>
+          必ずこの一本道を通るわけではありません。環境条件（電磁波・ハードウェア障害など）が直接故障を引き起こす場合や、
+          欠陥があっても故障として現れない場合もあります。
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. なぜテストをするのか" data-toc="用語の整理（経費精算システムの例）">
+    <h2>用語の整理 — 経費精算システムの例で</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:15%">用語</th><th style="width:33%">意味</th><th>経費精算システムでの例</th></tr>
+        <tr>
+          <td><strong>エラー</strong><br><span class="small">error</span></td>
+          <td>人間が行う誤った判断・行為</td>
+          <td>開発者が「上限額の境界をどちらに含めるか」を勘違いする</td>
+        </tr>
+        <tr>
+          <td><strong>欠陥</strong><br><span class="small">defect</span></td>
+          <td>仕様書・コード・テストケースなど<strong>成果物に入り込んだ不備</strong></td>
+          <td><code>金額 &lt;= 100</code> とすべきところを <code>金額 &lt; 100</code> と実装している</td>
+        </tr>
+        <tr>
+          <td><strong>故障</strong><br><span class="small">failure</span></td>
+          <td>実行時に観測される、<strong>期待した動作からの逸脱</strong></td>
+          <td>100円ちょうどの申請がエラーになって登録できない</td>
+        </tr>
+        <tr>
+          <td><strong>根本原因</strong><br><span class="small">root cause</span></td>
+          <td>そのエラーを発生させた背景</td>
+          <td>要件に「以下／未満」が書かれていない、レビューがない、繁忙で確認する余裕がない</td>
+        </tr>
+      </table>
+      <p style="margin-top:14px;">
+        ポイントは、<strong>エラーは人間側、欠陥は成果物側、故障は実行結果側</strong>にあるということ。
+        そして<em>すべての欠陥が故障につながるわけではありません</em>。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. なぜテストをするのか" data-toc="QAとQC — どこに手を入れるか">
+    <h2>どこに手を入れるかで、活動の呼び名が変わる</h2>
+    <div class="body">
+      <div class="cols">
+        <div class="mind" style="margin-top:0;">
+          <span class="tag">QA（品質保証）</span>
+          <strong>仕事のやり方そのもの</strong>に働きかけ、欠陥が生まれにくい進め方を整える。
+          連鎖図でいえば<strong>左側（根本原因）</strong>へのアプローチ。
+        </div>
+        <div class="work" style="margin-top:0;">
+          <span class="tag">QC（品質管理）</span>
+          できあがりつつある<strong>成果物を評価する</strong>。
+          テストはそれを実現する主要な活動の一つ。連鎖図でいえば<strong>右側（欠陥・故障）</strong>へのアプローチ。
+        </div>
+      </div>
+      <p style="margin-top:18px;">
+        特定の欠陥を直すだけでは、同じ種類の欠陥がまた作り込まれます。
+        <em>「なぜこの欠陥が生まれたのか」まで戻れると、テストの価値は一段上がります。</em>
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. なぜテストをするのか" data-toc="動的テストと静的テスト">
+    <h2>テスト＝完成品を動かすこと、ではない</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:22%">種類</th><th style="width:34%">やること</th><th>直接見つかるもの</th></tr>
+        <tr>
+          <td><strong>動的テスト</strong></td>
+          <td>ソフトウェアを実行して確かめる</td>
+          <td><strong>故障</strong>を発生・観測させ、そこから<em>欠陥の特定につなげる</em></td>
+        </tr>
+        <tr>
+          <td><strong>静的テスト</strong></td>
+          <td>仕様書レビュー、コードレビュー、静的解析</td>
+          <td>実行せずに、成果物中の<strong>欠陥</strong>を直接見つける</td>
+        </tr>
+      </table>
+      <p style="margin-top:16px;">
+        <strong>「テスト＝完成品を動かすこと」ではない</strong>、というのが最初に押さえたい点です。
+        <span class="small">（静的テストはセクション4で改めて触れます）</span>
+      </p>
+      <div class="mind">
+        <span class="tag">テストで何が示せて、何が示せないか</span>
+        <ul style="margin:0;">
+          <li>テストは「欠陥がある」ことは示せるが、<strong>「欠陥がない」ことは証明できない</strong><br>
+            <span class="small">実行しなければ故障として現れない欠陥が、常に残りうるため</span></li>
+          <li>だから「テストしたので不具合ゼロです」とは絶対に言わない。<br>
+            言えるのは<em>「この範囲をこう確認し、結果はこうだった」</em>まで</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. ワーク① ============ -->
+  <section class="slide sec" data-section="Section 2" data-toc="【中扉】ワーク① その&quot;バグ&quot;はどこにあったのか">
+    <div class="num">SECTION 2 — WORK</div>
+    <h1>ワーク①<br>「その&quot;バグ&quot;は、どこにあったのか」</h1>
+    <div><span class="time-badge">15分（個人5分 → 全体共有10分）</span></div>
+    <div class="agenda">頭で分かるのと、実際の出来事に当てはめられるのは別。題材を使って分解してみます。</div>
+  </section>
+
+  <section class="slide" data-section="2. ワーク①" data-toc="題材（1）背景と発覚">
+    <h2>題材: 経費データ連携の金額ズレ<small>（1/2）背景と、発覚したこと</small></h2>
+    <div class="body">
+      <div class="work" style="margin-top:0;">
+        <span class="tag">背景</span>
+        経費精算システムは、承認済みの経費データを毎晩CSVで出力し、会計システムに取り込んで仕訳を作っている。
+        経費精算システムは<strong>社内の開発チーム</strong>、会計システムは<strong>外部ベンダーのパッケージ</strong>で、担当する組織が別々である。
+      </div>
+      <div class="bad-box">
+        <span class="tag">発覚</span>
+        リリースから数か月後の締め処理で、経理から「会計システム上の経費計上額が、経費精算システムで見える承認済みの合計と合わない。
+        <strong>差額が数十万円ある</strong>」と連絡があった。
+      </div>
+      <div class="example">
+        <span class="tag">調査で分かったこと</span>
+        連携CSVの金額列を、経費精算システム側は<strong>税込金額</strong>で出力していたのに対し、
+        会計システム側は<strong>税抜金額</strong>として受け取り、そこに消費税を上乗せして仕訳を作っていた。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. ワーク①" data-toc="題材（2）仕様と、テストの状況">
+    <h2>題材: 経費データ連携の金額ズレ<small>（2/2）仕様はどうなっていたか、テストはどうだったか</small></h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;">
+        <span class="tag">仕様と、それぞれの言い分</span>
+        両システムの間のデータ仕様を定める「連携インターフェース仕様書」には、金額列は<strong>税抜</strong>と明記されていた。<br>
+        だが<strong>経費精算システム側</strong>は、申請画面も一覧表示も税込であることから、CSVも税込が自然だと考えていた。<br>
+        <strong>会計システム側</strong>は、仕訳は税抜が基本という会計の常識を前提に受け取っていた。
+      </div>
+      <div class="work">
+        <span class="tag">リリース前のテストの状況</span>
+        連携を<strong>実際につないだ状態でのテスト</strong>は、代表的な1件を流して「取り込みがエラーにならないこと」の確認にとどまり、
+        金額そのものの突き合わせは行われていなかった。<br>
+        なおテスト期間中、担当者は<strong>取り込み後の合計金額に違和感を持っていた</strong>が、
+        端数処理か、テストデータの作り方の違いだろうと解釈し、正式な不具合として記録しないまま先に進んでいた。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. ワーク①" data-toc="ワーク① やること">
+    <h2>やること</h2>
+    <div class="body">
+      <div class="work" style="margin-top:0;">
+        <span class="tag">ワーク（個人5分 → 全体共有10分）</span>
+        次の表を埋めてください。<em>埋める順番は、表の上から下へ</em>。
+      </div>
+      <table>
+        <tr><th style="width:26%">分類</th><th>問い</th></tr>
+        <tr><td><strong>① 故障</strong><br><span class="small">failure</span></td><td>実際に観測された、期待した動作からの逸脱は何か？</td></tr>
+        <tr><td><strong>② 欠陥</strong><br><span class="small">defect</span></td><td>どの成果物（仕様・手順・コード）の、どこに不備があったか？</td></tr>
+        <tr><td><strong>③ エラー</strong><br><span class="small">error</span></td><td>誰の、どんな判断・思い込みがその不備を生んだか？</td></tr>
+      </table>
+      <p class="small" style="margin-top:14px;">
+        ※ 正解を一つに絞る問題ではありません。<strong>分けて考えられているか</strong>が大事です。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="2. ワーク① — 解答例" data-toc="① 故障（解答例）">
+    <span class="badge">講師用</span>
+    <h2>① 故障 — 観測された、期待からの逸脱</h2>
+    <div class="body">
+      <ul>
+        <li>締め処理で、会計システム上の経費計上額が、経費精算システムの承認済み合計と一致しない（<strong>税額の分だけ過大</strong>になっている）</li>
+        <li><strong>その前から、すでに故障は現れていた</strong>: テスト期間中に観測されていた「取り込み後の合計金額の違和感」も、
+          期待した動作からの逸脱＝故障である。<em>本番で大きく表面化したものだけを故障と呼ばないこと</em></li>
+      </ul>
+      <div class="work">
+        <span class="tag">拾いどころ</span>
+        「経理が締めで気づいた」ことをエラーに挙げる受講者がいたら、そこで整理する。
+        経理は<strong>利用者</strong>であって、成果物に不備を持ち込んだ側ではない。むしろ<em>故障を発見した側</em>。
+        ここで扱うエラーは、欠陥を作り込んだ開発・テスト側の判断に絞る。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="2. ワーク① — 解答例" data-toc="② 欠陥（解答例）">
+    <span class="badge">講師用</span>
+    <h2>② 欠陥 — 成果物に入り込んだ不備</h2>
+    <div class="body">
+      <ul>
+        <li><strong>経費精算システムのCSV出力</strong>が金額を税込で出していた。仕様書は「税抜」と定めていたので、これは<em>明確な仕様違反</em>。最も分かりやすい欠陥</li>
+        <li><strong>連携インターフェース仕様書</strong>にも問題がある。金額列を1つだけ定義しており、<em>取り違えが起きても誰も気づけないデータの持たせ方</em>だった。
+          税抜額・消費税額・税込額を並べて持たせ、受け取り側で「税抜＋税額＝税込」を検算できる設計なら、取り込み時に検出できた</li>
+        <li>欠陥はコードだけに入るものではない。<strong>連携をつないだ状態で金額を突き合わせるテストケースが用意されていなかった</strong>のも、テストケースという成果物に入り込んだ欠陥。
+          「取り込みがエラーにならないこと」は<em>取り込みの確認であって、金額の確認ではない</em></li>
+        <li>「<strong>会計システム側が受け取った値をチェックしていないのが欠陥だ</strong>」という意見が出たら丁寧に扱う。
+          <em>税込か税抜かは、金額そのものを見ても判定できない</em>（差は10%で、経費が多い月と区別がつかない）。
+          会計側は仕様書どおりに作っている可能性が高い。責めるべきは実装ではなく、<strong>検出できないデータ設計のほう</strong></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="2. ワーク① — 解答例" data-toc="③ エラー（解答例）">
+    <span class="badge">講師用</span>
+    <h2>③ エラー — その不備を生んだ判断・思い込み</h2>
+    <div class="body">
+      <ul>
+        <li>経費精算システム側が「画面が税込なのだから、CSVも税込だろう」と考え、仕様書の記載と実際の出力を突き合わせなかった</li>
+        <li>会計システム側は<em>仕様書どおりに解釈していた</em>（税抜が正しい）。ただし「仕様どおりの値が来ているはずだ」と信じ、受け取ったデータを仕様と突き合わせなかった。
+          <strong>解釈が正しかった側にも、確認を省いたというエラーはある</strong></li>
+        <li>両組織とも、自分たちの「常識」が相手にも通じると考え、<strong>組織をまたぐ確認を省いた</strong>。異なる組織の間では、こうした確認は遠慮が働いて省かれやすい</li>
+        <li>テスト担当が「代表的な1件が取り込めたのだから連携は確認できた」と<strong>テストの十分性を判断した</strong></li>
+        <li>テスト担当が合計金額の違和感に気づきながら「端数処理だろう」「テストデータの作り方の違いだろう」と<em>自分の前提に合う説明を選び</em>、記録に残さなかった</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="2. ワーク① — 展開" data-toc="展開のポイント（1）">
+    <span class="badge">講師用</span>
+    <h2>展開のポイント（1/2）</h2>
+    <div class="body">
+      <ul>
+        <li>動かして確かめる<strong>動的テストで直接観測できるのは故障だけ</strong>。欠陥は探しに行かないと見えない — 連鎖図に戻って確認する<br>
+          <span class="small">（ただし仕様書やコードのレビュー＝静的テストなら、欠陥そのものを直接指摘できる。この題材は「動かした結果しか見えない」側の例）</span></li>
+        <li>同じ故障でも、<strong>②③は人によって答えが割れる</strong>。ここが重要で、「観測した事実（故障）」と「原因の推測（欠陥・エラー）」は別物だと体感してもらう。
+          セクション5「良い不具合報告」で、この2つを書き分ける話につなげる</li>
+        <li><strong>正解を一つに絞る問題ではない</strong>。どこまでを欠陥と呼び、どこからをエラー・根本原因と呼ぶかは粒度の取り方で変わる。
+          答えを当てさせるのではなく、<em>分けて考えられているか</em>を見る</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="2. ワーク① — 展開" data-toc="展開のポイント（2）">
+    <span class="badge">講師用</span>
+    <h2>展開のポイント（2/2）</h2>
+    <div class="body">
+      <ul>
+        <li>どちらのシステムも、<em>単体で見れば自分の解釈で正しく計算していた</em>。単体テストでは絶対に見つからない種類の欠陥であり、
+          <strong>組織をまたぐ受け渡し口そのものをテスト対象として見に行く</strong>必要がある</li>
+        <li>「ズレに気づいていたのに流した」は、私たちの現場でも日常的に起きる（「たぶん環境のせい」「自分の操作ミスかも」）。
+          <strong>違和感は必ず記録に残す</strong>。セクション6のワーク②で、メモに残した違和感をどう扱うかに再びつながる</li>
+        <li>時間が余れば「自分の現場で最近あった不具合」で同じ分解をやってもらうと一気に自分事になる。次回以降の宿題にしてもよい</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 3. テストの7原則 ============ -->
+  <section class="slide sec" data-section="Section 3" data-toc="【中扉】テストの7原則">
+    <div class="num">SECTION 3</div>
+    <h1>テストの7原則<br>— 先人の知恵</h1>
+    <div><span class="time-badge">8分</span></div>
+    <div class="agenda">ISTQBがまとめている7原則は、標語ではなく<strong>日々の判断に効く道具</strong>。現場の言葉に翻訳しながら見ていきます。</div>
+  </section>
+
+  <section class="slide" data-section="3. テストの7原則" data-toc="原則 1〜3">
+    <h2>テストの7原則（1〜3）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:34%">原則</th><th>現場ではこういうこと</th></tr>
+        <tr>
+          <td>1. テストは欠陥があることは示せるが、ないことは示せない</td>
+          <td>「テスト済み＝不具合ゼロ」と言わない。報告は常に<strong>「確認した範囲と結果」</strong>で語る。</td>
+        </tr>
+        <tr>
+          <td>2. 全数テストは不可能</td>
+          <td>経費申請の「利用日」欄ひとつ取っても、正常な日付・2/30・うるう年・全角入力・未来日・締め済み月…と数え始めるときりがない。
+            入力欄が20個ある画面なら、その組み合わせは天文学的な数になる。
+            だから<strong>「何をやらないか」を決めるのもテスト設計</strong>。優先順位づけ（リスクベース）が仕事の中心になる。</td>
+        </tr>
+        <tr>
+          <td>3. 早期テストで時間とコストを節約</td>
+          <td>仕様書レビューで見つけた欠陥は数分で直る。本番で見つかれば数日〜数週間＋信用の損失。
+            上流から関わるほど価値が出る（<strong>シフトレフト</strong>）。</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. テストの7原則" data-toc="原則 4〜7">
+    <h2>テストの7原則（4〜7）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:34%">原則</th><th>現場ではこういうこと</th></tr>
+        <tr>
+          <td>4. 欠陥は偏在する</td>
+          <td>バグは均等に散らばらず、複雑な機能・仕様変更が重なった機能・締め処理のような日付境界に固まる。<strong>過去の不具合リストは宝の地図</strong>。</td>
+        </tr>
+        <tr>
+          <td>5. テストの弱化（殺虫剤のパラドックス）</td>
+          <td>同じテストを繰り返すほど、<strong>新しい欠陥を見つける力は徐々に弱くなる</strong>（再発を検知する価値は残る）。
+            定期リグレッションだけに頼らず、観点やテストデータを見直し続ける。</td>
+        </tr>
+        <tr>
+          <td>6. テストは状況次第</td>
+          <td>経費精算と証券取引システムでは求められるテストの深さが違う。「前のプロジェクトのやり方」をそのまま持ち込まない。</td>
+        </tr>
+        <tr>
+          <td>7. 「欠陥ゼロ」の落とし穴</td>
+          <td>バグを全部直しても、そもそも業務に合わない仕様なら使われない。「仕様どおりか」だけでなく<strong>「業務が回るか」</strong>を見る。</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. テストの7原則" data-toc="原則3：早期テストのイメージ">
+    <h2>原則3「早期テスト」のイメージ</h2>
+    <div class="body">
+      <figure>
+        <svg viewBox="0 0 800 320" style="width:880px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="欠陥の発見が遅れるほど修正コストが大きくなる傾向を示す概念図。要件定義・設計・実装・テストと工程が進むにつれ棒が高くなり、本番稼働後で跳ね上がる">
+          <g font-family="sans-serif" font-size="13">
+            <line x1="50" y1="250" x2="770" y2="250" stroke="#9ca3af" stroke-width="1.5"/>
+            <line x1="50" y1="250" x2="50" y2="30" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="30" y="145" font-size="12" fill="#6b7280" text-anchor="middle" transform="rotate(-90 30 145)">修正コスト</text>
+            <text x="66" y="44" font-size="11" fill="#6b7280">大きい</text>
+            <text x="66" y="246" font-size="11" fill="#6b7280">小さい</text>
+            <polyline points="125,243 265,235 405,225 545,204 685,40" fill="none" stroke="#b91c1c" stroke-width="2" stroke-dasharray="5 4" opacity="0.55"/>
+            <rect x="80" y="243" width="90" height="7" rx="2" fill="#1e3a5f"/>
+            <rect x="220" y="235" width="90" height="15" rx="2" fill="#1e3a5f"/>
+            <rect x="360" y="225" width="90" height="25" rx="2" fill="#1e3a5f"/>
+            <rect x="500" y="204" width="90" height="46" rx="3" fill="#b45309"/>
+            <rect x="640" y="40" width="90" height="210" rx="3" fill="#b91c1c"/>
+            <text x="125" y="271" text-anchor="middle" fill="#374151">要件定義</text>
+            <text x="265" y="271" text-anchor="middle" fill="#374151">設計</text>
+            <text x="405" y="271" text-anchor="middle" fill="#374151">実装</text>
+            <text x="545" y="271" text-anchor="middle" fill="#374151">テスト</text>
+            <text x="685" y="271" text-anchor="middle" fill="#374151">本番稼働後</text>
+            <text x="125" y="293" text-anchor="middle" fill="#6b7280" font-size="11">レビュー指摘なら数分</text>
+            <text x="685" y="293" text-anchor="middle" fill="#b91c1c" font-size="11">復旧＋謝罪＋信用の損失</text>
+          </g>
+        </svg>
+        <figcaption>
+          傾向を示す概念図: 後工程ほど、派生成果物の修正・再テスト・関係者調整・利用者対応が増えるため、一般に修正コストは高くなりやすい。
+          実際の倍率はプロジェクトや欠陥の性質によって大きく異なる。
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. テストの7原則" data-toc="7原則から持ち帰ること">
+    <h2>7原則から持ち帰ること</h2>
+    <div class="body">
+      <div class="mind" style="margin-top:0;">
+        <span class="tag">マインドセット</span>
+        7原則のうち半分は<strong>「テストには限界がある」</strong>という話。<br>
+        限界を認めた上で、<strong>限られた時間で最大の情報を得るにはどこを狙うか</strong>を考え続ける必要がある。
+      </div>
+      <p style="margin-top:20px;">
+        「全部やる」は選べません。だから、<em>やらないと決めたことを説明できる</em>のがプロのテストエンジニアです。
+        原則2・4・6は、そのための判断材料の集め方を教えてくれています。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 4. テストの全体地図 ============ -->
+  <section class="slide sec" data-section="Section 4" data-toc="【中扉】テストの全体地図">
+    <div class="num">SECTION 4</div>
+    <h1>テストの全体地図</h1>
+    <div><span class="time-badge">12分</span></div>
+    <div class="agenda">テストプロセス ／ テストレベルとテストタイプ ／ アジャイルテストの4象限 ／ 静的テスト</div>
+  </section>
+
+  <section class="slide" data-section="4. テストの全体地図" data-toc="テストプロセス">
+    <h2>テストは「実行」だけではない — テストプロセス<small>一人で回せるようになるとは、この一連の流れを自分で計画し、進められるということ</small></h2>
+    <div class="body">
+      <figure>
+        <svg viewBox="0 0 800 150" style="width:1080px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="テストプロセスの流れ">
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 z" fill="#1e3a5f"/>
+            </marker>
+          </defs>
+          <g font-family="sans-serif" font-size="14" text-anchor="middle">
+            <rect x="10" y="40" width="100" height="46" rx="8" fill="#1e3a5f"/>
+            <text x="60" y="68" fill="#fff">計画</text>
+            <rect x="140" y="40" width="100" height="46" rx="8" fill="#1e3a5f"/>
+            <text x="190" y="68" fill="#fff">分析</text>
+            <rect x="270" y="40" width="100" height="46" rx="8" fill="#1e3a5f"/>
+            <text x="320" y="68" fill="#fff">設計</text>
+            <rect x="400" y="40" width="100" height="46" rx="8" fill="#1e3a5f"/>
+            <text x="450" y="68" fill="#fff">実装</text>
+            <rect x="530" y="40" width="100" height="46" rx="8" fill="#1e3a5f"/>
+            <text x="580" y="68" fill="#fff">実行</text>
+            <rect x="660" y="40" width="110" height="46" rx="8" fill="#1e3a5f"/>
+            <text x="715" y="68" fill="#fff">完了</text>
+            <line x1="110" y1="63" x2="136" y2="63" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr)"/>
+            <line x1="240" y1="63" x2="266" y2="63" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr)"/>
+            <line x1="370" y1="63" x2="396" y2="63" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr)"/>
+            <line x1="500" y1="63" x2="526" y2="63" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr)"/>
+            <line x1="630" y1="63" x2="656" y2="63" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr)"/>
+            <rect x="140" y="108" width="500" height="32" rx="8" fill="#eef3f9" stroke="#1e3a5f" stroke-dasharray="4 3"/>
+            <text x="390" y="129" fill="#1e3a5f" font-size="13">モニタリングとコントロール（全体を通して進捗と品質を見張る）</text>
+            <text x="190" y="30" fill="#6b7280" font-size="12">何を確かめるか</text>
+            <text x="320" y="30" fill="#6b7280" font-size="12">どう確かめるか</text>
+            <text x="450" y="30" fill="#6b7280" font-size="12">手順とデータの準備</text>
+          </g>
+        </svg>
+        <figcaption>第2回で「分析・設計」を、第3回で「計画・モニタリング・完了」を深掘りします</figcaption>
+      </figure>
+      <p style="margin-top:8px;">
+        テストと聞くと「テストケースを実行している時間」を想像しがちですが、<em>それはプロセスの一部</em>です。
+        今の自分がどこにいるかを、常に意識してください。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. テストの全体地図" data-toc="Vモデル">
+    <h2>テストレベル — 自分の持ち場を知る</h2>
+    <div class="body">
+      <figure style="margin-top:0;">
+        <svg viewBox="0 0 800 300" style="width:900px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vモデル">
+          <g font-family="sans-serif" font-size="13" text-anchor="middle">
+            <rect x="20" y="20" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+            <text x="105" y="45" fill="#1e3a5f">要件定義</text>
+            <rect x="70" y="90" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+            <text x="155" y="115" fill="#1e3a5f">基本設計</text>
+            <rect x="120" y="160" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+            <text x="205" y="185" fill="#1e3a5f">詳細設計</text>
+            <rect x="315" y="235" width="170" height="40" rx="8" fill="#1e3a5f"/>
+            <text x="400" y="260" fill="#fff">実装（コーディング）</text>
+            <rect x="610" y="20" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+            <text x="695" y="45" fill="#1e3a5f">受け入れテスト</text>
+            <rect x="560" y="90" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+            <text x="645" y="115" fill="#1e3a5f">システムテスト</text>
+            <rect x="510" y="160" width="170" height="40" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+            <text x="595" y="185" fill="#1e3a5f">統合テスト</text>
+            <line x1="190" y1="40" x2="610" y2="40" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <line x1="240" y1="110" x2="560" y2="110" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <line x1="290" y1="180" x2="510" y2="180" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <text x="400" y="32" fill="#0f766e" font-size="12">「業務が回るか」を検証</text>
+            <text x="400" y="102" fill="#0f766e" font-size="12">「要件どおりか」を検証</text>
+            <text x="400" y="172" fill="#0f766e" font-size="12">「設計どおりか」を検証</text>
+          </g>
+        </svg>
+        <figcaption>
+          左側の成果物が、右側のテストを分析・設計するときの主要な<strong>テストベース（拠り所）</strong>になる。
+          ただし一つのテストが複数の成果物や利用者のニーズを根拠にすることもある。
+          ※簡略化した図。実際には統合テストを「コンポーネント統合テスト」と「システム統合テスト」に分けることもある
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. テストの全体地図" data-toc="テストレベルとテストタイプ">
+    <h2>テストレベルとテストタイプ</h2>
+    <div class="body">
+      <ul>
+        <li><strong>テストレベル</strong>: 単体 → 統合 → システム → 受け入れ。<br>
+          QAチームが主に担うのはシステムテスト以降が多いが、<em>上流のレビューに参加することにも大きな価値がある</em>（早期テストの原則）</li>
+        <li><strong>テストタイプ</strong>: 機能テストのほかに、性能・セキュリティ・ユーザビリティなどの<strong>非機能テスト</strong>、
+          内部構造に着目した<strong>ホワイトボックステスト</strong>などがある<br>
+          <span class="small">現場では、修正の影響を確認する<strong>リグレッションテスト</strong>も目的別の種類として並べて呼ぶことが多い。
+          ISTQBの整理では、確認テストとともに「変更に関連するテスト」として別立てで扱われる。</span></li>
+        <li>アジャイル開発では<strong>このVが小さく高速に何度も回る</strong>。
+          だからこそ「どのレベル・タイプの確認か」をより意識する必要がある</li>
+      </ul>
+      <div class="mind">
+        <span class="tag">意識すること</span>
+        「自分が今やっているのは、どのレベルの、どのタイプのテストか」。これが言えないと、
+        <em>抜けているのか重複しているのかも分かりません。</em>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. テストの全体地図" data-toc="アジャイルテストの4象限（説明）">
+    <h2>アジャイルテストの4象限<small>チーム全体でテストを分担するための地図</small></h2>
+    <div class="body">
+      <p>
+        アジャイルの文脈でテストを整理するときによく使われるのが<strong>「アジャイルテストの4象限」</strong>です。
+        テストを次の2軸で4つに分けます。
+      </p>
+      <div class="cols">
+        <div class="example" style="margin-top:8px;">
+          <span class="tag">軸1</span>
+          <strong>ビジネス面 か 技術面 か</strong><br>
+          そのテストを、業務の言葉で語るのか、技術の言葉で語るのか。
+        </div>
+        <div class="example" style="margin-top:8px;">
+          <span class="tag">軸2</span>
+          <strong>チームを支援する か 製品を批評する か</strong><br>
+          作る側を前へ進めるためのテストか、できたものを評価するテストか。
+        </div>
+      </div>
+      <div class="mind">
+        <span class="tag">見るときのポイント</span>
+        Q1→Q4の番号は<strong>順番ではありません</strong>。4つを並行して回し、チーム全体でカバーします。
+        独立QAチームが多く関与しやすいのは<strong>Q3</strong>ですが、自分たちの守備範囲だけを見ていると全体の穴に気づけません。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. テストの全体地図" data-toc="アジャイルテストの4象限（図）">
+    <h2>アジャイルテストの4象限</h2>
+    <div class="body">
+      <figure style="margin:0;">
+        <svg viewBox="0 0 800 440" style="width:770px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="アジャイルテストの4象限">
+          <g font-family="sans-serif" font-size="12">
+            <text x="400" y="24" text-anchor="middle" fill="#374151" font-weight="bold" font-size="13">ビジネス面（業務の言葉で語るテスト）</text>
+            <text x="400" y="430" text-anchor="middle" fill="#374151" font-weight="bold" font-size="13">技術面（技術の言葉で語るテスト）</text>
+            <text x="28" y="215" text-anchor="middle" fill="#374151" font-weight="bold" font-size="13" transform="rotate(-90 28 215)">チームを支援する</text>
+            <text x="774" y="215" text-anchor="middle" fill="#374151" font-weight="bold" font-size="13" transform="rotate(90 774 215)">製品を批評する</text>
+            <line x1="400" y1="34" x2="400" y2="404" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="6 4"/>
+            <line x1="52" y1="219" x2="748" y2="219" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="6 4"/>
+            <rect x="66" y="42" width="320" height="164" rx="10" fill="#eef3f9" stroke="#1e3a5f"/>
+            <text x="82" y="70" fill="#1e3a5f" font-weight="bold" font-size="14">Q2</text>
+            <text x="226" y="70" text-anchor="middle" fill="#1e3a5f" font-weight="bold">開発を導くビジネスのテスト</text>
+            <text x="226" y="100" text-anchor="middle" fill="#374151">機能テスト、受け入れ条件の具体例づくり、</text>
+            <text x="226" y="120" text-anchor="middle" fill="#374151">プロトタイプの確認</text>
+            <text x="226" y="150" text-anchor="middle" fill="#6b7280" font-size="11">「正しいものを作っているか」を</text>
+            <text x="226" y="168" text-anchor="middle" fill="#6b7280" font-size="11">作りながら確かめる（自動＋手動）</text>
+            <rect x="414" y="42" width="320" height="164" rx="10" fill="#f0fdfa" stroke="#0f766e" stroke-width="2.5"/>
+            <text x="430" y="70" fill="#0f766e" font-weight="bold" font-size="14">Q3</text>
+            <text x="574" y="70" text-anchor="middle" fill="#0f766e" font-weight="bold">製品を評価するビジネスのテスト</text>
+            <text x="574" y="100" text-anchor="middle" fill="#374151">探索的テスト、シナリオテスト、</text>
+            <text x="574" y="120" text-anchor="middle" fill="#374151">UAT（受け入れ）、ユーザビリティ</text>
+            <text x="574" y="150" text-anchor="middle" fill="#0f766e" font-size="11" font-weight="bold">独立QAチームが多く関与しやすい領域</text>
+            <text x="574" y="168" text-anchor="middle" fill="#6b7280" font-size="11">業務の目で製品を批評する（手動が中心）</text>
+            <rect x="66" y="232" width="320" height="164" rx="10" fill="#f3f4f6" stroke="#9ca3af"/>
+            <text x="82" y="260" fill="#4b5563" font-weight="bold" font-size="14">Q1</text>
+            <text x="226" y="260" text-anchor="middle" fill="#4b5563" font-weight="bold">開発を支える技術のテスト</text>
+            <text x="226" y="290" text-anchor="middle" fill="#374151">単体テスト、コンポーネントテスト</text>
+            <text x="226" y="320" text-anchor="middle" fill="#6b7280" font-size="11">自動化されており、主に開発者が担う。</text>
+            <text x="226" y="338" text-anchor="middle" fill="#6b7280" font-size="11">ここが厚いほど後工程のテストが楽になる</text>
+            <rect x="414" y="232" width="320" height="164" rx="10" fill="#fff7ed" stroke="#b45309"/>
+            <text x="430" y="260" fill="#b45309" font-weight="bold" font-size="14">Q4</text>
+            <text x="574" y="260" text-anchor="middle" fill="#b45309" font-weight="bold">製品を評価する技術のテスト</text>
+            <text x="574" y="290" text-anchor="middle" fill="#374151">性能・負荷、セキュリティ、可用性</text>
+            <text x="574" y="320" text-anchor="middle" fill="#6b7280" font-size="11">専門ツール・専門知識が必要。</text>
+            <text x="574" y="338" text-anchor="middle" fill="#6b7280" font-size="11">業務システムでは締め日の負荷・権限が典型</text>
+          </g>
+        </svg>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. テストの全体地図" data-toc="静的テスト — 動かさずに見つける">
+    <h2>静的テスト — 動かさずに見つける</h2>
+    <div class="body">
+      <p>
+        仕様書や設計書の<strong>レビューも立派なテスト</strong>です（静的テスト）。
+        動かして見つける欠陥より、<em>文書上で見つける欠陥のほうが圧倒的に安く直せます</em>。
+      </p>
+      <div class="mind">
+        <span class="tag">つながり</span>
+        第2回で扱う「仕様の読み方」は、実は<strong>静的テストの技術</strong>でもあります。<br>
+        「仕様書を読んで、おかしいと気づく」は、テスト実行と同じくらい価値のある仕事です。
+      </div>
+      <p style="margin-top:18px;">
+        セクション3の原則3（早期テスト）と、セクション1の連鎖図をもう一度思い出してください。
+        <strong>静的テストは、故障を待たずに欠陥そのものを直接指摘できる</strong>唯一の手段です。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 5. 良い不具合報告 ============ -->
+  <section class="slide sec" data-section="Section 5" data-toc="【中扉】良い不具合報告">
+    <div class="num">SECTION 5</div>
+    <h1>良い不具合報告<br>— テスターの最初の武器</h1>
+    <div><span class="time-badge">17分</span></div>
+    <div class="agenda">チケットの必須要素 ／ 書き方の作法 ／ 事実と推測 ／ 重要度と優先度</div>
+  </section>
+
+  <section class="slide" data-section="5. 良い不具合報告" data-toc="チケットは「開発者への報告文書」">
+    <h2>不具合チケットは「開発者への報告文書」</h2>
+    <div class="body">
+      <p>
+        どれだけ良いテストをしても、<strong>報告が悪ければ修正されません</strong>。チケットの読み手は開発者・PMです。
+        <em>読んだ人が事象を理解し、再現・調査・影響判断に着手できるか</em>が、不具合報告の重要な品質基準です。
+      </p>
+      <div class="mind">
+        <span class="tag">安心してよいこと</span>
+        原因の特定そのものは、基本的に<strong>デバッグ側の仕事</strong>。
+        テスターが原因を特定できていなくても、<em>再現条件と観測した事実が十分なら良い報告</em>になります。
+      </div>
+      <p style="margin-top:18px;">
+        またチケットには、修正のための情報を渡すだけでなく、
+        <strong>品質状況の追跡やプロセス改善に役立てる</strong>という目的もあります。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 良い不具合報告" data-toc="必須要素（1）">
+    <h2>チケットの必須要素（1/2）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:24%">必須要素</th><th>ポイント</th></tr>
+        <tr><td>タイトル</td><td>「何をしたら・何がどうなった」まで一行で。<strong>「〜がおかしい」はNG</strong></td></tr>
+        <tr><td>前提条件</td><td>ログインユーザーの権限、対象データの状態など、手順を始める前の状況。<strong>業務システムでは「どんなデータで」が命</strong></td></tr>
+        <tr><td>再現手順</td><td>前提条件の状態から、操作を<strong>番号付きで1手順ずつ</strong>。読み手が同じ順になぞれる粒度で</td></tr>
+        <tr><td>実施結果</td><td>実際に起きたこと・<strong>観察できた事実だけ</strong>を客観的な表現で書く</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 良い不具合報告" data-toc="必須要素（2）">
+    <h2>チケットの必須要素（2/2）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:24%">必須要素</th><th>ポイント</th></tr>
+        <tr><td>期待結果</td><td><strong>本来どうなるべきだったかを必ず書く</strong>。これがないと、そもそも異常かどうかを読み手が判断できない。
+          可能なら根拠（仕様書の該当箇所、受け入れ条件、業務ルール、前バージョンでの動作など）も添える</td></tr>
+        <tr><td>環境・証跡</td><td>環境、アカウント、日時、スクリーンショットやログ</td></tr>
+        <tr><td>発生頻度</td><td>必ず再現するのか、時々なのか。<strong>再現しない場合もその旨を正直に</strong></td></tr>
+      </table>
+      <div class="mind">
+        <span class="tag">いちばん抜けやすいのは「期待結果とその根拠」</span>
+        「おかしい」と思ったのは、<em>自分の中に「こうなるはず」があったから</em>。
+        それを言葉にできないうちは、まだ報告できる状態ではありません。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 良い不具合報告" data-toc="書き方の作法">
+    <h2>書き方の作法</h2>
+    <div class="body">
+      <ul>
+        <li><strong>事実と推測を分ける</strong>。「〜になる（事実）」と「おそらく〜が原因と思われる（推測）」を明示的に区別する。<em>推測を書くこと自体は歓迎される</em></li>
+        <li><strong>1チケット1事象</strong>。複数の問題を1枚に詰めない（議論が発散する・片方だけ修正されて迷子になる）</li>
+        <li><strong>個人の事情を入れない</strong>。「早く直してくれないと困ります」は何も生まない。不具合チケットは成果物であって、メッセージアプリではない</li>
+        <li><strong>読み手を意識する</strong>。読むのは、その画面を触っていない開発者やPM
+          <ul style="margin-top:6px;">
+            <li><strong>量</strong>: 調査に必要な情報だけを載せる。関係するとは限らない操作ログやスクリーンショットを大量に並べると、肝心の1行が埋もれてノイズになる</li>
+            <li><strong>言葉</strong>: テストチーム内でしか通じない略語・観点名・テストケース番号（「◯◯観点でNG」「TC-112が落ちた」）だけでは伝わらない。<em>相手の語彙で、事象そのものを書く</em></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 良い不具合報告" data-toc="事実と推測の境目＝故障と欠陥の境目">
+    <h2>「事実と推測」の境目は、「故障と欠陥」の境目</h2>
+    <div class="body">
+      <p>
+        動的テストでコードの内部を確認していない場合、この<strong>事実と推測</strong>の境目は、
+        セクション1で分けた<strong>故障と欠陥</strong>の境目とちょうど重なります。
+      </p>
+      <div class="cols">
+        <div class="good-box">
+          <span class="tag">本文に書くこと ＝ 事実 ＝ 故障</span>
+          自分が観測したこと。「100円を入力すると、赤字のエラーが表示され登録できない」
+        </div>
+        <div class="bad-box">
+          <span class="tag">別欄に書くこと ＝ 推測 ＝ 欠陥の当たり</span>
+          その裏にある<strong>欠陥</strong>がどこにあるかは、コードを見ていないテスターにとっては<em>推測にすぎない</em>
+        </div>
+      </div>
+      <p class="small" style="margin-top:16px;">
+        （一方、仕様レビューやコードレビューなどの静的テストでは、欠陥そのものを事実として直接指摘できる場合があります。）
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 良い不具合報告" data-toc="重要度と優先度">
+    <h2>重要度（Severity）と優先度（Priority）</h2>
+    <div class="body">
+      <ul>
+        <li><strong>重要度</strong> ＝ 報告された事象が、利用者・業務・システム・要求に与える<strong>影響の大きさ</strong>。
+          <em>品質の立場から事実に基づいて判断する</em><br>
+          <span class="small">報告時点では、まだどこに欠陥があるか確定していないこともあるため、
+          「欠陥のダメージ」ではなく<strong>「事象の影響」</strong>で考える</span></li>
+        <li><strong>優先度</strong> ＝ <strong>いつ直すべきか</strong>。リリース日程・修正コスト・費用対効果などで決まる。
+          <em>チーム／プロダクト側が判断する</em></li>
+      </ul>
+      <div class="mind">
+        <span class="tag">よくある誤解</span>
+        「重要度が高い＝すぐ直す」ではありません。<strong>この2つは独立した軸</strong>で、
+        4つの組み合わせすべてが現実に存在します（次ページ）。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 良い不具合報告" data-toc="重要度×優先度の4象限">
+    <h2>重要度と優先度は、独立した2軸</h2>
+    <div class="body">
+      <figure style="margin-top:0;">
+        <svg viewBox="0 0 800 330" style="width:880px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="重要度と優先度は独立した2軸">
+          <defs>
+            <marker id="arrB" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 z" fill="#6b7280"/>
+            </marker>
+          </defs>
+          <g font-family="sans-serif" font-size="12">
+            <line x1="120" y1="280" x2="770" y2="280" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrB)"/>
+            <line x1="120" y1="280" x2="120" y2="20" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrB)"/>
+            <text x="740" y="302" fill="#374151" font-weight="bold">優先度 高</text>
+            <text x="70" y="35" fill="#374151" font-weight="bold">重要度 高</text>
+            <rect x="455" y="40" width="300" height="110" rx="10" fill="#fef2f2" stroke="#b91c1c"/>
+            <text x="605" y="68" text-anchor="middle" fill="#b91c1c" font-weight="bold">議論の余地なし: 即時修正</text>
+            <text x="605" y="95" text-anchor="middle" fill="#374151">例: 月次締めバッチが異常終了し</text>
+            <text x="605" y="115" text-anchor="middle" fill="#374151">経理業務が止まる</text>
+            <rect x="140" y="40" width="300" height="110" rx="10" fill="#eef3f9" stroke="#1e3a5f"/>
+            <text x="290" y="68" text-anchor="middle" fill="#1e3a5f" font-weight="bold">ダメージ大・急がない: 計画的に修正</text>
+            <text x="290" y="95" text-anchor="middle" fill="#374151">例: うるう年のみ発生する異常終了</text>
+            <text x="290" y="115" text-anchor="middle" fill="#374151">（次の発生まで余裕がある）</text>
+            <rect x="455" y="165" width="300" height="110" rx="10" fill="#fff7ed" stroke="#b45309"/>
+            <text x="605" y="188" text-anchor="middle" fill="#b45309" font-weight="bold">軽微だが急いで修正</text>
+            <text x="605" y="212" text-anchor="middle" fill="#374151" font-size="11.5">例: テスト環境専用のデータ初期化機能が動かない</text>
+            <text x="605" y="232" text-anchor="middle" fill="#374151" font-size="11.5">（本番利用者には影響しないが、共通テストデータを</text>
+            <text x="605" y="250" text-anchor="middle" fill="#374151" font-size="11.5">再利用できず後続100ケースが実行不能になる）</text>
+            <rect x="140" y="165" width="300" height="110" rx="10" fill="#f3f4f6" stroke="#9ca3af"/>
+            <text x="290" y="193" text-anchor="middle" fill="#4b5563" font-weight="bold">「直さない」判断もあり</text>
+            <text x="290" y="220" text-anchor="middle" fill="#374151">例: 特定ブラウザの特定条件でのみ</text>
+            <text x="290" y="240" text-anchor="middle" fill="#374151">起きる軽微なレイアウト崩れ</text>
+          </g>
+        </svg>
+        <figcaption>重要度（事象が与える影響の大きさ）と優先度（直す順番）は独立した軸。4象限すべてが現実に存在する</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 良い不具合報告" data-toc="悪い報せほど、早く・正確に">
+    <h2>悪い報せほど、早く・正確に</h2>
+    <div class="body">
+      <div class="mind" style="margin-top:0;">
+        <span class="tag">マインドセット</span>
+        重大なバグに遭遇したとき、<strong>テスターの価値が最も試されます</strong>。<br>
+        抱え込まず、盛らず、事実で速報する。重大さを、相手に正しく認識してもらうことを意識する。
+      </div>
+      <div class="work">
+        <span class="tag">運用としてはこうする</span>
+        <em>重大事象は、完成したチケットを書き上げるまで黙って待たない。</em><br>
+        まず関係者へ<strong>観測した事実を速報</strong>し、その後に再現情報と証跡を整理してチケット化する。
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. ワーク② ============ -->
+  <section class="slide sec" data-section="Section 6" data-toc="【中扉】ワーク② 観測メモをチケットにする">
+    <div class="num">SECTION 6 — WORK</div>
+    <h1>ワーク②<br>観測メモを不具合チケットにする</h1>
+    <div><span class="time-badge">10分（ペア）</span></div>
+    <div class="agenda">走り書きのメモから、1件の不具合チケットを起こします。</div>
+  </section>
+
+  <section class="slide" data-section="6. ワーク②" data-toc="悪い例">
+    <h2>まず、こういうチケットだと何が起きないか</h2>
+    <div class="body">
+      <div class="bad-box" style="margin-top:0;">
+        <span class="tag">悪い例</span>
+        <p style="margin:6px 0 0;">
+          <strong>タイトル</strong>: 経費申請の金額がおかしい<br>
+          <strong>内容</strong>: 経費申請をしたら金額が変になりました。たぶん消費税のバグだと思います。早めに直してほしいです。けっこうまずい気がします。
+        </p>
+      </div>
+      <p style="margin-top:18px;">
+        読み手は、<strong>何をしたのか・いくらで起きるのか・何が期待だったのか</strong>が分からず、
+        <em>調査を始められません</em>。推測（消費税）と個人の事情だけが書かれています。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. ワーク②" data-toc="手元メモ（題材）">
+    <h2>題材: テスト実行中の走り書きメモ</h2>
+    <div class="body">
+      <div class="memo" style="margin-top:0;"><span class="memo-head">📝 手元メモ（7/30）</span>・10:40ごろ〜 経費申請の画面を確認
+・金額に100円を入れて申請ボタン → 「金額は100円未満で入力してください」と赤字で出て登録できない
+・99円は登録できた。101円は登録できない（これは正しいはず）
+・もう2回やってみたけど、100円はやっぱりダメ。3回とも同じ
+・仕様書3.2に「100円以下は登録可」って書いてあった気がする（要確認）
+・たぶん前回の改修の影響？
+・Sさんは「自分のときは通った」と言っていた気がする。別の画面の話かも
+・スクショは shared/tmp/0730/ に置いた
+・ログインは自分のいつものアカウント。一般権限の方
+・環境はいつものやつ
+・そういえば一覧画面、申請日の並び順が逆な気がする。これも後で見る</div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. ワーク②" data-toc="ワーク② やること">
+    <h2>やること<small>ペア10分</small></h2>
+    <div class="body">
+      <ol>
+        <li>メモの各行を、次の<strong>4つ</strong>に仕分ける
+          <table style="margin:8px 0 12px;">
+            <tr><td style="width:26%"><strong>① 事実</strong></td><td>自分が見た・やったこと。そのままチケットに書ける</td></tr>
+            <tr><td><strong>② 推測・伝聞</strong></td><td>原因の当たり、人から聞いた話。事実欄には書かない</td></tr>
+            <tr><td><strong>③ 別の事象</strong></td><td>今回の不具合とは別の話。<strong>1チケット1事象</strong></td></tr>
+            <tr><td><strong>④ 確認が必要</strong></td><td>チケットを出す前に、自分で確かめないと書けないもの</td></tr>
+          </table>
+        </li>
+        <li>①だけを使って、次の型でチケットを書く<br>
+          <span class="small">タイトル ／ 前提条件 ／ 環境 ／ 再現手順 ／ 実際の結果 ／ <strong>期待結果とその根拠</strong> ／ 発生頻度 ／ 証跡 ／（推測は別欄）</span></li>
+        <li>④に入れた項目は<em>想像で埋めず</em>「未確認」と書き、<strong>出す前に確認することリスト</strong>にまとめる</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="6. ワーク② — 解答例" data-toc="STEP1 メモの仕分け">
+    <span class="badge">講師用</span>
+    <h2>STEP 1: メモの仕分け<small>ここが本番。チケットの清書は、仕分けができていれば自動的に決まる</small></h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:20%">区分</th><th>メモの記述</th></tr>
+        <tr>
+          <td><strong>① 事実</strong><br><span class="small">そのまま書ける</span></td>
+          <td>100円を入力すると「金額は100円未満で入力してください」と赤字表示され登録できない／3回とも同じ／99円は登録できた／101円は登録できない／スクリーンショットあり（shared/tmp/0730/）／一般権限のアカウント／10:40ごろ</td>
+        </tr>
+        <tr>
+          <td><strong>② 推測・伝聞</strong><br><span class="small">推測は別欄、伝聞は落とす</span></td>
+          <td>「たぶん前回の改修の影響？」→ 備考欄へ。<br>
+            「Sさんは通ったと言っていた気がする／別の画面の話かも」→ <em>書かない</em>。裏の取れていない話をチケットに載せると、読み手が誤った方向に調査を始めてしまう。気になるなら、チケットではなく本人に確認する</td>
+        </tr>
+        <tr>
+          <td><strong>③ 別の事象</strong><br><span class="small">別チケット</span></td>
+          <td>一覧画面の申請日の並び順 — <strong>1チケット1事象</strong>。ただしこれも「気がする」段階なので、<em>仕様を確認してから起票する</em></td>
+        </tr>
+        <tr>
+          <td><strong>④ 確認が必要</strong><br><span class="small">確かめてから書く</span></td>
+          <td>「仕様書3.2に100円以下は登録可と書いてあった気がする（要確認）」／「環境はいつものやつ」／「自分のいつものアカウント」＝アカウントIDとビルド番号が不明</td>
+        </tr>
+      </table>
+      <p class="small" style="margin-top:10px;">
+        ※「101円は登録できない（これは正しいはず）」の<em>「これは正しいはず」だけは判断</em>であって観測ではない。
+        気づいた受講者がいたら拾う（気づかなくてもよい）。事実は「101円は登録できない」まで。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="6. ワーク② — 解答例" data-toc="STEP2 出す前に確認すること">
+    <span class="badge">講師用</span>
+    <h2>STEP 2: 出す前に自分で確認すること</h2>
+    <div class="body">
+      <ul>
+        <li><strong>仕様書3.2を実際に開いて、条件と文言を確認する</strong>（最重要）。
+          「以下」なのか「未満」なのかが、この報告の成否そのもの。
+          ここが逆なら<em>そもそも不具合ではなく、メッセージ文言の話にしかならない</em></li>
+        <li>環境名・ビルド番号・アカウントIDを控える（「いつものやつ」は自分にしか通じない）</li>
+        <li>スクリーンショットをチケットに添付する（共有フォルダのパスは消える／権限で見えないことがある）</li>
+      </ul>
+      <div class="work">
+        <span class="tag">伝えたいこと</span>
+        「確認していないことを、確認したように書かない」。<br>
+        <em>未確認なら「未確認」と書いてよい</em> — 最悪なのは、あたかも確認したように書くこと。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="6. ワーク② — 解答例" data-toc="STEP3 清書したチケット">
+    <span class="badge">講師用</span>
+    <h2>STEP 3: 清書したチケット</h2>
+    <div class="body">
+      <div class="good-box" style="margin-top:0;">
+        <span class="tag">解答例</span>
+        <p style="margin:6px 0 0;">
+          <strong>タイトル</strong>: 経費申請で金額に100円を入力すると、エラーとなり登録できない<br>
+          <strong>前提条件</strong>: 一般社員権限のアカウント（user01）でログイン済み<br>
+          <strong>環境</strong>: STG環境 / ビルド 2026.07.30.1 / 2026-07-30 10:40頃<br>
+          <strong>再現手順</strong>:<br>
+          &nbsp;&nbsp;1. 経費申請画面を開く<br>
+          &nbsp;&nbsp;2. 金額欄に「100」を入力する<br>
+          &nbsp;&nbsp;3. 申請ボタンを押す<br>
+          <strong>実際の結果</strong>: 「金額は100円未満で入力してください」と赤字で表示され、登録できない（スクリーンショット添付）<br>
+          <strong>期待結果</strong>: 申請が登録される。根拠: 仕様書3.2「申請金額は100円以下の場合、登録可能」<br>
+          <strong>発生頻度</strong>: 3回中3回。99円は登録できる。101円は登録できない（仕様どおり）<br>
+          <strong>備考（推測）</strong>: 境界の判定が「100円以下」ではなく「100円未満」になっている可能性
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="6. ワーク② — 解答例" data-toc="見るべきポイント（採点基準）">
+    <span class="badge">講師用</span>
+    <h2>見るべきポイント（採点基準）</h2>
+    <div class="body">
+      <ul>
+        <li><strong>「気がする」をそのままチケットに書いていないか</strong>。特に仕様3.2。ここを確認せずに根拠として引くと、
+          <em>誤った期待結果で開発者を動かすことになる</em>。「未確認」と正直に書いてあるのも可</li>
+        <li><strong>推測・伝聞が事実欄に混ざっていないか</strong>。「前回の改修の影響では」は備考へ、Sさんの話は落とす</li>
+        <li><strong>別事象を1枚に詰め込んでいないか</strong>。並び順を同じチケットに書いていたら指摘する。
+          逆に、これを「あとで確認する」として拾えているかも見る（メモに残した違和感を消さない）</li>
+        <li><strong>境界の情報（99円は通る／101円は正しく弾かれる）が書けているか</strong>。
+          開発者が最初に知りたいのは「どこから壊れるか」。この2行があるだけで調査範囲が一気に狭まる</li>
+        <li><strong>「いつものやつ」を放置していないか</strong>。読み手はその環境を知らない</li>
+        <li>逆に、メモにない情報（他ブラウザ、他権限での挙動など）を<em>創作していないか</em></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="6. ワーク② — 進行" data-toc="締め方と、口頭ヒント">
+    <span class="badge">講師用</span>
+    <h2>締め方と、手が止まったときのヒント</h2>
+    <div class="body">
+      <p>
+        <strong>締め方</strong>: セクション1の「エラー・欠陥・故障」に戻す。ここで観測できたのは<strong>故障</strong>（100円が登録できない）。
+        <code>金額 &lt; 100</code> という実装は<strong>欠陥</strong>だが、それはまだ推測であって、コードを見るまで確定しない。
+        メモの段階では事実と推測が同じ粒度で並んでいる — <em>それを分けるのがテスターの仕事</em>だと伝える。
+      </p>
+      <p class="small">
+        時間が押している場合は STEP 1 の仕分けだけでもよい。清書は各自の宿題にする。<br>
+        以下は口頭で出すヒント（スライドには載せていない。<strong>最初から言わないこと</strong>）:
+      </p>
+      <ul class="small">
+        <li>「<em>『たぶん』『〜な気がする』『〜かも』が付いている文は、事実ではありません</em>。まずそこに線を引いてみてください」— これでほぼ②と④に振り分けられる</li>
+        <li>それでも動かないペアには、最初の1行だけいっしょに仕分けてみせる（「100円を入れて赤字が出た」→ 自分でやって自分で見た＝①事実）</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ まとめ ============ -->
+  <section class="slide sec" data-section="Closing" data-toc="【中扉】まとめ">
+    <div class="num">CLOSING</div>
+    <h1>まとめ</h1>
+    <div><span class="time-badge">5分</span></div>
+    <div class="agenda">今日の持ち帰り ／ 次回予告</div>
+  </section>
+
+  <section class="slide" data-section="まとめ" data-toc="今日の持ち帰り">
+    <h2>今日の持ち帰り</h2>
+    <div class="body">
+      <ul>
+        <li>テストは、成果物の品質を評価し、<strong>意思決定に必要な情報を届ける仕事</strong>。
+          「テスト済み＝不具合ゼロ」とは言わず、<strong>確認した範囲・結果・残っているリスク</strong>を伝える</li>
+        <li><strong>エラー（人の誤り）・欠陥（成果物の不備）・故障（実行時に観測される逸脱）</strong>を分けて考える。
+          <em>動的テストは故障から欠陥の特定につなげ、静的テストは欠陥を直接見つける</em></li>
+        <li>テストは実行だけではない。計画・分析・設計・実装・実行・完了と、その全体を通したモニタリングとコントロールからなる。
+          <strong>自分が今どこにいるかを常に意識する</strong></li>
+        <li>不具合報告は、<strong>調査と判断を前へ進めるための成果物</strong>。
+          観測した事実・期待結果とその根拠・再現条件を明確にし、推測は事実と分けて書く</li>
+        <li><strong>悪い報せほど、早く・正確に。</strong>重大さを盛らず、隠さず、影響が伝わる形で報告する</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="まとめ" data-toc="シラバス対応と次回">
+    <h2>シラバス対応と、次回</h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;">
+        <span class="tag">シラバス対応: ISTQB CTFL v4.0.1</span>
+        1.1（テストとは何か）／ 1.2.2（テストとデバッグ）／ 1.2.3（エラー・欠陥・故障・根本原因）／
+        1.3（テストの7原則）／ 1.4.1（テストプロセス）／ 2.2（テストレベルとテストタイプ）／
+        3.1（静的テストの基本）／ 5.1.7（テストの4象限）／ 5.5（欠陥マネジメント）
+      </div>
+      <div class="mind">
+        <span class="tag">次回 — 第2回</span>
+        <strong>仕様を読み、テストを設計する</strong><br>
+        今日ふれた「テストプロセスの分析・設計」と「静的テストとしての仕様の読み方」を、手を動かしながら深掘りします。
+      </div>
+      <p class="small" style="margin-top:20px;">
+        資料版（読み物形式）は <code>phase1.html</code>、目次は <code>index.html</code> にあります。
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<div id="progress"></div>
+<div id="hud"><b>←/→</b> ページ　<b>O</b> 目次　<b>T</b> 講師用切替　<b>F</b> 全画面　<b>?</b> ヘルプ</div>
+
+<div class="overlay" id="toc">
+  <h3>目次 — クリックでジャンプ（Esc で閉じる）</h3>
+  <div id="tocList"></div>
+</div>
+
+<div class="overlay" id="help">
+  <h3>キーボード操作（Esc で閉じる）</h3>
+  <div class="keys">
+    <div><kbd>→</kbd> <kbd>↓</kbd> <kbd>Space</kbd> <kbd>PgDn</kbd></div><div>次のスライド</div>
+    <div><kbd>←</kbd> <kbd>↑</kbd> <kbd>PgUp</kbd></div><div>前のスライド</div>
+    <div><kbd>Home</kbd> / <kbd>End</kbd></div><div>最初 / 最後へ</div>
+    <div><kbd>O</kbd></div><div>目次を開く</div>
+    <div><kbd>T</kbd></div><div>講師用スライドの表示／非表示（投影時は非表示に）</div>
+    <div><kbd>F</kbd></div><div>全画面表示</div>
+    <div><kbd>?</kbd></div><div>このヘルプ</div>
+  </div>
+  <div class="hint">
+    画面左半分クリックで前へ、右半分クリックで次へ進みます。<br>
+    印刷（Ctrl+P）すると、全スライドが1ページ1枚で出力されます（配布資料用。横向き・余白なし推奨）。
+  </div>
+</div>
+
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var tocEl = document.getElementById('toc');
+  var tocList = document.getElementById('tocList');
+  var helpEl = document.getElementById('help');
+  var hideTeacher = false;
+  var cur = 0;
+
+  // ページ番号を各スライドに埋め込む
+  slides.forEach(function (s, i) {
+    var n = document.createElement('div');
+    n.className = 'pnum';
+    n.textContent = (i + 1) + ' / ' + slides.length;
+    s.appendChild(n);
+  });
+
+  // ---- 画面サイズに合わせて 1280x720 を拡大縮小 ----
+  function fit() {
+    var scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    if (!isFinite(scale) || scale <= 0) scale = 1; // ウィンドウが未表示（0×0）のときに潰れないように
+    stage.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  function isTeacher(i) { return slides[i].classList.contains('teacher'); }
+
+  function show(i) {
+    if (i < 0) i = 0;
+    if (i > slides.length - 1) i = slides.length - 1;
+    slides[cur].classList.remove('active');
+    cur = i;
+    slides[cur].classList.add('active');
+    progress.style.width = ((cur + 1) / slides.length * 100) + '%';
+    history.replaceState(null, '', '#' + (cur + 1));
+    markToc();
+  }
+
+  function step(d) {
+    var i = cur;
+    do {
+      i += d;
+      if (i < 0 || i > slides.length - 1) return;
+    } while (hideTeacher && isTeacher(i));
+    show(i);
+  }
+
+  function jumpEdge(d) {
+    var i = d < 0 ? 0 : slides.length - 1;
+    while (hideTeacher && isTeacher(i) && i > 0 && i < slides.length - 1) i += (d < 0 ? 1 : -1);
+    show(i);
+  }
+
+  // ---- 目次 ----
+  function buildToc() {
+    var lastSec = null;
+    tocList.innerHTML = '';
+    slides.forEach(function (s, i) {
+      var sec = s.getAttribute('data-section') || '';
+      if (sec !== lastSec) {
+        var h = document.createElement('div');
+        h.className = 'toc-sec';
+        h.textContent = sec;
+        tocList.appendChild(h);
+        lastSec = sec;
+      }
+      var a = document.createElement('a');
+      a.href = '#' + (i + 1);
+      a.dataset.i = i;
+      if (s.classList.contains('teacher')) a.className = 't';
+      a.innerHTML = '<span class="n">' + (i + 1) + '</span>' +
+        (s.getAttribute('data-toc') || '').replace(/</g, '&lt;');
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        show(parseInt(this.dataset.i, 10));
+        closeOverlays();
+      });
+      tocList.appendChild(a);
+    });
+  }
+  function markToc() {
+    var links = tocList.querySelectorAll('a');
+    for (var i = 0; i < links.length; i++) {
+      links[i].classList.toggle('cur', parseInt(links[i].dataset.i, 10) === cur);
+    }
+  }
+  buildToc();
+
+  function closeOverlays() {
+    tocEl.classList.remove('open');
+    helpEl.classList.remove('open');
+  }
+  function toggle(el) {
+    var wasOpen = el.classList.contains('open');
+    closeOverlays();
+    if (!wasOpen) el.classList.add('open');
+  }
+
+  // ---- 講師用スライドの表示切替 ----
+  function toggleTeacher() {
+    hideTeacher = !hideTeacher;
+    slides.forEach(function (s, i) {
+      if (isTeacher(i)) s.style.visibility = '';
+    });
+    if (hideTeacher && isTeacher(cur)) {
+      var i = cur;
+      while (i < slides.length - 1 && isTeacher(i)) i++;
+      show(i);
+    }
+    flash(hideTeacher ? '講師用スライド: 非表示（送り時にスキップ）' : '講師用スライド: 表示');
+  }
+
+  var toast;
+  function flash(msg) {
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);' +
+        'background:rgba(15,23,42,.92);color:#e2e8f0;padding:8px 18px;border-radius:999px;' +
+        'font-size:13px;z-index:50;transition:opacity .3s;pointer-events:none;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { toast.style.opacity = '0'; }, 1600);
+  }
+
+  // ---- キー操作 ----
+  document.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === 'Escape') { closeOverlays(); return; }
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === ' ' || k === 'PageDown') { e.preventDefault(); step(1); }
+    else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') { e.preventDefault(); step(-1); }
+    else if (k === 'Home') { e.preventDefault(); jumpEdge(-1); }
+    else if (k === 'End') { e.preventDefault(); jumpEdge(1); }
+    else if (k === 'o' || k === 'O') { toggle(tocEl); }
+    else if (k === 't' || k === 'T') { toggleTeacher(); }
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    }
+    else if (k === '?' || k === '/') { toggle(helpEl); }
+  });
+
+  // ---- クリック／タップ操作 ----
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.overlay')) return;
+    if (tocEl.classList.contains('open') || helpEl.classList.contains('open')) { closeOverlays(); return; }
+    step(e.clientX < window.innerWidth / 2 ? -1 : 1);
+  });
+
+  // ---- スワイプ ----
+  var sx = null;
+  document.addEventListener('touchstart', function (e) { sx = e.changedTouches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
+    sx = null;
+  }, { passive: true });
+
+  // ---- 初期表示（#12 のようなハッシュに対応） ----
+  var start = parseInt((location.hash || '').replace('#', ''), 10);
+  slides[0].classList.add('active');
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>

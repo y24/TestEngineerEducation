@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第3回 テストを管理し、品質を語る（スライド）</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #1e3a5f;
+    --accent-light: #eef3f9;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --warn: #b91c1c;
+    --warn-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #0b1220;
+    color: var(--ink);
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    overflow: hidden;
+  }
+
+  /* ---------- ステージ（1280×720を画面いっぱいに拡大縮小） ---------- */
+  #stage {
+    position: absolute; left: 50%; top: 50%;
+    width: 1280px; height: 720px;
+    transform-origin: center center;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    background: #fff;
+    padding: 76px 62px 54px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    line-height: 1.75;
+    font-size: 21px;
+  }
+  .slide.active { display: flex; }
+  .slide::before {
+    content: attr(data-section);
+    position: absolute; left: 62px; top: 30px;
+    font-size: 15px; letter-spacing: .06em; color: var(--muted);
+  }
+  .slide::after {
+    content: ""; position: absolute; left: 0; top: 0;
+    width: 100%; height: 7px; background: var(--accent);
+  }
+  .slide > h2 {
+    margin: 0 0 20px; padding-bottom: 12px;
+    font-size: 33px; line-height: 1.35; color: var(--accent);
+    border-bottom: 2px solid var(--accent-light);
+  }
+  .slide > h2 small { display: block; font-size: 17px; color: var(--muted); font-weight: normal; margin-top: 6px; }
+  .body { flex: 1; min-height: 0; }
+  .body > :first-child { margin-top: 0; }
+  .body > :last-child { margin-bottom: 0; }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 1.4em; }
+  li { margin-bottom: 8px; }
+  li:last-child { margin-bottom: 0; }
+  em { font-style: normal; background: linear-gradient(transparent 62%, #fde68a 62%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  .small { font-size: .86em; color: var(--muted); }
+
+  /* ---------- 表紙・中扉 ---------- */
+  .slide.cover, .slide.sec {
+    background: var(--accent); color: #fff;
+    justify-content: center;
+  }
+  .slide.cover::before, .slide.sec::before { color: rgba(255,255,255,.7); }
+  .slide.cover::after, .slide.sec::after { background: var(--work); }
+  .slide.cover .label { font-size: 19px; letter-spacing: .1em; opacity: .85; margin-bottom: 18px; }
+  .slide.cover h1 { margin: 0 0 26px; font-size: 54px; line-height: 1.35; }
+  .slide.cover .lead { font-size: 22px; opacity: .92; margin: 0; }
+  .slide.cover .meta { margin-top: 46px; font-size: 17px; opacity: .7; }
+  .slide.sec .num { font-size: 20px; letter-spacing: .18em; opacity: .75; margin-bottom: 14px; }
+  .slide.sec h1 { margin: 0; font-size: 46px; line-height: 1.35; }
+  .slide.sec .time-badge {
+    display: inline-block; margin-top: 26px; padding: 5px 18px;
+    border: 1px solid rgba(255,255,255,.55); border-radius: 999px; font-size: 17px;
+  }
+  .slide.sec .agenda { margin-top: 30px; font-size: 19px; opacity: .85; line-height: 2; }
+
+  /* ---------- 講師用 / 補足スライド ---------- */
+  .slide.teacher { background: #fffdf7; }
+  .slide.teacher::after { background: var(--work); }
+  .slide.teacher > h2 { color: var(--work); border-bottom-color: #fde9c8; }
+  .slide.note { background: #f7fefd; }
+  .slide.note::after { background: var(--mind); }
+  .slide.note > h2 { color: var(--mind); border-bottom-color: #cbf0ea; }
+  .badge {
+    position: absolute; right: 62px; top: 26px;
+    color: #fff; font-size: 13px; letter-spacing: .08em; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .teacher .badge { background: var(--work); }
+  .note .badge { background: var(--mind); }
+
+  /* ---------- 箱 ---------- */
+  .mind, .work, .example, .warn { border-radius: 10px; padding: 16px 22px; margin: 16px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .warn { background: var(--warn-bg); border-left: 5px solid var(--warn); }
+  .mind .tag, .work .tag, .example .tag, .warn .tag {
+    display: block; margin-bottom: 6px;
+    font-weight: 700; font-size: 15px; letter-spacing: .05em;
+  }
+  .mind .tag { color: var(--mind); }
+  .work .tag { color: var(--work); }
+  .example .tag { color: #4b5563; }
+  .warn .tag { color: var(--warn); }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px 20px; margin: 12px 0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
+  .sit-common {
+    background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px;
+    padding: 16px 22px; margin: 14px 0;
+  }
+  .sit-common .tag { display: block; margin-bottom: 6px; font-weight: 700; color: #92400e; font-size: 15px; }
+
+  /* ---------- 状況カード ---------- */
+  .sit-card { border: 1px solid #d1d5db; border-radius: 10px; background: #fff; overflow: hidden; }
+  .sit-card .head { padding: 8px 18px; color: #fff; font-weight: 700; font-size: 19px; }
+  .sit-card .card-body { padding: 10px 20px 16px; }
+  .sit-card dl { margin: 0; }
+  .sit-card dt {
+    font-weight: 700; color: var(--accent); margin-top: 10px;
+    font-size: 15px; letter-spacing: .03em;
+  }
+  .sit-card dt:first-child { margin-top: 0; }
+  .sit-card dd { margin: 2px 0 0; font-size: 19px; line-height: 1.65; }
+
+  /* ---------- 表 ---------- */
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 18.5px; line-height: 1.6; }
+  th, td { border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  td.c, th.c { text-align: center; }
+  .teacher th { background: #fdf3e3; color: var(--work); }
+  .note th { background: #e9f8f6; color: var(--mind); }
+  table.dense { font-size: 17px; }
+
+  /* ---------- 図 ---------- */
+  figure { margin: 10px 0; text-align: center; }
+  figure svg { display: block; margin: 0 auto; height: auto; max-width: 100%; }
+  figcaption { font-size: 15.5px; color: var(--muted); margin-top: 8px; line-height: 1.65; text-align: left; }
+
+  /* ---------- 2カラム ---------- */
+  .cols { display: flex; gap: 24px; }
+  .cols > * { flex: 1; min-width: 0; }
+
+  /* ---------- UI ---------- */
+  .pnum { position: absolute; right: 62px; bottom: 22px; font-size: 15px; color: #9ca3af; letter-spacing: .05em; }
+  .cover .pnum, .sec .pnum { color: rgba(255,255,255,.6); }
+  .teacher .pnum { color: #c9a06a; }
+  .note .pnum { color: #7fb8b0; }
+  #progress {
+    position: fixed; left: 0; bottom: 0; height: 4px;
+    background: var(--work); width: 0; transition: width .18s ease; z-index: 30;
+  }
+  #hud { position: fixed; left: 14px; bottom: 12px; z-index: 30; font-size: 12px; color: #64748b; letter-spacing: .04em; }
+  #hud b { color: #94a3b8; font-weight: 600; }
+  .overlay {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(8,14,26,.94); color: #e5e7eb;
+    display: none; flex-direction: column; padding: 34px 42px; font-size: 14px;
+  }
+  .overlay.open { display: flex; }
+  .overlay h3 { margin: 0 0 16px; font-size: 18px; color: #fff; font-weight: 700; }
+  #tocList { flex: 1; overflow: auto; column-count: 3; column-gap: 34px; }
+  #tocList .toc-sec {
+    break-inside: avoid; margin: 0 0 6px; padding-top: 10px;
+    font-size: 12px; letter-spacing: .08em; color: #7dd3fc; font-weight: 700;
+  }
+  #tocList a { display: block; break-inside: avoid; color: #cbd5e1; text-decoration: none; padding: 3px 8px; border-radius: 5px; line-height: 1.5; }
+  #tocList a:hover { background: #1e293b; color: #fff; }
+  #tocList a .n { color: #64748b; margin-right: 8px; font-variant-numeric: tabular-nums; }
+  #tocList a.t .n { color: var(--work); }
+  #tocList a.nt .n { color: #2dd4bf; }
+  #tocList a.cur { background: #1e3a5f; color: #fff; }
+  .keys { display: grid; grid-template-columns: 130px 1fr; gap: 8px 16px; max-width: 620px; }
+  .keys kbd { background: #1e293b; border: 1px solid #334155; border-radius: 5px; padding: 2px 8px; font-family: inherit; font-size: 12px; color: #e2e8f0; }
+  .overlay .hint { margin-top: 20px; color: #64748b; }
+
+  /* ---------- 印刷 ---------- */
+  @media print {
+    body { background: #fff; overflow: visible; }
+    #stage { position: static; transform: none !important; width: auto; height: auto; }
+    .slide { position: static; display: flex !important; width: 1280px; height: 720px; page-break-after: always; }
+    #progress, #hud, .overlay { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <!-- ============ 表紙 ============ -->
+  <section class="slide cover" data-section="テストエンジニア育成講座 — Step1" data-toc="表紙">
+    <div class="label">第 3 回（90分）</div>
+    <h1>テストを管理し、<br>品質を語る</h1>
+    <p class="lead">テスト計画と見積り、PB曲線の読み方、バグトリアージ、<br>そしてテストの終わり方。「回す」力を作る。</p>
+    <div class="meta">← / → キーでページ送り　　O: 目次　　T: 講師用スライドの表示切替　　? : ヘルプ</div>
+  </section>
+
+  <section class="slide" data-section="オリエンテーション" data-toc="今日のゴール">
+    <h2>今日のゴール</h2>
+    <div class="body">
+      <ul>
+        <li>テスト計画に<strong>何を決めて書くべきか</strong>が分かる<br>
+          <span class="small">（特にテスト目的・開始基準・終了基準・やらないこと）</span></li>
+        <li>P曲線とB曲線（PB曲線）を読み、<strong>グラフの裏にある現場の状況を確かめてから</strong>判断できる</li>
+        <li>読んだ結果を<strong>打ち手（テストコントロール）</strong>につなげられる</li>
+        <li>バグトリアージで、テスターとして<strong>意思を持った材料</strong>を出せる</li>
+        <li>「テストの終わり」を<strong>残存リスクの言葉</strong>で語れる</li>
+      </ul>
+      <div class="example">
+        <span class="tag">今日の流れ</span>
+        1. テスト計画と見積り（20分）／ 2. P曲線とB曲線（15分）／ 3. ワーク①（20分）／
+        4. 講評とテストコントロール（10分）／ 5. バグトリアージ（10分）／ 6. テストの終わり方（10分）／ まとめ（5分）
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 1. テスト計画と見積り ============ -->
+  <section class="slide sec" data-section="Section 1" data-toc="【中扉】テスト計画と見積り">
+    <div class="num">SECTION 1</div>
+    <h1>テスト計画と見積り<br>— 始める前に勝負は半分決まる</h1>
+    <div><span class="time-badge">20分</span></div>
+    <div class="agenda">計画に書くこと ／ 開始基準 ／ 見積りの現実</div>
+  </section>
+
+  <section class="slide" data-section="1. テスト計画と見積り" data-toc="計画に書くこと（1）目的・スコープ・アプローチ">
+    <h2>テスト計画に書くこと（1/3）<small>テスト計画書は儀式の文書ではなく、関係者と交わす「合意」のかたまり</small></h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:22%">項目</th><th>決めること・ポイント</th></tr>
+        <tr>
+          <td>テスト目的</td>
+          <td><strong>このテストで何を確認し、どの判断を支援するのか</strong>。
+            例:「主要業務がリリース可能な状態かを判断する」「変更による既存機能への影響を評価する」。
+            ここが決まっていないと、アプローチも終了基準も根拠が弱くなる</td>
+        </tr>
+        <tr>
+          <td>スコープ</td>
+          <td>テストする機能・レベル・タイプ。そして<strong>「やらないこと」を明記する</strong>（第2回参照）。
+            やらないことが書かれていない計画は、後で<em>「やってくれてると思った」</em>を生む</td>
+        </tr>
+        <tr>
+          <td>アプローチ</td>
+          <td>どの領域をどの濃さで（リスクベースの濃淡）。新規機能は設計ベースで厚く、既存部はリグレッション中心、など</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. テスト計画と見積り" data-toc="計画に書くこと（2）開始基準・終了基準">
+    <h2>テスト計画に書くこと（2/3）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:22%">項目</th><th>決めること・ポイント</th></tr>
+        <tr>
+          <td>開始基準<br><span class="small">（エントリ）</span></td>
+          <td>テストを受け入れる条件: 対象ビルドについて<strong>合意した前段のテストが完了している</strong>
+            （単体テスト、開発者テストなど）、主要動線のスモークが通過している、環境・テストデータが揃っている、など</td>
+        </tr>
+        <tr>
+          <td>終了基準<br><span class="small">（イグジット）</span></td>
+          <td>「いつ終わってよいか」: ケース消化率、未解決バグの重要度別件数、カバレッジ、残存リスクを説明できる状態か、など。
+            <strong>始める前に決めておく</strong>のが肝</td>
+        </tr>
+        <tr>
+          <td>スケジュール・体制</td>
+          <td>誰が・いつ・何を。<strong>バグ修正待ちと再テストの時間を織り込む</strong></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. テスト計画と見積り" data-toc="計画に書くこと（3）リスク・報告・成果物">
+    <h2>テスト計画に書くこと（3/3）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:22%">項目</th><th>決めること・ポイント</th></tr>
+        <tr>
+          <td>リスクと前提</td>
+          <td>「環境提供が遅れたら開始も遅れる」等、<strong>崩れたら計画が変わる前提</strong>を書いておく
+            — これが後の交渉材料になる</td>
+        </tr>
+        <tr>
+          <td>モニタリング・報告</td>
+          <td>何を測り、誰に、どの頻度で報告するか。
+            遅延や品質リスクが起きたときの<strong>エスカレーション先</strong>も決めておく</td>
+        </tr>
+        <tr>
+          <td>成果物</td>
+          <td>テストケース、実行結果、欠陥レポート、テスト完了レポートなど、<strong>何を残すか</strong></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. テスト計画と見積り" data-toc="開始基準を軽視すると地獄が始まる">
+    <h2>開始基準を軽視すると、地獄が始まる</h2>
+    <div class="body">
+      <p>
+        経験の浅いチームが最も痛い目に遭うのがここです。単体テストが不十分なままシステムテストを始めると、
+        <em>初日から基本動作のバグで手が止まり、本来の観点のテストに一切進めない</em>という消耗戦になります。
+      </p>
+      <div class="mind">
+        <span class="tag">マインドセット</span>
+        基準を満たさない成果物は、原則として<strong>受け入れを保留する</strong>。<br>
+        ただし現実には、期限や体制の都合でそのまま待てないこともある。その場合は
+        <strong>対象範囲を限定する／未通過部分を除いて開始する／追加リスクを明示する</strong>など、
+        <em>開始条件を再合意してから進める</em>。
+      </div>
+      <div class="warn">
+        <span class="tag">いちばん危険なのは</span>
+        条件を満たしていないことを、<strong>黙って引き取ること</strong>。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. テスト計画と見積り" data-toc="見積りの現実">
+    <h2>見積りの現実 — 実行時間だけ数えると足りなくなる</h2>
+    <div class="body">
+      <ul>
+        <li>テスト見積り ＝ 実行時間だけではない。
+          <strong>分析・設計・データ準備・環境確認・チケット起票・再テスト・リグレッション</strong>を含める</li>
+        <li>経験則: バグ対応（起票・確認・再テスト）で<strong>実行工数と同等以上</strong>かかることも珍しくない。
+          バグが多い前提の機能なら、なおさら</li>
+        <li>業務システム特有の重さ: <strong>テストデータ作り</strong>（マスタ・権限・月次状態の組み合わせ）と
+          <strong>環境・連携先の調整</strong>は、<em>見積りから最も抜けやすく、最も遅延を生む</em></li>
+        <li>締め日・月次処理があるシステムは「<strong>その日付にならないと確認できない</strong>」テストがある。
+          カレンダーを最初に確認する</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. テスト計画と見積り" data-toc="テスト工数の内訳（図）">
+    <h2>数えがちなのは「実行」だけ</h2>
+    <div class="body">
+      <figure style="margin-top:0;">
+        <svg viewBox="0 0 800 210" style="width:1080px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="テスト工数の内訳イメージ">
+          <g font-family="sans-serif" font-size="12">
+            <text x="40" y="30" fill="#374151" font-weight="bold" font-size="13">テスト工数の内訳（イメージ）</text>
+            <rect x="40" y="50" width="144" height="54" fill="#1e3a5f"/>
+            <rect x="184" y="50" width="108" height="54" fill="#0f766e"/>
+            <rect x="292" y="44" width="216" height="66" fill="#60a5fa" stroke="#1e3a5f" stroke-width="2"/>
+            <rect x="508" y="50" width="180" height="54" fill="#b45309"/>
+            <rect x="688" y="50" width="72" height="54" fill="#6b7280"/>
+            <text x="112" y="77" text-anchor="middle" fill="#fff">分析・設計</text>
+            <text x="112" y="94" text-anchor="middle" fill="#fff" font-size="11">20%</text>
+            <text x="238" y="72" text-anchor="middle" fill="#fff" font-size="11">データ・</text>
+            <text x="238" y="86" text-anchor="middle" fill="#fff" font-size="11">環境準備</text>
+            <text x="238" y="100" text-anchor="middle" fill="#fff" font-size="11">15%</text>
+            <text x="400" y="77" text-anchor="middle" fill="#1e3a5f" font-weight="bold">テスト実行</text>
+            <text x="400" y="94" text-anchor="middle" fill="#1e3a5f" font-size="11">30%</text>
+            <text x="598" y="72" text-anchor="middle" fill="#fff" font-size="11">チケット起票・</text>
+            <text x="598" y="86" text-anchor="middle" fill="#fff" font-size="11">修正確認・再テスト</text>
+            <text x="598" y="100" text-anchor="middle" fill="#fff" font-size="11">25%</text>
+            <text x="724" y="72" text-anchor="middle" fill="#fff" font-size="11">報告・</text>
+            <text x="724" y="86" text-anchor="middle" fill="#fff" font-size="11">管理</text>
+            <text x="724" y="100" text-anchor="middle" fill="#fff" font-size="11">10%</text>
+            <path d="M400,116 L400,136" stroke="#1e3a5f" stroke-width="1.5"/>
+            <text x="400" y="155" text-anchor="middle" fill="#1e3a5f" font-size="12">見積りで数えがちなのはここだけ</text>
+            <path d="M40,168 L760,168" stroke="#b91c1c" stroke-width="1.5" stroke-dasharray="6 4"/>
+            <text x="400" y="192" text-anchor="middle" fill="#b91c1c" font-size="12" font-weight="bold">実際にはこの全部がテストの工数 — 実行以外を数え忘れると、大きな見積り不足につながりやすい</text>
+          </g>
+        </svg>
+        <figcaption>
+          これは<strong>一例</strong>であり、標準比率ではない（自動化済みなら実行が大半、上流が重い案件なら分析・設計が大半になることもある）。
+          大事なのは割合そのものではなく、<strong>テスト実行以外の活動も見積り対象にする</strong>こと
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. テスト計画と見積り" data-toc="ではどう見積もるのか — 最初の一歩">
+    <h2>ではどのように見積もるのか — 最初の一歩</h2>
+    <div class="body">
+      <ol>
+        <li>テスト活動を<strong>小さな作業に分解する</strong>（機能単位・活動単位）</li>
+        <li>各作業を<strong>過去実績または類似作業</strong>から見積もる</li>
+        <li><strong>不具合対応・再テストの予備工数</strong>を加える</li>
+        <li>環境・仕様未確定・外部連携など<strong>リスクの幅</strong>を加える</li>
+        <li>ひとつの数字ではなく、<strong>前提つきの「範囲」</strong>で提示する</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. テスト計画と見積り" data-toc="見積りの出し方（例）">
+    <h2>見積りは「幅」と「前提」で答える</h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;">
+        <span class="tag">見積りの出し方（例）</span>
+        基本見積り: 8人日 ／ 不具合対応の予備: 2〜4人日 ／ 環境リスク: 1〜2人日<br>
+        <strong style="font-size:1.15em;">合計: 11〜14人日</strong><br>
+        前提: テスト環境が予定日に提供され、主要スモークが通過していること。前提が崩れた場合は再見積り。
+      </div>
+      <p style="margin-top:18px;">
+        一点で答えず幅と前提で答えるのは、逃げではなく<strong>不確実性の可視化</strong>です。
+        <em>「ここが崩れたら計画が変わる」という交渉材料</em>にもなります。
+      </p>
+      <div class="mind">
+        <span class="tag">マインドセット</span>
+        計画は「約束」ではなく<strong>「その時点の情報で合意した仮説」</strong>。状況が変わったら隠さず更新して再合意する。
+        <em>黙って頑張って最後に「間に合いません」が最悪のパターン。</em>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. P曲線とB曲線 ============ -->
+  <section class="slide sec" data-section="Section 2" data-toc="【中扉】進捗と品質を読む（PB曲線）">
+    <div class="num">SECTION 2</div>
+    <h1>進捗と品質を読む<br>— P曲線とB曲線</h1>
+    <div><span class="time-badge">15分</span></div>
+    <div class="agenda">PB曲線の読み方 ／ 4つのパターン ／ 数え方の定義を確認する</div>
+  </section>
+
+  <section class="slide" data-section="2. P曲線とB曲線" data-toc="PB曲線 — 2本を重ねて読む">
+    <h2>PB曲線 — 2本を同じ時間軸で重ねて読む</h2>
+    <div class="body">
+      <ul>
+        <li><strong>P曲線</strong>: テストケースの実行・消化の累積推移（予定と実績）。<em>テストがどれだけ進んだか</em>を見る</li>
+        <li><strong>B曲線</strong>: 検出した欠陥数の累積推移。<em>欠陥の検出ペースがどう変化しているか</em>を見る</li>
+        <li><strong>PB曲線</strong>: この2本を<strong>同じ時間軸で組み合わせて読む</strong>もの。
+          テストの進み方と欠陥の検出傾向は<em>セットでしか意味を持たない</em></li>
+      </ul>
+      <div class="warn">
+        <span class="tag">B曲線だけでは判断できない</span>
+        <strong>テストが進んでいないのか、品質が良いのか</strong> — B曲線だけを見ても、この2つは区別できません。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. P曲線とB曲線" data-toc="B曲線の基本の見方（S字）">
+    <h2>B曲線の基本の見方</h2>
+    <div class="body">
+      <p>
+        典型例のひとつに、序盤は検出が少なく、中盤に増え、終盤に水平へ近づく<strong>S字形</strong>があります
+        （<strong>「曲線が寝る」＝検出ペースの低下</strong>）。
+      </p>
+      <div class="example">
+        <span class="tag">ただし、形は簡単に変わる</span>
+        リスクの高いケースから先に実行すれば<strong>序盤から急増して後半に寝る</strong>し、
+        機能単位で順に流せば<strong>階段状</strong>にもなる。
+      </div>
+      <div class="mind">
+        <span class="tag">押さえること</span>
+        <em>形は実行順序やテストの進め方で変わるので、S字であること自体を品質の証拠にはしません。</em>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. P曲線とB曲線" data-toc="B曲線の4パターン（図）">
+    <h2>グラフだけでは理由を語れない — 4つのパターン</h2>
+    <div class="body">
+      <figure style="margin:0;">
+        <svg viewBox="0 0 840 560" style="width:640px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="B曲線の4パターン">
+          <g font-family="sans-serif">
+            <g transform="translate(20,20)">
+              <rect x="0" y="0" width="380" height="240" rx="10" fill="#fff" stroke="#d1d5db"/>
+              <text x="16" y="30" font-size="15" fill="#1e3a5f" font-weight="bold">A. S字を描いて寝ている</text>
+              <line x1="50" y1="200" x2="350" y2="200" stroke="#9ca3af" stroke-width="1.5"/>
+              <line x1="50" y1="200" x2="50" y2="55" stroke="#9ca3af" stroke-width="1.5"/>
+              <text x="200" y="222" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+              <text x="38" y="130" font-size="11" fill="#6b7280" text-anchor="middle" transform="rotate(-90 38 130)">累積欠陥数（B曲線）</text>
+              <path d="M50,198 C110,195 120,110 190,85 C250,64 300,60 348,58" fill="none" stroke="#0f766e" stroke-width="3"/>
+            </g>
+            <g transform="translate(440,20)">
+              <rect x="0" y="0" width="380" height="240" rx="10" fill="#fff" stroke="#d1d5db"/>
+              <text x="16" y="30" font-size="15" fill="#b91c1c" font-weight="bold">B. 増え続けて寝ない</text>
+              <line x1="50" y1="200" x2="350" y2="200" stroke="#9ca3af" stroke-width="1.5"/>
+              <line x1="50" y1="200" x2="50" y2="55" stroke="#9ca3af" stroke-width="1.5"/>
+              <text x="200" y="222" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+              <path d="M50,198 L120,170 L190,135 L260,100 L348,62" fill="none" stroke="#b91c1c" stroke-width="3"/>
+            </g>
+            <g transform="translate(20,300)">
+              <rect x="0" y="0" width="380" height="240" rx="10" fill="#fff" stroke="#d1d5db"/>
+              <text x="16" y="30" font-size="15" fill="#b45309" font-weight="bold">C. 早々に寝た（本当に収束？）</text>
+              <line x1="50" y1="200" x2="350" y2="200" stroke="#9ca3af" stroke-width="1.5"/>
+              <line x1="50" y1="200" x2="50" y2="55" stroke="#9ca3af" stroke-width="1.5"/>
+              <text x="200" y="222" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+              <path d="M50,198 C80,190 95,140 130,132 C170,124 260,122 348,121" fill="none" stroke="#b45309" stroke-width="3"/>
+            </g>
+            <g transform="translate(440,300)">
+              <rect x="0" y="0" width="380" height="240" rx="10" fill="#fff" stroke="#d1d5db"/>
+              <text x="16" y="30" font-size="15" fill="#7c3aed" font-weight="bold">D. 階段状にガクガク</text>
+              <line x1="50" y1="200" x2="350" y2="200" stroke="#9ca3af" stroke-width="1.5"/>
+              <line x1="50" y1="200" x2="50" y2="55" stroke="#9ca3af" stroke-width="1.5"/>
+              <text x="200" y="222" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+              <path d="M50,198 L90,196 L95,150 L160,147 L165,105 L240,102 L245,70 L348,66" fill="none" stroke="#7c3aed" stroke-width="3"/>
+            </g>
+          </g>
+        </svg>
+        <figcaption style="text-align:center;">同じ「累積欠陥数」でも、裏にある現場の状況はまったく違う。<strong>形は結論ではなく、確かめるべき問いの出発点</strong></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. P曲線とB曲線" data-toc="A・B の読み方">
+    <h2>ありがちな解釈と、本当に確かめること（A・B）</h2>
+    <div class="body">
+      <table>
+        <tr><th class="c" style="width:7%">形</th><th style="width:34%">ありがちな解釈</th><th>本当に確かめるべきこと</th></tr>
+        <tr>
+          <td class="c"><strong>A</strong><br><span class="small">S字で寝た</span></td>
+          <td>順調に収束。リリース可能</td>
+          <td>P曲線も計画通りか。<strong>難しいケースを後回しにして寝ているだけ</strong>ではないか。
+            終盤の消化ケースの中身を見る</td>
+        </tr>
+        <tr>
+          <td class="c"><strong>B</strong><br><span class="small">寝ない</span></td>
+          <td>品質が悪い。リリース不可</td>
+          <td>本当に品質問題か、それとも<strong>テストが優秀でバグを掘り当て続けている</strong>のか。
+            バグの重要度の内訳と発生機能の偏りを見る。特定機能に集中しているなら、その機能の作り直し判断も視野に</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. P曲線とB曲線" data-toc="C・D の読み方">
+    <h2>ありがちな解釈と、本当に確かめること（C・D）</h2>
+    <div class="body">
+      <table>
+        <tr><th class="c" style="width:7%">形</th><th style="width:34%">ありがちな解釈</th><th>本当に確かめるべきこと</th></tr>
+        <tr>
+          <td class="c"><strong>C</strong><br><span class="small">早々に寝た</span></td>
+          <td>早く収束した。品質が良い</td>
+          <td><strong>一番危険な形</strong>。テストが止まっていないか（環境障害・ブロックバグ・要員離脱）、
+            簡単なケースだけ消化していないか、バグ起票が滞っていないか。
+            P曲線とセットで見ることで<strong>疑うべき原因を絞り込める</strong>
+            （絞り込んだ後、現場に確認して初めて原因が分かる）</td>
+        </tr>
+        <tr>
+          <td class="c"><strong>D</strong><br><span class="small">階段状</span></td>
+          <td>よく分からない動き</td>
+          <td>ケース消化をまとめてやっていないか（週末にまとめて実行）、
+            <strong>バグ報告が遅延・まとめ起票されていないか</strong>。
+            <em>運用の問題であってプロダクト品質の問題ではない</em>かも</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. P曲線とB曲線" data-toc="その数字は何をいつ数えたのか">
+    <h2>読む前に確認する — その数字は「何を」「いつ」数えたのか</h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th style="width:24%">確認すること</th><th>ありがちな食い違い</th></tr>
+        <tr>
+          <td>「消化」の分子は何か</td>
+          <td>Pass だけか、Fail も含むか。Blocked は？ 実行したが証跡未登録は？
+            — 同じ「消化率85%」でも中身がまるで違う。
+            <strong>Pass/Fail/Blocked/未実行の件数を並べて出す</strong>ほうが、率よりずっと判断しやすい</td>
+        </tr>
+        <tr>
+          <td>欠陥はどの日付で数えたか</td>
+          <td><strong>検出日・起票日・確認日・修正日・クローズ日</strong>のどれか。
+            起票日で描けば、まとめ起票の運用は階段状になる。検出日で描けば別の形になる</td>
+        </tr>
+        <tr>
+          <td>母数は何か</td>
+          <td>全ケースか、対象リリース分か、対象機能のみか。<strong>分母が動くと率だけが動く</strong></td>
+        </tr>
+      </table>
+      <p style="margin-top:12px;">ここが揃っていない数字は、いくら丁寧に読んでも<em>意味を取り違えます</em>。</p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. P曲線とB曲線" data-toc="メトリクスは会話の入口">
+    <h2>メトリクスは会話の入口であって、結論ではない</h2>
+    <div class="body">
+      <div class="warn" style="margin-top:0;">
+        <span class="tag">現場の鉄則</span>
+        グラフを見ただけで「リリースできる/できない」ではなく、<strong>その形になっている理由を実際に確認して</strong>、
+        <em>「グラフ＋その裏で起きていること」を必ずセットで語る。</em>
+      </div>
+      <div class="example">
+        <span class="tag">業務システムの現場から</span>
+        消化率95%・バグ曲線も寝ていて「順調」に見えたプロジェクト。
+        残り5%が<strong>「月次締めバッチ」</strong>のケースで、実行できる日が月末しかなく、
+        最後の最後で重大バグが噴出——という失敗は本当によくある。
+      </div>
+      <p style="margin-top:16px;">
+        <strong>残ケースの「数」ではなく「中身」を見る</strong>癖をつけてください。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 3. ワーク① ============ -->
+  <section class="slide sec" data-section="Section 3" data-toc="【中扉】ワーク① リリースしてよい？">
+    <div class="num">SECTION 3 — WORK</div>
+    <h1>ワーク①<br>このプロジェクト、リリースしてよい？</h1>
+    <div><span class="time-badge">20分（グループ15分 → 発表5分）</span></div>
+  </section>
+
+  <section class="slide" data-section="3. ワーク①" data-toc="ワーク① やること">
+    <h2>やること</h2>
+    <div class="body">
+      <div class="work" style="margin-top:0;">
+        <span class="tag">ワーク（グループ15分 → 発表5分）</span>
+        グループごとにA〜Dいずれかのグラフを担当し、対応する<strong>状況カード</strong>を読み込みます。<br>
+        リリース判定会議に向けて、次の5点を<strong>3分で説明できる形</strong>にまとめてください。
+      </div>
+      <ol>
+        <li><strong>現時点の品質状況</strong>（何が言えて、何がまだ言えないか）</li>
+        <li><strong>リリース時点の見通し</strong>（残り5営業日で何がどこまで終わるか）</li>
+        <li><strong>推奨</strong>: Go ／ 条件付きGo ／ No-Go ／ 判断保留 の4択から選ぶ</li>
+        <li>その<strong>条件と根拠</strong>（「何が満たされればGoか」を具体的に）</li>
+        <li><strong>追加で確認すべき情報</strong>（今は分からないが、判断に必要なこと）</li>
+      </ol>
+      <p class="small" style="margin-top:10px;">
+        発表後、他グループは「その判断、数字の裏は取れてる？」の視点でツッコミを入れます。<br>
+        ※ 無理に二択のGo／No-Goを出す必要はありません。テスト担当者の実力が出るのは、
+        <strong>「何が分かれば判断できるか」を示せること</strong>です。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. ワーク①" data-toc="プロジェクト共通設定">
+    <h2>プロジェクト共通設定（全カード共通）</h2>
+    <div class="body">
+      <div class="sit-common" style="margin-top:0;">
+        <span class="tag">前提</span>
+        経費精算システム刷新プロジェクトの<strong>システムテスト</strong>。
+        テスト期間は<strong>20営業日</strong>で、本日は<strong>15日目</strong>。
+        テストケースは全<strong>500件</strong>。リリース判定会議は<strong>5営業日後</strong>。<br>
+        終了基準は「<strong>消化率100%、未解決の重要度高チケット0件</strong>」で計画時に合意済み。
+      </div>
+      <div class="example">
+        <span class="tag">数え方の定義</span>
+        このワークでは、結果が<strong>PassまたはFailまで確定した</strong>ケースを「消化済み」とする。
+        Blocked・未実行・結果未登録は未消化として扱う。<br>
+        なお、<em>Fail件数と欠陥チケット件数は一致しない</em>（1つの欠陥が複数ケースに影響することがある）。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. ワーク①" data-toc="状況カード A（S字を描いて寝ている）">
+    <h2>状況カード A</h2>
+    <div class="body">
+      <div class="sit-card">
+        <div class="head" style="background:#0f766e;">A. S字を描いて寝ている</div>
+        <div class="card-body">
+          <dl>
+            <dt>消化状況</dt>
+            <dd>消化率 98%（490/500件）。予定に対しほぼオンスケジュール<br>
+              Pass 455 / Fail 35 / Blocked 0 / 未実行 10</dd>
+            <dt>チケット状況</dt>
+            <dd>累積58件。直近3日間の新規は1件のみ。未解決は重要度中1件（修正中）、低3件（対応方針が未決のまま放置）</dd>
+            <dt>残ケースの中身</dt>
+            <dd>未消化の10件はすべて「経理権限 × 月次締め当日」の組み合わせケース。
+              締め処理のテストは<strong>3営業日後の月末にしか実行できない</strong></dd>
+            <dt>チーム状況</dt>
+            <dd>安定稼働。メンバーには「残りは消化するだけ」という空気が漂っている</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. ワーク①" data-toc="状況カード B（増え続けて寝ない）">
+    <h2>状況カード B</h2>
+    <div class="body">
+      <div class="sit-card">
+        <div class="head" style="background:#b91c1c;">B. 増え続けて寝ない</div>
+        <div class="card-body">
+          <dl>
+            <dt>消化状況</dt>
+            <dd>消化率 85%（425/500件）。予定より2日遅れ<br>
+              Pass 330 / Fail 95 / Blocked 25 / 未実行 50</dd>
+            <dt>チケット状況</dt>
+            <dd>累積142件。今も1日5件ペースで増加中。
+              <strong>うち7割が新規機能「電子帳簿保存連携」に集中</strong>。
+              既存機能側は10日目以降ほぼ収束。未解決の重要度高は12件（すべて連携機能）</dd>
+            <dt>残ケースの中身</dt>
+            <dd>残75件の大半が連携機能の異常系（連携先エラー・リトライ・整合性回復）</dd>
+            <dt>チーム状況</dt>
+            <dd>開発の修正が追いつかず、連携機能はブロックだらけ。テスターは他機能に回って消化を続けている</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. ワーク①" data-toc="状況カード C（早々に寝た）">
+    <h2>状況カード C</h2>
+    <div class="body">
+      <div class="sit-card">
+        <div class="head" style="background:#b45309;">C. 早々に寝た</div>
+        <div class="card-body">
+          <dl>
+            <dt>消化状況</dt>
+            <dd>消化率 60%（300/500件）。計画では本日80%のはずで、<strong>大幅遅れ</strong><br>
+              Pass 275 / Fail 25 / Blocked 60 / 未実行 140</dd>
+            <dt>チケット状況</dt>
+            <dd>累積35件。10日目以降ほぼ横ばい。未解決は重要度高1件（検証環境で再現せず調査が止まっている）</dd>
+            <dt>残ケースの中身</dt>
+            <dd>消化済みは参照系・単純な登録系が中心。
+              <strong>金額計算・承認フロー・外部連携の重いケースはほぼ手つかず</strong></dd>
+            <dt>チーム状況</dt>
+            <dd>10日目から検証環境が不安定（連携先モックが頻繁に停止）でテストが半分止まっている。
+              復旧見込みは2営業日後。メンバーは待機時間が多い</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. ワーク①" data-toc="状況カード D（階段状にガクガク）">
+    <h2>状況カード D</h2>
+    <div class="body">
+      <div class="sit-card">
+        <div class="head" style="background:#7c3aed;">D. 階段状にガクガク</div>
+        <div class="card-body">
+          <dl>
+            <dt>消化状況</dt>
+            <dd>消化率 90%（450/500件）。消化自体は毎日進んでいる<br>
+              Pass 372 / Fail 78 / Blocked 0 / 未実行 50</dd>
+            <dt>チケット状況</dt>
+            <dd>累積88件。グラフは週ごとの階段状。ヒアリングの結果、
+              <strong>テスターが実行結果を手元メモに溜め、毎週金曜にまとめて起票する運用</strong>だったと判明。
+              未解決は重要度高2件・中10件（起票日ベースで見ると「今週急増」に見える）</dd>
+            <dt>残ケースの中身</dt>
+            <dd>残50件は各機能に分散。特に偏りなし</dd>
+            <dt>チーム状況</dt>
+            <dd>起票遅れのせいで開発側の修正着手も遅れがち。起票ルールの見直しを検討中</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. 講評 ============ -->
+  <section class="slide sec" data-section="Section 4" data-toc="【中扉】講評とテストコントロール">
+    <div class="num">SECTION 4</div>
+    <h1>講評<br>— 読んだ後にどう動くか</h1>
+    <div><span class="time-badge">10分</span></div>
+    <div class="agenda">各カードの読み解き ／ モニタリングの次はコントロール</div>
+  </section>
+
+  <section class="slide teacher" data-section="4. 講評 — 読み解き" data-toc="読み解きの前置き">
+    <span class="badge">講師用</span>
+    <h2>読み解きに入る前に<small>発表が終わってから開いてください</small></h2>
+    <div class="body">
+      <div class="work" style="margin-top:0;">
+        <span class="tag">伝えること</span>
+        ここに書いた評価は「唯一の正解」ではなく、<strong>この条件なら普通はこう説明する</strong>という一例です。
+        <em>根拠が語れていれば、別の結論でも構いません。</em>
+      </div>
+      <p style="margin-top:20px;">
+        見るのは結論そのものではなく、
+        <strong>「数字の裏を確かめにいったか」「何が分かれば判断できるかを言えたか」</strong>の2点です。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="4. 講評 — 読み解き" data-toc="読み解き A：条件付きGo">
+    <span class="badge">講師用</span>
+    <h2>カード A — 条件付きGo</h2>
+    <div class="body">
+      <p>
+        数字上は良好。ただし残り10件は<strong>高リスクな月次締め</strong>で、実行日は3営業日後。
+        重要度中の修正・再テストも未完了。低3件も「放置」ではなく<em>対応方針の合意</em>が要る。
+      </p>
+      <div class="good-box">
+        <span class="tag">Goの条件</span>
+        締め日ケースの完了 ／ 重要度中1件の再テスト完了 ／ 低3件のリスク受容合意
+      </div>
+      <div class="mind">
+        <span class="tag">このカードの狙い</span>
+        <em>98%ではなく、残り2%の中身を見る。</em>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="4. 講評 — 読み解き" data-toc="読み解き B：現時点ではNo-Go">
+    <span class="badge">講師用</span>
+    <h2>カード B — 現時点ではNo-Go</h2>
+    <div class="body">
+      <p>
+        重要度高12件で<strong>終了基準未達</strong>。高リスクな異常系が未実行・Blocked。
+      </p>
+      <p>
+        欠陥は主要新機能に集中しており、これは<em>「全体の品質が悪い」とは違う</em>。
+        機能の切り離し・リリース範囲の変更・延期も検討対象になる。
+      </p>
+      <div class="mind">
+        <span class="tag">このカードの狙い</span>
+        <em>「バグが多い」で止めず、集中箇所と未確認リスクを見る。</em>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="4. 講評 — 読み解き" data-toc="読み解き C：No-Go・計画の再設定">
+    <span class="badge">講師用</span>
+    <h2>カード C — No-Go。計画の再設定が必要</h2>
+    <div class="body">
+      <p>
+        <strong>曲線の横ばいは品質の収束ではない。</strong>
+        高リスク領域（金額計算・承認フロー・外部連携）が未着手で、環境復旧後の残日数では消化困難。
+      </p>
+      <div class="warn">
+        <span class="tag">必要な打ち手</span>
+        環境復旧 ／ ケース優先順位の変更 ／ 日程の再合意
+      </div>
+      <div class="mind">
+        <span class="tag">このカードの狙い</span>
+        <em>欠陥が見つからないことと、欠陥がないことを区別する。</em>（第1回・原則1）
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="4. 講評 — 読み解き" data-toc="読み解き D：品質評価の再構成">
+    <span class="badge">講師用</span>
+    <h2>カード D — 品質評価を再構成する必要あり</h2>
+    <div class="body">
+      <p>
+        起票日基準の曲線は<strong>実態を表していない</strong>。まず<strong>検出日で描き直す</strong>。
+        そのうえで重要度高2件が残っており、現在の終了基準は未達。
+      </p>
+      <p>
+        運用面では<em>まとめ起票を即時起票へ変更</em>し、修正待ち時間への影響も評価する。
+      </p>
+      <div class="mind">
+        <span class="tag">このカードの狙い</span>
+        <em>プロダクト品質の問題と、情報管理プロセスの問題を分ける。</em>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. 講評" data-toc="モニタリングの次は、コントロール">
+    <h2>モニタリングの次は、コントロール</h2>
+    <div class="body">
+      <p>
+        状況を読むのが<strong>モニタリング</strong>、読んだ結果に応じて計画・優先順位・スケジュール・体制を調整するのが
+        <strong>コントロール</strong>です。
+      </p>
+      <div class="mind">
+        <span class="tag">テスト管理は「観測して報告する」で終わらない</span>
+        <em>読んだ後にどう動くか</em>までがセット。
+      </div>
+      <table>
+        <tr><th style="width:22%">観測した状況</th><th style="width:28%">確認すること</th><th>コントロールの例</th></tr>
+        <tr><td>消化が遅れている</td><td>環境、要員、ケース難度、バグ待ち</td><td>優先順位変更、範囲調整、要員追加、日程再計画</td></tr>
+        <tr><td>高重要度バグが集中</td><td>共通原因、機能の構造的な問題</td><td>該当機能を一時停止、集中修正、再設計の検討、リリース分離</td></tr>
+        <tr><td>B曲線が早く寝た</td><td>テスト停止、簡単なケースへの偏り</td><td>高リスクケースの前倒し、環境復旧、追加テスト</td></tr>
+        <tr><td>再テスト待ちが増加</td><td>修正速度、ビルド頻度</td><td>修正確認枠の確保、ビルド頻度の見直し</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 5. バグトリアージ ============ -->
+  <section class="slide sec" data-section="Section 5" data-toc="【中扉】バグトリアージ">
+    <div class="num">SECTION 5</div>
+    <h1>バグトリアージ<br>— 直す順番を決める会議の回し方</h1>
+    <div><span class="time-badge">10分</span></div>
+  </section>
+
+  <section class="slide" data-section="5. バグトリアージ" data-toc="トリアージとは">
+    <h2>トリアージとは</h2>
+    <div class="body">
+      <p>
+        見つかった欠陥を、<strong>すべて同じリリースで修正できるとは限りません</strong>。
+        限られた時間の中で、<em>どれをいつ直し、どのリスクを受け入れるか</em>を関係者で合意するのがトリアージです。
+      </p>
+      <div class="example">
+        <span class="tag">合意するのは修正優先度だけではない</span>
+        <strong>そもそも欠陥かどうかの分類</strong>（仕様どおりではないか）、重複チケットではないか、
+        変更要求として扱うべきか、重要度、修正優先度、対応するリリース、担当者、
+        <strong>修正しない場合の理由と承認者</strong>まで含みます。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. バグトリアージ" data-toc="トリアージの判断軸">
+    <h2>トリアージの判断軸</h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th style="width:22%">判断軸</th><th>問いかけ</th></tr>
+        <tr>
+          <td>業務影響（重要度）</td>
+          <td>発生すると業務が止まるか？ お金・法令に関わるか？ 影響するユーザー数は？</td>
+        </tr>
+        <tr>
+          <td>発生頻度・条件</td>
+          <td>誰でも毎回踏むのか、特定条件のみか</td>
+        </tr>
+        <tr>
+          <td>回避策の有無</td>
+          <td>運用でしのげるか（手作業で代替できるか）。回避策があれば優先度を下げられる<strong>ことがある</strong>。
+            下げてよいかは、<em>その回避策が確実に機能するか／全ユーザーが実施できるか／手順ミスが起きないか／
+            運用コストが許容できるか／法令・契約・監査上許容されるか</em>で決まる</td>
+        </tr>
+        <tr>
+          <td>修正リスク</td>
+          <td>直すことで他を壊さないか。<strong>リリース直前の修正は、それ自体がリスク</strong></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. バグトリアージ" data-toc="回避策があっても下げられない例">
+    <h2>「回避策あり」で片づけない</h2>
+    <div class="body">
+      <div class="warn" style="margin-top:0;">
+        <span class="tag">回避策があっても下げられない例</span>
+        「回避策あり: 毎月、<strong>経理担当者20人がExcelで手修正する</strong>」
+      </div>
+      <p style="margin-top:18px;">
+        回避策は<em>存在している</em>が、20人×毎月の作業と、手修正による二次的な誤りのリスクを負うことになります。
+      </p>
+      <div class="mind">
+        <span class="tag">判断の仕方</span>
+        回避策の<strong>有無</strong>ではなく<strong>中身と運用コスト</strong>で判断する。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. バグトリアージ" data-toc="テスト担当者の役割">
+    <h2>テスト担当者の役割 — 意思を持って材料を出す</h2>
+    <div class="body">
+      <ul>
+        <li>優先度の最終決定はプロダクト側の仕事。しかし<strong>「決められる材料」を揃えるのはテスト担当者の仕事</strong>:
+          再現条件、影響範囲、頻度、回避策の有無まで調べて出す</li>
+        <li>単なる報告係にならない。<em>推奨＋根拠</em>まで言う。
+          このとき<strong>重要度（業務影響の大きさ）と修正優先度（いつ直すか）を分けて</strong>語ると伝わる（第1回で扱った区別）</li>
+        <li>「直さない」と決まったバグは、<strong>既知の問題として残存リスクに記録する</strong>。
+          ここでうやむやにすると、<em>リリース後に「聞いてない」が起きる</em></li>
+      </ul>
+      <div class="good-box">
+        <span class="tag">言い方の例</span>
+        「この欠陥は、締め日に経理担当者全員の業務を停止させるため、<strong>重要度High</strong>と考えます。
+        締め日前に回避策を用意できないため、<strong>修正優先度P1</strong>を推奨します」
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. バグトリアージ" data-toc="トリアージのマインドセット">
+    <h2>トリアージは、勝負の場ではない</h2>
+    <div class="body">
+      <div class="mind" style="margin-top:0;">
+        <span class="tag">マインドセット</span>
+        トリアージは開発 vs テストの勝負の場ではなく、
+        <strong>限られた時間をどこに使うかをチームで決める場</strong>。
+      </div>
+      <div class="warn">
+        <span class="tag">思考停止のサイン</span>
+        「全部直してください」
+      </div>
+      <p style="margin-top:18px;">
+        <em>優先順位を語れるテスト担当者が、チームの信頼を得ます。</em>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 6. テストの終わり方 ============ -->
+  <section class="slide sec" data-section="Section 6" data-toc="【中扉】テストの終わり方">
+    <div class="num">SECTION 6</div>
+    <h1>テストの終わり方<br>— 残存リスクを語る</h1>
+    <div><span class="time-badge">10分</span></div>
+  </section>
+
+  <section class="slide" data-section="6. テストの終わり方" data-toc="消化率100%＝完了ではない">
+    <h2>「残ケースが0になったら終わり」ではない</h2>
+    <div class="body">
+      <p>
+        現場でいちばん陥りやすいのが、<strong>ケース消化率100%＝テスト完了</strong>という感覚です。
+        進捗表の残数が0になると「終わった」と言いたくなりますが、それが意味するのは
+        <em>「計画したケースを予定どおり実行した」</em>ことだけで、
+        <em>「品質が出荷できる状態にある」</em>こととは別の話です。
+      </p>
+      <div class="warn">
+        <span class="tag">「バグが0になったら終わり」も成立しない</span>
+        <strong>検出済み欠陥が0件になることはあっても、未検出の欠陥まで含めて「欠陥が存在しない」ことは証明できない</strong>
+        —— 第1回・7原則。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. テストの終わり方" data-toc="終われる／終われないの判断（1）">
+    <h2>残数だけでは決まらない（1/2）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:38%">状況</th><th>判断</th></tr>
+        <tr>
+          <td>残ケース0。でも重大バグが未修正／再テスト待ち</td>
+          <td><strong>終われない</strong>。消化は終わってもリスクは残っている</td>
+        </tr>
+        <tr>
+          <td>残ケース0。でも実行中に「このケースでは足りない」と分かった領域がある</td>
+          <td><strong>終われない</strong>。ケースを追加するか、テストが薄い領域として明示して残す</td>
+        </tr>
+      </table>
+      <div class="mind">
+        <span class="tag">つまり</span>
+        <strong>残ケースが0でも終われないことがあり、残っていても終われることがある。</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. テストの終わり方" data-toc="終われる／終われないの判断（2）">
+    <h2>残数だけでは決まらない（2/2）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:38%">状況</th><th>判断</th></tr>
+        <tr>
+          <td>不具合によりNG／Blockのケースが残っている。重要度と期限とのトレードオフで修正なしで合意済み</td>
+          <td><strong>残数だけでは決まらない</strong>。そのバグの重要度・業務影響・回避策の有無で判断する。
+            軽微＋回避策ありなら<em>「既知の問題」として残したまま終える</em>判断もありうる
+            （決めるのはリリース判断者、材料を出すのがテスト担当者）</td>
+        </tr>
+        <tr>
+          <td>期限が来たので残ケースを実行せず打ち切り</td>
+          <td><strong>計画したテスト範囲は未完了</strong>。ただし、ステークホルダーが
+            <em>追加テストを行わずに本稼働するリスクを確認し、受容した</em>うえであれば、
+            テスト活動としては正式に終了・クローズできる。
+            <strong>未実行範囲とその影響を完了レポートに明記する</strong>ところまでがセット</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. テストの終わり方" data-toc="混ぜてはいけない3つの判断">
+    <h2>混ぜてはいけない3つの判断</h2>
+    <div class="body">
+      <div class="warn" style="margin-top:0;">
+        <span class="tag">別の判断です</span>
+        <strong>① 計画したテスト範囲が終わったか　② テスト活動を終了してよいか　③ リリースしてよいか</strong>
+      </div>
+      <p style="margin-top:18px;">
+        終了基準は<em>テスト活動を終了できるかの基準</em>であって、<strong>リリース基準と完全に同じとは限りません</strong>。
+        テスト担当者は<strong>終了基準の達成状況と残存リスクを報告</strong>し、
+        最終的なリリース判断は<strong>リリース判断権限を持つ人</strong>が行います。
+      </p>
+      <div class="mind">
+        <span class="tag">正しい終わり方</span>
+        テストの終わりは、消化数でもバグ数でもなく<strong>計画時に合意した終了基準を満たしたかどうか</strong>で判断する。
+        満たせない場合は<em>何が残っているかを明らかにして、リリース判断者に委ねる</em>。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. テストの終わり方" data-toc="テスト完了報告（1）">
+    <h2>テスト完了報告 — 最後の成果物（1/2）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:28%">書くこと</th><th>ポイント</th></tr>
+        <tr><td>実施したこと／しなかったこと</td><td>計画とスコープに対する実績。<strong>やらなかったことを隠さない</strong></td></tr>
+        <tr><td>結果サマリー</td><td>消化数（ステータス別）、欠陥数と重要度内訳、検出傾向（<strong>グラフ＋裏の状況説明</strong>）</td></tr>
+        <tr><td>計画との差異</td><td>予定期間・工数・スコープ・アプローチから何が変わったか。阻害要因は何だったか</td></tr>
+        <tr><td>残存リスク</td><td>未解決欠陥（回避策つき）、テストできなかった領域とその理由、薄くした領域</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. テストの終わり方" data-toc="テスト完了報告（2）">
+    <h2>テスト完了報告 — 最後の成果物（2/2）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:28%">書くこと</th><th>ポイント</th></tr>
+        <tr><td>判断に影響する不確実性</td><td>実行結果の信頼性、本番との環境差異、十分な証拠がない領域</td></tr>
+        <tr><td>推奨と条件</td><td>リリース推奨／条件付き推奨／延期推奨と、その根拠</td></tr>
+        <tr><td>学んだこと・改善事項</td><td>次回の計画・環境・設計・運用に反映する事項</td></tr>
+      </table>
+      <div class="mind">
+        <span class="tag">第1回の冒頭に戻る</span>
+        これが「<strong>テストの成果物は品質に関する判断材料</strong>」の最終形です。<br>
+        <em>良い完了報告が書けること＝テストを主担当として回せること</em>、と言ってもいいくらいです。
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ まとめ ============ -->
+  <section class="slide sec" data-section="Closing" data-toc="【中扉】まとめ・これからの学び方">
+    <div class="num">CLOSING</div>
+    <h1>まとめ・これからの学び方</h1>
+    <div><span class="time-badge">5分</span></div>
+  </section>
+
+  <section class="slide" data-section="まとめ" data-toc="3回の講座の全体像">
+    <h2>3回の講座の全体像</h2>
+    <div class="body">
+      <ul>
+        <li><strong>第1回</strong>: テストは品質情報で意思決定を支える仕事。
+          テストの限界を知り、チケットという武器を持った</li>
+        <li><strong>第2回</strong>: 仕様を疑って読み、観点→条件→ケースの順で、
+          根拠を説明できるテスト設計をする</li>
+        <li><strong>第3回</strong>: 計画で合意し、P曲線・B曲線の裏を読んで打ち手につなげ、
+          トリアージで意思を出し、残存リスクを明らかにしてテストを終える</li>
+      </ul>
+      <div class="mind">
+        <span class="tag">次のステップ</span>
+        この3つのループを、小さな案件でよいので
+        <strong>関係者と合意を取りながら、主担当として一連の活動を回せるようになる</strong>こと。<br>
+        <span class="small">（一人で抱え込むこととは違います）</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="まとめ" data-toc="この先のキャリア（図）">
+    <h2>この先のキャリア — テストの先に広がる道<small>「主担当として回せる」はゴールではなく、キャリアの分岐点</small></h2>
+    <div class="body">
+      <figure style="margin-top:0;">
+        <svg viewBox="0 0 800 350" style="width:830px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="テストエンジニアからのキャリアパス">
+          <defs>
+            <marker id="arrC" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 z" fill="#1e3a5f"/>
+            </marker>
+          </defs>
+          <g font-family="sans-serif" font-size="13">
+            <rect x="20" y="130" width="210" height="90" rx="10" fill="#1e3a5f"/>
+            <text x="125" y="165" text-anchor="middle" fill="#fff" font-weight="bold">テストエンジニア</text>
+            <text x="125" y="188" text-anchor="middle" fill="#dbe6f2" font-size="11">主担当として一連の活動を回せる</text>
+            <text x="125" y="206" text-anchor="middle" fill="#dbe6f2" font-size="11">（← まずここを目指す）</text>
+            <rect x="430" y="20" width="350" height="66" rx="10" fill="#eef3f9" stroke="#1e3a5f"/>
+            <text x="605" y="46" text-anchor="middle" fill="#1e3a5f" font-weight="bold">テストスペシャリスト / アーキテクト</text>
+            <text x="605" y="68" text-anchor="middle" fill="#374151" font-size="11">テスト分析・設計の方法論を極める</text>
+            <rect x="430" y="102" width="350" height="66" rx="10" fill="#f0fdfa" stroke="#0f766e"/>
+            <text x="605" y="128" text-anchor="middle" fill="#0f766e" font-weight="bold">QAエンジニア（品質保証）</text>
+            <text x="605" y="150" text-anchor="middle" fill="#374151" font-size="11">品質分析・プロセス改善・欠陥予防へ</text>
+            <rect x="430" y="184" width="350" height="66" rx="10" fill="#fff7ed" stroke="#b45309"/>
+            <text x="605" y="210" text-anchor="middle" fill="#b45309" font-weight="bold">SET / テスト自動化エンジニア</text>
+            <text x="605" y="232" text-anchor="middle" fill="#374151" font-size="11">コードと仕組みでテストを支える</text>
+            <rect x="430" y="266" width="350" height="66" rx="10" fill="#f3f4f6" stroke="#6b7280"/>
+            <text x="605" y="292" text-anchor="middle" fill="#4b5563" font-weight="bold">テストマネージャー / QAマネージャー</text>
+            <text x="605" y="314" text-anchor="middle" fill="#374151" font-size="11">チーム・組織の品質戦略を回す</text>
+            <line x1="230" y1="150" x2="426" y2="55" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrC)"/>
+            <line x1="230" y1="168" x2="426" y2="135" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrC)"/>
+            <line x1="230" y1="188" x2="426" y2="215" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrC)"/>
+            <line x1="230" y1="206" x2="426" y2="297" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrC)"/>
+          </g>
+        </svg>
+        <figcaption>
+          どの道も「仕様を読む力・観点を出す力・品質を語る力」という共通の土台の上に立つ。
+          ここで示すのは<strong>代表的なキャリアの一例</strong>で、名称や役割の範囲は組織によってかなり異なる
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide note" data-section="まとめ — 持ち帰り" data-toc="それぞれの道の中身">
+    <span class="badge">持ち帰り資料</span>
+    <h2>それぞれの道の中身<small>講義では読み上げません</small></h2>
+    <div class="body">
+      <ul>
+        <li><strong>テストスペシャリスト / テストアーキテクト</strong><br>
+          テスト分析・設計そのものを極める道。大規模なテスト設計を構造化し、チームの設計標準を作る。
+          第2回の内容を深めていく方向（ISTQB Advanced Level: Test Analyst が指針になる）</li>
+        <li><strong>QAエンジニア / 品質保証</strong><br>
+          テスト工程の外に出て、品質データの分析、開発プロセスの改善、上流での欠陥予防に関わる道。
+          <em>「テストで品質を測る」から「プロセスで品質を作り込む」へ</em>視点が一段上がる</li>
+        <li><strong>SET / テスト自動化エンジニア</strong><br>
+          コードを書いてテストを支える道。リグレッションテストの自動化、CI/CDへの組み込み、
+          テスタビリティの提案。開発スキル×テストスキルの掛け算で希少価値が高い</li>
+        <li><strong>テストマネージャー / QAマネージャー</strong><br>
+          チーム全体の計画、体制づくり、テスト戦略／品質戦略の立案。
+          第3回で扱った「回す力」を組織スケールに広げる道</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="まとめ" data-toc="学びを続けるために">
+    <h2>学びを続けるために</h2>
+    <div class="body">
+      <ul>
+        <li><strong>書籍</strong><br>
+          『ソフトウェアテスト徹底指南書』（体系的かつトレンドを抑えた内容でおすすめ）、
+          有志が作成・公開している<a href="https://docs.google.com/spreadsheets/d/1IK6LFFy-SJck1Pnmrka3_OfdjAkUgPbccGMiwBsOOOw/edit?gid=0#gid=0" target="_blank" rel="noopener">ソフトウェアテスト読書マップ</a></li>
+        <li><strong>資格</strong><br>
+          この講座は国際資格 ISTQB Foundation Level（CTFL V4.0）の体系に沿っています。
+          腕試しに JSTQB認定テスト技術者資格（FL）の受験もおすすめです。
+          シラバスはJSTQB公式サイトで無料公開されています</li>
+        <li><strong>コミュニティ</strong><br>
+          JaSST（ソフトウェアテストシンポジウム）、connpassで"QA"で検索など。
+          外の同業者の話を聞くと視野が広がります</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="まとめ" data-toc="シラバス対応">
+    <h2>シラバス対応</h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;">
+        <span class="tag">JSTQB Foundation Level シラバス V4.0.J02（2023年／国際版 ISTQB CTFL v4.0.1 に対応）</span>
+        5.1.1 テスト計画書の目的と内容／
+        5.1.3 開始基準と終了基準／
+        5.1.4 見積り技法（一部）／
+        5.2 リスクマネジメント（一部）／
+        5.3.1 テストで使用するメトリクス／
+        5.3.2 テストレポートの目的・内容・読み手／
+        5.3.3 テストステータスの伝達
+      </div>
+      <div class="mind">
+        <span class="tag">実務拡張</span>
+        PB曲線の読み方とバグトリアージの進め方は、本講座の<strong>実務補足</strong>として扱っています。<br>
+        <span class="small">（CTFL 5.5 の学習目的は主に欠陥レポートの作成であり、PB曲線もCTFLの標準用語ではありません）</span>
+      </div>
+      <p class="small" style="margin-top:16px;">
+        資料版（読み物形式）は <code>phase3.html</code>、目次は <code>index.html</code> にあります。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide cover" data-section="Step1 完" data-toc="おつかれさまでした">
+    <div class="label">テストエンジニア育成講座 Step1 — 全3回</div>
+    <h1>おつかれさまでした</h1>
+    <p class="lead">
+      テストは、品質について語れる言葉を持つ仕事です。<br>
+      次は、小さな案件を<strong>主担当として一周</strong>回してみてください。
+    </p>
+  </section>
+
+</div>
+
+<div id="progress"></div>
+<div id="hud"><b>←/→</b> ページ　<b>O</b> 目次　<b>T</b> 講師用切替　<b>F</b> 全画面　<b>?</b> ヘルプ</div>
+
+<div class="overlay" id="toc">
+  <h3>目次 — クリックでジャンプ（Esc で閉じる）</h3>
+  <div id="tocList"></div>
+</div>
+
+<div class="overlay" id="help">
+  <h3>キーボード操作（Esc で閉じる）</h3>
+  <div class="keys">
+    <div><kbd>→</kbd> <kbd>↓</kbd> <kbd>Space</kbd> <kbd>PgDn</kbd></div><div>次のスライド</div>
+    <div><kbd>←</kbd> <kbd>↑</kbd> <kbd>PgUp</kbd></div><div>前のスライド</div>
+    <div><kbd>Home</kbd> / <kbd>End</kbd></div><div>最初 / 最後へ</div>
+    <div><kbd>O</kbd></div><div>目次を開く</div>
+    <div><kbd>T</kbd></div><div>講師用スライド（オレンジ）の表示／非表示。持ち帰り資料（緑）は常に表示</div>
+    <div><kbd>F</kbd></div><div>全画面表示</div>
+    <div><kbd>?</kbd></div><div>このヘルプ</div>
+  </div>
+  <div class="hint">
+    画面左半分クリックで前へ、右半分クリックで次へ進みます。<br>
+    印刷（Ctrl+P）すると、全スライドが1ページ1枚で出力されます（配布資料用。横向き・余白なし推奨）。
+  </div>
+</div>
+
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var tocEl = document.getElementById('toc');
+  var tocList = document.getElementById('tocList');
+  var helpEl = document.getElementById('help');
+  var hideTeacher = false;
+  var cur = 0;
+
+  // ページ番号を各スライドに埋め込む
+  slides.forEach(function (s, i) {
+    var n = document.createElement('div');
+    n.className = 'pnum';
+    n.textContent = (i + 1) + ' / ' + slides.length;
+    s.appendChild(n);
+  });
+
+  // ---- 画面サイズに合わせて 1280x720 を拡大縮小 ----
+  function fit() {
+    var scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    if (!isFinite(scale) || scale <= 0) scale = 1; // ウィンドウが未表示（0×0）のときに潰れないように
+    stage.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  function isTeacher(i) { return slides[i].classList.contains('teacher'); }
+
+  function show(i) {
+    if (i < 0) i = 0;
+    if (i > slides.length - 1) i = slides.length - 1;
+    slides[cur].classList.remove('active');
+    cur = i;
+    slides[cur].classList.add('active');
+    progress.style.width = ((cur + 1) / slides.length * 100) + '%';
+    history.replaceState(null, '', '#' + (cur + 1));
+    markToc();
+  }
+
+  function step(d) {
+    var i = cur;
+    do {
+      i += d;
+      if (i < 0 || i > slides.length - 1) return;
+    } while (hideTeacher && isTeacher(i));
+    show(i);
+  }
+
+  function jumpEdge(d) {
+    var i = d < 0 ? 0 : slides.length - 1;
+    while (hideTeacher && isTeacher(i) && i > 0 && i < slides.length - 1) i += (d < 0 ? 1 : -1);
+    show(i);
+  }
+
+  // ---- 目次 ----
+  function buildToc() {
+    var lastSec = null;
+    tocList.innerHTML = '';
+    slides.forEach(function (s, i) {
+      var sec = s.getAttribute('data-section') || '';
+      if (sec !== lastSec) {
+        var h = document.createElement('div');
+        h.className = 'toc-sec';
+        h.textContent = sec;
+        tocList.appendChild(h);
+        lastSec = sec;
+      }
+      var a = document.createElement('a');
+      a.href = '#' + (i + 1);
+      a.dataset.i = i;
+      if (s.classList.contains('teacher')) a.className = 't';
+      else if (s.classList.contains('note')) a.className = 'nt';
+      a.innerHTML = '<span class="n">' + (i + 1) + '</span>' +
+        (s.getAttribute('data-toc') || '').replace(/</g, '&lt;');
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        show(parseInt(this.dataset.i, 10));
+        closeOverlays();
+      });
+      tocList.appendChild(a);
+    });
+  }
+  function markToc() {
+    var links = tocList.querySelectorAll('a');
+    for (var i = 0; i < links.length; i++) {
+      links[i].classList.toggle('cur', parseInt(links[i].dataset.i, 10) === cur);
+    }
+  }
+  buildToc();
+
+  function closeOverlays() {
+    tocEl.classList.remove('open');
+    helpEl.classList.remove('open');
+  }
+  function toggle(el) {
+    var wasOpen = el.classList.contains('open');
+    closeOverlays();
+    if (!wasOpen) el.classList.add('open');
+  }
+
+  // ---- 講師用スライドの表示切替 ----
+  function toggleTeacher() {
+    hideTeacher = !hideTeacher;
+    if (hideTeacher && isTeacher(cur)) {
+      var i = cur;
+      while (i < slides.length - 1 && isTeacher(i)) i++;
+      show(i);
+    }
+    flash(hideTeacher ? '講師用スライド: 非表示（送り時にスキップ）' : '講師用スライド: 表示');
+  }
+
+  var toast;
+  function flash(msg) {
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);' +
+        'background:rgba(15,23,42,.92);color:#e2e8f0;padding:8px 18px;border-radius:999px;' +
+        'font-size:13px;z-index:50;transition:opacity .3s;pointer-events:none;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { toast.style.opacity = '0'; }, 1600);
+  }
+
+  // ---- キー操作 ----
+  document.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === 'Escape') { closeOverlays(); return; }
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === ' ' || k === 'PageDown') { e.preventDefault(); step(1); }
+    else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') { e.preventDefault(); step(-1); }
+    else if (k === 'Home') { e.preventDefault(); jumpEdge(-1); }
+    else if (k === 'End') { e.preventDefault(); jumpEdge(1); }
+    else if (k === 'o' || k === 'O') { toggle(tocEl); }
+    else if (k === 't' || k === 'T') { toggleTeacher(); }
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    }
+    else if (k === '?' || k === '/') { toggle(helpEl); }
+  });
+
+  // ---- クリック／タップ操作 ----
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.overlay')) return;
+    if (e.target.closest('a')) return;
+    if (tocEl.classList.contains('open') || helpEl.classList.contains('open')) { closeOverlays(); return; }
+    step(e.clientX < window.innerWidth / 2 ? -1 : 1);
+  });
+
+  // ---- スワイプ ----
+  var sx = null;
+  document.addEventListener('touchstart', function (e) { sx = e.changedTouches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
+    sx = null;
+  }, { passive: true });
+
+  // ---- 初期表示（#12 のようなハッシュに対応） ----
+  var start = parseInt((location.hash || '').replace('#', ''), 10);
+  slides[0].classList.add('active');
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>

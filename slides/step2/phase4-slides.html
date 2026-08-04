@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第4回 テスト戦略とリスクベースドテスト（スライド）</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #7c2d5e;
+    --accent-light: #faeef5;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #140b12;
+    color: var(--ink);
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    overflow: hidden;
+  }
+
+  /* ---------- ステージ（1280×720を画面いっぱいに拡大縮小） ---------- */
+  #stage {
+    position: absolute; left: 50%; top: 50%;
+    width: 1280px; height: 720px;
+    transform-origin: center center;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    background: #fff;
+    padding: 76px 62px 54px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    line-height: 1.75;
+    font-size: 21px;
+  }
+  .slide.active { display: flex; }
+  .slide::before {
+    content: attr(data-section);
+    position: absolute; left: 62px; top: 30px;
+    font-size: 15px; letter-spacing: .06em; color: var(--muted);
+  }
+  .slide::after {
+    content: ""; position: absolute; left: 0; top: 0;
+    width: 100%; height: 7px; background: var(--accent);
+  }
+  .slide > h2 {
+    margin: 0 0 20px; padding-bottom: 12px;
+    font-size: 33px; line-height: 1.35; color: var(--accent);
+    border-bottom: 2px solid var(--accent-light);
+  }
+  .slide > h2 small { display: block; font-size: 17px; color: var(--muted); font-weight: normal; margin-top: 6px; }
+  .body { flex: 1; min-height: 0; }
+  .body > :first-child { margin-top: 0; }
+  .body > :last-child { margin-bottom: 0; }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 1.4em; }
+  li { margin-bottom: 8px; }
+  li:last-child { margin-bottom: 0; }
+  em { font-style: normal; background: linear-gradient(transparent 62%, #fde68a 62%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  .small { font-size: .86em; color: var(--muted); }
+  .c { text-align: center; }
+
+  /* ---------- 表紙・中扉 ---------- */
+  .slide.cover, .slide.sec {
+    background: var(--accent); color: #fff;
+    justify-content: center;
+  }
+  .slide.cover::before, .slide.sec::before { color: rgba(255,255,255,.7); }
+  .slide.cover::after, .slide.sec::after { background: var(--work); }
+  .slide.cover .label { font-size: 19px; letter-spacing: .1em; opacity: .85; margin-bottom: 18px; }
+  .slide.cover h1 { margin: 0 0 26px; font-size: 50px; line-height: 1.35; }
+  .slide.cover .lead { font-size: 22px; opacity: .92; margin: 0; }
+  .slide.cover .meta { margin-top: 46px; font-size: 17px; opacity: .7; }
+  .slide.sec .num { font-size: 20px; letter-spacing: .18em; opacity: .75; margin-bottom: 14px; }
+  .slide.sec h1 { margin: 0; font-size: 46px; line-height: 1.35; }
+  .slide.sec .time-badge {
+    display: inline-block; margin-top: 26px; padding: 5px 18px;
+    border: 1px solid rgba(255,255,255,.55); border-radius: 999px; font-size: 17px;
+  }
+  .slide.sec .agenda { margin-top: 30px; font-size: 19px; opacity: .85; line-height: 2; }
+
+  /* ---------- 講師用 / 補足スライド ---------- */
+  .slide.teacher { background: #fffdf7; }
+  .slide.teacher::after { background: var(--work); }
+  .slide.teacher > h2 { color: var(--work); border-bottom-color: #fde9c8; }
+  .slide.note { background: #f7fefd; }
+  .slide.note::after { background: var(--mind); }
+  .slide.note > h2 { color: var(--mind); border-bottom-color: #cbf0ea; }
+  .badge {
+    position: absolute; right: 62px; top: 26px;
+    color: #fff; font-size: 13px; letter-spacing: .08em; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .teacher .badge { background: var(--work); }
+  .note .badge { background: var(--mind); }
+
+  /* ---------- 箱 ---------- */
+  .mind, .work, .example { border-radius: 10px; padding: 16px 22px; margin: 16px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .mind .tag, .work .tag, .example .tag {
+    display: block; margin-bottom: 6px;
+    font-weight: 700; font-size: 15px; letter-spacing: .05em;
+  }
+  .mind .tag { color: var(--mind); }
+  .work .tag { color: var(--work); }
+  .example .tag { color: #4b5563; }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
+
+  /* ---------- 表 ---------- */
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 18.5px; line-height: 1.6; }
+  th, td { border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  th.c, td.c { text-align: center; }
+  .teacher th { background: #fdf3e3; color: var(--work); }
+  .note th { background: #e9f8f6; color: var(--mind); }
+  table.dense { font-size: 17px; }
+  table.blank td { height: 42px; }
+
+  /* ---------- 図 ---------- */
+  figure { margin: 10px 0; text-align: center; }
+  figure svg { display: block; margin: 0 auto; height: auto; max-width: 100%; }
+  figcaption { font-size: 15.5px; color: var(--muted); margin-top: 8px; line-height: 1.65; text-align: left; }
+
+  /* ---------- 2カラム ---------- */
+  .cols { display: flex; gap: 24px; }
+  .cols > * { flex: 1; min-width: 0; }
+
+  /* ---------- UI ---------- */
+  .pnum { position: absolute; right: 62px; bottom: 22px; font-size: 15px; color: #9ca3af; letter-spacing: .05em; }
+  .cover .pnum, .sec .pnum { color: rgba(255,255,255,.6); }
+  .teacher .pnum { color: #c9a06a; }
+  .note .pnum { color: #7fb8b0; }
+  #progress {
+    position: fixed; left: 0; bottom: 0; height: 4px;
+    background: var(--work); width: 0; transition: width .18s ease; z-index: 30;
+  }
+  #hud { position: fixed; left: 14px; bottom: 12px; z-index: 30; font-size: 12px; color: #8b7080; letter-spacing: .04em; }
+  #hud b { color: #b99aab; font-weight: 600; }
+  .overlay {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(20,11,18,.95); color: #e5e7eb;
+    display: none; flex-direction: column; padding: 34px 42px; font-size: 14px;
+  }
+  .overlay.open { display: flex; }
+  .overlay h3 { margin: 0 0 16px; font-size: 18px; color: #fff; font-weight: 700; }
+  #tocList { flex: 1; overflow: auto; column-count: 3; column-gap: 34px; }
+  #tocList .toc-sec {
+    break-inside: avoid; margin: 0 0 6px; padding-top: 10px;
+    font-size: 12px; letter-spacing: .08em; color: #f0abfc; font-weight: 700;
+  }
+  #tocList a { display: block; break-inside: avoid; color: #d8cad2; text-decoration: none; padding: 3px 8px; border-radius: 5px; line-height: 1.5; }
+  #tocList a:hover { background: #3b2233; color: #fff; }
+  #tocList a .n { color: #8b7080; margin-right: 8px; font-variant-numeric: tabular-nums; }
+  #tocList a.t .n { color: #f59e0b; }
+  #tocList a.nt .n { color: #2dd4bf; }
+  #tocList a.cur { background: var(--accent); color: #fff; }
+  .keys { display: grid; grid-template-columns: 130px 1fr; gap: 8px 16px; max-width: 620px; }
+  .keys kbd { background: #3b2233; border: 1px solid #5b3a4f; border-radius: 5px; padding: 2px 8px; font-family: inherit; font-size: 12px; color: #e2e8f0; }
+  .overlay .hint { margin-top: 20px; color: #8b7080; }
+
+  /* ---------- 印刷 ---------- */
+  @media print {
+    body { background: #fff; overflow: visible; }
+    #stage { position: static; transform: none !important; width: auto; height: auto; }
+    .slide { position: static; display: flex !important; width: 1280px; height: 720px; page-break-after: always; }
+    #progress, #hud, .overlay { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <!-- ============ 表紙 ============ -->
+  <section class="slide cover" data-section="テストエンジニア育成講座 — Step2" data-toc="表紙">
+    <div class="label">第 4 回（90分）</div>
+    <h1>テスト戦略と<br>リスクベースドテスト</h1>
+    <p class="lead">— 「全部やる」から「賢く選ぶ」へ<br><br>
+      時間は常に足りない。だからこそ<strong>「どこを厚く、どこを薄くするか」を意思を持って決める</strong>。</p>
+    <div class="meta">← / → キーでページ送り　　O: 目次　　T: 講師用スライドの表示切替　　? : ヘルプ</div>
+  </section>
+
+  <section class="slide" data-section="オリエンテーション" data-toc="今日のゴール">
+    <h2>今日のゴール</h2>
+    <div class="body">
+      <ul>
+        <li>「全数テストは不可能」（第1回）の続き —
+          <strong>何をやらないかを意思を持って決める</strong>方法を持てる</li>
+        <li><strong>リスクを自力で洗い出す手順</strong>（分解のレンズ・引き金の質問・リスク文の型）を身につける</li>
+        <li>洗い出したリスクを<strong>影響度×発生確率</strong>で評価し、テストの濃淡に翻訳できる</li>
+        <li>探索的テストを「行き当たりばったり」ではなく、
+          <strong>チャーターを持ったセッション</strong>として捉えられる</li>
+      </ul>
+      <div class="example">
+        <span class="tag">今日の流れ</span>
+        1. Step1の振り返り（5分）／ 2. テスト戦略とアプローチ（15分）／ 3. 評価のものさし（15分）／
+        4. リスクの洗い出し方（15分）／ 5. ワーク①（25分）／ 6. 探索的テスト入門（10分）／ まとめ（5分）
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 1. Step1の振り返り ============ -->
+  <section class="slide sec" data-section="Section 1" data-toc="【中扉】Step1の振り返りとStep2のゴール">
+    <div class="num">SECTION 1</div>
+    <h1>Step1の振り返りと<br>Step2のゴール</h1>
+    <div><span class="time-badge">5分</span></div>
+  </section>
+
+  <section class="slide" data-section="1. 振り返りとStep2のゴール" data-toc="Step1で作ったもの">
+    <h2>Step1で作ったもの</h2>
+    <div class="body">
+      <ul>
+        <li><strong>第1回</strong>: テストという仕事の土台</li>
+        <li><strong>第2回</strong>: 仕様を読んで設計する力</li>
+        <li><strong>第3回</strong>: テストを回して品質を語る力</li>
+      </ul>
+      <div class="mind">
+        <span class="tag">言い換えると</span>
+        <strong>与えられた範囲のテストを、一人で回せる</strong>状態。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="1. 振り返りとStep2のゴール" data-toc="Step2のテーマ：範囲を自分で決める">
+    <h2>Step2のテーマは「その範囲を自分で決める」</h2>
+    <div class="body">
+      <p>
+        今日扱う<em>戦略とリスク</em>は、<strong>Step2全体の土台</strong>です。
+      </p>
+      <div class="example">
+        <span class="tag">なぜ土台なのか</span>
+        <strong>第5回</strong>（上流のどこに力を入れるか）も<br>
+        <strong>第6回</strong>（何を自動化しAIに何を任せるか）も、<br>
+        結局は<em>リスクに基づく配分</em>の話だから。
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. テスト戦略とアプローチ ============ -->
+  <section class="slide sec" data-section="Section 2" data-toc="【中扉】テスト戦略とアプローチ">
+    <div class="num">SECTION 2</div>
+    <h1>テスト戦略とアプローチ</h1>
+    <div><span class="time-badge">15分</span></div>
+    <div class="agenda">計画の一段上にある「戦略」／ アプローチの引き出し／ 配合し直す</div>
+  </section>
+
+  <section class="slide" data-section="2. テスト戦略とアプローチ" data-toc="「計画」の一段上にある「戦略」">
+    <h2>「計画」の一段上にある「戦略」</h2>
+    <div class="body">
+      <p>
+        第3回で学んだテスト計画は「<strong>何を・いつ・誰が・どの環境で</strong>」を決めるものでした。
+        その前に決めるべきことがあります。
+      </p>
+      <div class="mind">
+        <span class="tag">戦略とは</span>
+        <em>そもそもどういう方針で攻めるのか</em> — これがテスト戦略（テストアプローチ）。
+      </div>
+      <div class="bad-box">
+        <span class="tag">戦略が曖昧なまま計画を作ると</span>
+        「とりあえず全機能を一通り」という<strong>根拠のない均等配分</strong>になり、
+        時間が足りなくなってから<em>場当たり的に削る</em>ことになる。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. テスト戦略とアプローチ" data-toc="アプローチの引き出し（1）">
+    <h2>アプローチの引き出し（1/2）<small>代表的なアプローチを知っておくと、状況に合わせて「配合」できる</small></h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:24%">アプローチ</th><th style="width:40%">どう攻めるか</th><th>現場での例</th></tr>
+        <tr>
+          <td><strong>分析的</strong><br><span class="small">リスクベース／要件ベース</span></td>
+          <td>リスクや要件を分析し、優先度に応じてテストを配分する</td>
+          <td><strong>今日の主役</strong>。リスクの高い機能に技法と時間を集中させる</td>
+        </tr>
+        <tr>
+          <td><strong>モデルベース</strong></td>
+          <td>状態遷移図や業務フローなどのモデルからテストを導出する</td>
+          <td>第2回の状態遷移テストの延長。承認フローの遷移網羅</td>
+        </tr>
+        <tr>
+          <td><strong>系統的</strong><br><span class="small">チェックリストベース</span></td>
+          <td>観点集・チェックリストなど既定のリストで漏れなく確認する</td>
+          <td>過去の不具合傾向から作った社内共通チェックリスト</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. テスト戦略とアプローチ" data-toc="アプローチの引き出し（2）">
+    <h2>アプローチの引き出し（2/2）</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:24%">アプローチ</th><th style="width:40%">どう攻めるか</th><th>現場での例</th></tr>
+        <tr>
+          <td><strong>プロセス準拠</strong></td>
+          <td>業界標準や規制の定める手順・証跡に従う</td>
+          <td>金融・医療など監査要件があるプロジェクト</td>
+        </tr>
+        <tr>
+          <td><strong>経験ベース</strong><br><span class="small">リアクティブ</span></td>
+          <td>実物を触りながら、経験と学びで次の一手を決める</td>
+          <td>今日の後半で扱う<strong>探索的テスト</strong></td>
+        </tr>
+        <tr>
+          <td><strong>回帰的</strong></td>
+          <td>既存機能を壊していないことの確認を最優先する</td>
+          <td>毎月の保守リリース。自動リグレッションが主力（第6回）</td>
+        </tr>
+      </table>
+      <div class="mind">
+        <span class="tag">単品で選ぶものではない</span>
+        アプローチは、<strong>リリースの性質に合わせて毎回「配合」する</strong>もの。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. テスト戦略とアプローチ" data-toc="同じシステムでも、リリースが違えば戦略は変わる">
+    <h2>同じ経費精算システムでも、リリースが違えば戦略は変わる</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:20%"></th><th>インボイス制度改正対応リリース</th><th>申請画面の全面刷新リリース</th></tr>
+        <tr>
+          <td>何が怖いか</td>
+          <td>税額計算の誤り<br><span class="small">（お金に直結・全件に波及）</span></td>
+          <td>操作性の劣化、既存機能のデグレード</td>
+        </tr>
+        <tr>
+          <td>戦略の配合</td>
+          <td><strong>要件ベース</strong>で改正要件を1件ずつ潰す<br>＋ 計算まわりの<strong>回帰的</strong>テストを厚く</td>
+          <td><strong>モデルベース</strong>で画面遷移を網羅<br>＋ <strong>探索的</strong>テストで使い勝手の穴を探す</td>
+        </tr>
+        <tr>
+          <td>薄くするところ</td>
+          <td>画面の見た目・操作性<br><span class="small">（変更していないため）</span></td>
+          <td>計算ロジック<br><span class="small">（変更していないため。スモークのみ）</span></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. テスト戦略とアプローチ" data-toc="マインドセット：コピペした瞬間に戦略は死ぬ">
+    <h2>前のプロジェクトのやり方をコピペしない</h2>
+    <div class="body">
+      <div class="mind" style="margin-top:0;">
+        <span class="tag">マインドセット</span>
+        「テストは状況次第」（7原則の6）を実行に移すのが戦略。<br>
+        <strong>前のプロジェクトのやり方をコピペした瞬間、戦略は死ぬ。</strong>
+      </div>
+      <p style="margin-top:22px;">
+        アプローチは単品で選ぶものではなく、<em>リリースの性質に合わせて毎回配合し直すもの</em>です。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 3. 評価のものさし ============ -->
+  <section class="slide sec" data-section="Section 3" data-toc="【中扉】リスクベースドテスト — 評価のものさし">
+    <div class="num">SECTION 3</div>
+    <h1>リスクベースドテスト<br>— 評価のものさし</h1>
+    <div><span class="time-badge">15分</span></div>
+    <div class="agenda">影響度 ／ 発生確率 ／ リスクマトリクス ／ 濃淡への翻訳</div>
+  </section>
+
+  <section class="slide" data-section="3. 評価のものさし" data-toc="優先順位の「根拠」を作る">
+    <h2>優先順位の「根拠」を作る</h2>
+    <div class="body">
+      <p>
+        全数テストは不可能（7原則の2）だから優先順位をつける — ここまではStep1で学びました。
+        では、<strong>その優先順位はどう決めるのか。</strong>
+      </p>
+      <div class="mind">
+        <span class="tag">共通のものさし</span>
+        勘や声の大きい人の意見ではなく、<em>リスク ＝ 影響度 × 発生確率</em>という共通のものさしで決める。<br>
+        <strong>ものさしが共通だから、チームで議論でき、あとから説明できます。</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. 評価のものさし" data-toc="リスクベースドテストの3ステップ">
+    <h2>リスクベースドテストは3ステップ</h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;font-size:24px;text-align:center;padding:22px;">
+        <strong>① 洗い出す　→　② 評価する　→　③ 濃淡に翻訳する</strong>
+      </div>
+      <p style="margin-top:20px;">
+        このセクションでは<strong>②と③のものさしを先に固めます</strong>。
+        <strong>①の洗い出しは次のセクション4で手順として扱います</strong>。
+      </p>
+      <div class="mind">
+        <span class="tag">なぜ順番を逆にするのか</span>
+        実務でつまずくのは<em>評価より洗い出しの方</em>だから。
+        <strong>評価するものが出てこなければ、ものさしは使えません。</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. 評価のものさし" data-toc="影響度 — 起きたらどれだけ痛いか">
+    <h2>影響度 — 起きたらどれだけ痛いか</h2>
+    <div class="body">
+      <ul>
+        <li><strong>お金に直結するか</strong>: 精算金額・仕訳・税額の誤りは1件でも重い
+          <span class="small">（第1回の端数処理の例）</span></li>
+        <li><strong>業務が止まるか</strong>: 月次の締め処理が失敗したら、経理部門全体が待ちになる</li>
+        <li><strong>影響範囲の広さ</strong>: 全社員が使う申請画面か、管理者数名しか使わない設定画面か</li>
+        <li><strong>回避策の有無</strong>: 画面で直せる誤りか、データパッチが必要な誤りか</li>
+        <li><strong>信用・コンプライアンス</strong>: 個人情報の漏えい、監査証跡の欠落は<em>金額換算できない痛み</em></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. 評価のものさし" data-toc="発生確率 — どれだけ壊れていそうか">
+    <h2>発生確率 — どれだけ壊れていそうか</h2>
+    <div class="body">
+      <ul>
+        <li><strong>複雑さ</strong>: 条件分岐が多い（承認ルート、税率、按分計算）</li>
+        <li><strong>新規性・変更の集中</strong>: 新規機能、今回の改修で手が入った箇所、仕様変更が重なった箇所</li>
+        <li><strong>過去の欠陥の偏在</strong>: 「欠陥は偏在する」（7原則の4）。
+          <em>過去の不具合票は発生確率の一次情報</em></li>
+        <li><strong>作り手の状況</strong>: 引き継ぎ直後、新メンバーの担当箇所、突貫で作られた箇所</li>
+        <li><strong>外部との接続</strong>: 他システム連携・取込・出力は、<em>こちらの想定が通用しない</em></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. 評価のものさし" data-toc="リスクマトリクス（図）">
+    <h2>リスクマトリクス — 場所によって「テストの濃さ」を変える</h2>
+    <div class="body">
+      <figure style="margin:0;">
+        <svg viewBox="0 0 760 430" style="width:750px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="影響度と発生確率のリスクマトリクス">
+          <g font-family="sans-serif" font-size="13">
+            <line x1="90" y1="380" x2="720" y2="380" stroke="#6b7280" stroke-width="1.5"/>
+            <line x1="90" y1="380" x2="90" y2="40" stroke="#6b7280" stroke-width="1.5"/>
+            <polygon points="720,380 710,375 710,385" fill="#6b7280"/>
+            <polygon points="90,40 85,50 95,50" fill="#6b7280"/>
+            <text x="700" y="405" fill="#374151">発生確率 →</text>
+            <text x="40" y="210" fill="#374151" text-anchor="middle" transform="rotate(-90 40 210)">影響度 →</text>
+            <rect x="100" y="55" width="300" height="155" rx="8" fill="#fef3c7" stroke="#f59e0b"/>
+            <rect x="410" y="55" width="300" height="155" rx="8" fill="#fee2e2" stroke="#ef4444"/>
+            <rect x="100" y="220" width="300" height="150" rx="8" fill="#f3f4f6" stroke="#9ca3af"/>
+            <rect x="410" y="220" width="300" height="150" rx="8" fill="#dbeafe" stroke="#3b82f6"/>
+            <text x="560" y="85" text-anchor="middle" font-weight="bold" fill="#991b1b">最優先 — 厚くテスト</text>
+            <text x="560" y="110" text-anchor="middle" fill="#7f1d1d" font-size="12">技法でしっかり設計＋異常系＋</text>
+            <text x="560" y="128" text-anchor="middle" fill="#7f1d1d" font-size="12">探索的テストも重ねる</text>
+            <text x="560" y="152" text-anchor="middle" fill="#7f1d1d" font-size="12">例: IC連携の取込金額、承認ルート</text>
+            <text x="250" y="85" text-anchor="middle" font-weight="bold" fill="#92400e">重点確認 — 狙って確かめる</text>
+            <text x="250" y="110" text-anchor="middle" fill="#78350f" font-size="12">起きにくいが起きたら致命的。</text>
+            <text x="250" y="128" text-anchor="middle" fill="#78350f" font-size="12">シナリオを絞って確実に押さえる</text>
+            <text x="250" y="152" text-anchor="middle" fill="#78350f" font-size="12">例: 権限すり抜け、データ移行</text>
+            <text x="560" y="252" text-anchor="middle" font-weight="bold" fill="#1e40af">効率化 — 仕組みでカバー</text>
+            <text x="560" y="277" text-anchor="middle" fill="#1e3a8a" font-size="12">よく起きるが痛みは小さい。</text>
+            <text x="560" y="295" text-anchor="middle" fill="#1e3a8a" font-size="12">自動化・チェックリストで淡々と（第6回）</text>
+            <text x="560" y="319" text-anchor="middle" fill="#1e3a8a" font-size="12">例: 入力チェックの網羅、表示崩れ</text>
+            <text x="250" y="252" text-anchor="middle" font-weight="bold" fill="#4b5563">最小限 — 薄くてよいと宣言</text>
+            <text x="250" y="277" text-anchor="middle" fill="#4b5563" font-size="12">スモーク程度。ただし</text>
+            <text x="250" y="295" text-anchor="middle" fill="#4b5563" font-size="12">「薄くした」と計画に明記する</text>
+            <text x="250" y="319" text-anchor="middle" fill="#4b5563" font-size="12">例: ヘルプ画面、管理者用の稀な設定</text>
+          </g>
+        </svg>
+        <figcaption style="text-align:center;"><strong>全マスを同じ濃さにするのは、戦略の放棄</strong></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. 評価のものさし" data-toc="リスクレベルをテストの濃淡に翻訳する">
+    <h2>リスクレベルをテストの濃淡に翻訳する<small>リスクレベルごとに「何をするか」をあらかじめ決めておくと、そのまま計画になる</small></h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:10%" class="c">リスク</th><th style="width:44%">テスト設計の深さ</th><th>実行の厚み</th></tr>
+        <tr>
+          <td class="c"><strong>高</strong></td>
+          <td>技法で網羅的に設計（境界値・デシジョンテーブル・状態遷移）＋<strong>異常系を明示的に設計</strong></td>
+          <td>スクリプトテスト＋探索的テストを重ねる。リグレッション対象に固定</td>
+        </tr>
+        <tr>
+          <td class="c"><strong>中</strong></td>
+          <td>正常系＋主要な異常系。代表値中心</td>
+          <td>スクリプトテスト1周＋変更があった時のみ再テスト</td>
+        </tr>
+        <tr>
+          <td class="c"><strong>低</strong></td>
+          <td>ケースは書かず、チェックリストレベル</td>
+          <td>スモークテストのみ。<strong>「低リスクと判断し薄くした」と計画に書く</strong></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. 評価のものさし" data-toc="マインドセット：薄くするのは設計判断">
+    <h2>薄くするのは「手抜き」ではない</h2>
+    <div class="body">
+      <div class="mind" style="margin-top:0;">
+        <span class="tag">マインドセット</span>
+        薄くする箇所を決めるのは手抜きではなく、<strong>説明責任を伴う設計判断</strong>。
+      </div>
+      <div class="cols" style="margin-top:22px;">
+        <div class="good-box">
+          <span class="tag">戦略</span>
+          「なぜそこを薄くしたか」を<strong>語れる</strong>
+        </div>
+        <div class="bad-box">
+          <span class="tag">ただの抜け</span>
+          「なぜそこを薄くしたか」を<strong>語れない</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. リスクの洗い出し ============ -->
+  <section class="slide sec" data-section="Section 4" data-toc="【中扉】リスクはどう洗い出すか">
+    <div class="num">SECTION 4</div>
+    <h1>リスクはどう洗い出すか</h1>
+    <div><span class="time-badge">15分</span></div>
+    <div class="agenda">4つのレンズ ／ 引き金の質問 ／ リスク文の型 ／ 数を整える</div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="実務での最初の壁">
+    <h2>実務での最初の壁</h2>
+    <div class="body">
+      <p>
+        「影響度×発生確率で評価する」と言われても、
+        <em>評価する対象そのものが出てこない</em> — これが実務での最初の壁です。
+      </p>
+      <div class="bad-box">
+        <span class="tag">よくある状態</span>
+        白紙の前で「リスクを挙げてください」と言われて出てくるのは、<strong>せいぜい思いついた3つか4つ</strong>。
+      </div>
+      <div class="mind">
+        <span class="tag">だから</span>
+        洗い出しは<strong>ひらめきではなく手順</strong>でやります。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="大原則：出す作業と評価する作業を分ける">
+    <h2>大原則: 出す作業と、評価する作業を分ける</h2>
+    <div class="body">
+      <p>
+        出しながら「これはリスクとして小さいかな…」と評価を始めると、<strong>手が止まり、数が出ません</strong>。
+      </p>
+      <div class="mind">
+        <span class="tag">原則</span>
+        <strong>まず量を出し切ってから、評価する。</strong>これは会議のブレストと同じ原則です。
+      </div>
+      <p style="margin-top:18px;">
+        評価しないと決めておけば、<em>自信がない項目も口に出せます</em>
+        — そして<strong>自信がない項目こそ、あとで高リスクだと分かる</strong>ことがよくあります。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="ステップ1：4つのレンズ（①②）">
+    <h2>ステップ1: 対象を分解する（4つのレンズ）<small>いきなり全体を眺めず、決まった切り口＝レンズを順番に当てる</small></h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th style="width:16%">レンズ</th><th style="width:46%">当て方</th><th>IC連携機能に当てると</th></tr>
+        <tr>
+          <td><strong>① データの流れ</strong></td>
+          <td>入力 → 処理・計算 → 保存 → 出力 → 外部連携、と川下りする。
+            <strong>リスクは「つなぎ目」に溜まる</strong></td>
+          <td>取込（連携）→ 履歴の保存 → 編集（入力）→ 申請への変換（処理）→ 精算金額（出力）</td>
+        </tr>
+        <tr>
+          <td><strong>② 変更点</strong></td>
+          <td>新規に作った所／今回手を入れた所／
+            <strong>手は入れていないが影響を受ける既存機能</strong>の3つに分ける</td>
+          <td>新規＝取込バッチ・除外フラグ／影響を受ける既存＝経費申請の一覧・承認・月次締め</td>
+        </tr>
+      </table>
+      <p class="small" style="margin-top:10px;">レンズを変えると、<strong>見えるリスクの種類が変わります</strong>。</p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="ステップ1：4つのレンズ（③④）">
+    <h2>4つのレンズ（③④）</h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th style="width:16%">レンズ</th><th style="width:46%">当て方</th><th>IC連携機能に当てると</th></tr>
+        <tr>
+          <td><strong>③ 品質特性</strong></td>
+          <td>機能適合性・性能効率性・セキュリティ・使用性・信頼性・互換性…と<strong>特性名を順に唱えて</strong>当てはめる。
+            <em>非機能リスクはここで機械的に出る</em></td>
+          <td>性能＝全社員分の夜間バッチ／セキュリティ＝他人のカード登録／互換性＝外部APIの仕様変更</td>
+        </tr>
+        <tr>
+          <td><strong>④ 過去と現場</strong></td>
+          <td>過去の不具合票、問い合わせ・ヒヤリ、他社の障害事例、そして
+            <strong>開発者が不安だと言っている所</strong></td>
+          <td>過去に「重複取込」の障害があった／開発者が「日またぎの扱いが危ない」と言っている</td>
+        </tr>
+      </table>
+      <div class="mind">
+        <span class="tag">数が出ないときは</span>
+        たいてい<strong>③品質特性か④過去のレンズを飛ばしています</strong>。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="レンズ①の当て方（図）">
+    <h2>レンズ① データの流れで追う</h2>
+    <div class="body">
+      <figure style="margin-top:0;">
+        <svg viewBox="0 0 760 250" style="width:1090px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="データの流れに沿ってリスクを洗い出す図">
+          <g font-family="sans-serif">
+            <text x="20" y="24" font-size="13.5" font-weight="bold" fill="#7c2d5e">レンズ① データの流れで追う — リスクは「つなぎ目」に溜まる</text>
+            <g font-size="13">
+              <rect x="18" y="46" width="126" height="46" rx="8" fill="#faeef5" stroke="#7c2d5e"/>
+              <text x="81" y="75" text-anchor="middle" fill="#7c2d5e" font-weight="bold">入力</text>
+              <rect x="167" y="46" width="126" height="46" rx="8" fill="#faeef5" stroke="#7c2d5e"/>
+              <text x="230" y="75" text-anchor="middle" fill="#7c2d5e" font-weight="bold">処理・計算</text>
+              <rect x="316" y="46" width="126" height="46" rx="8" fill="#faeef5" stroke="#7c2d5e"/>
+              <text x="379" y="75" text-anchor="middle" fill="#7c2d5e" font-weight="bold">保存</text>
+              <rect x="465" y="46" width="126" height="46" rx="8" fill="#faeef5" stroke="#7c2d5e"/>
+              <text x="528" y="75" text-anchor="middle" fill="#7c2d5e" font-weight="bold">出力・集計</text>
+              <rect x="614" y="46" width="126" height="46" rx="8" fill="#fff7ed" stroke="#b45309"/>
+              <text x="677" y="75" text-anchor="middle" fill="#b45309" font-weight="bold">外部連携</text>
+            </g>
+            <defs>
+              <marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                <polygon points="0,0 7,3.5 0,7" fill="#9ca3af"/>
+              </marker>
+            </defs>
+            <g stroke="#9ca3af" stroke-width="1.5" fill="none">
+              <path d="M144 69 H163" marker-end="url(#ar)"/>
+              <path d="M293 69 H312" marker-end="url(#ar)"/>
+              <path d="M442 69 H461" marker-end="url(#ar)"/>
+              <path d="M591 69 H610" marker-end="url(#ar)"/>
+            </g>
+            <g font-size="11.5" fill="#4b5563">
+              <text x="81" y="118" text-anchor="middle">境界・形式・必須</text>
+              <text x="81" y="136" text-anchor="middle">誰が入れられるか</text>
+              <text x="81" y="154" text-anchor="middle">途中で中断したら</text>
+              <text x="230" y="118" text-anchor="middle">端数・税率・按分</text>
+              <text x="230" y="136" text-anchor="middle">条件の組合せ</text>
+              <text x="230" y="154" text-anchor="middle">日またぎ・月またぎ</text>
+              <text x="379" y="118" text-anchor="middle">同時に2人が触る</text>
+              <text x="379" y="136" text-anchor="middle">移行した過去データ</text>
+              <text x="379" y="154" text-anchor="middle">消える・重複する</text>
+              <text x="528" y="118" text-anchor="middle">合計が合わない</text>
+              <text x="528" y="136" text-anchor="middle">締めのタイミング</text>
+              <text x="528" y="154" text-anchor="middle">見えてはいけない人に</text>
+              <text x="677" y="118" text-anchor="middle" fill="#92400e">落ちている・遅い</text>
+              <text x="677" y="136" text-anchor="middle" fill="#92400e">想定外の値が来る</text>
+              <text x="677" y="154" text-anchor="middle" fill="#92400e">二重に取り込む</text>
+            </g>
+            <rect x="18" y="180" width="722" height="52" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+            <text x="34" y="203" font-size="12.5" fill="#0f766e" font-weight="bold">問い方のコツ</text>
+            <text x="34" y="223" font-size="12.5" fill="#134e4a">各ブロックで「ここが間違ったら、誰が・いつ気づくか？」と問う。誰も気づかないまま流れる所ほど、リスクは高い。</text>
+          </g>
+        </svg>
+        <figcaption>機能名ではなく、<strong>データが通る順に沿って「壊れ方」を探す</strong></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="ステップ2：引き金の質問">
+    <h2>ステップ2: 引き金の質問を当てる<small>レンズで場所を決めたら、この質問を機械的にぶつける。手が止まったらここに戻る</small></h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th style="width:50%">影響度を掘り起こす質問</th><th>発生確率を掘り起こす質問</th></tr>
+        <tr>
+          <td>
+            <ul style="margin:2px 0; padding-left:1.2em;">
+              <li>ここが間違うと、<strong>お金の額</strong>は変わるか</li>
+              <li>間違いに<strong>誰がいつ気づく</strong>か。誰も気づかず流れるか</li>
+              <li>気づいたとき<strong>戻せる</strong>か（画面で直せる／データパッチが要る）</li>
+              <li>止まったら<strong>何人が待つ</strong>か。締め処理は止まるか</li>
+              <li>社外・監査・個人情報に<strong>波及</strong>するか</li>
+            </ul>
+          </td>
+          <td>
+            <ul style="margin:2px 0; padding-left:1.2em;">
+              <li>ここは<strong>新規</strong>か、<strong>今回触った</strong>か</li>
+              <li><strong>条件分岐</strong>がいくつあるか（多いほど壊れる）</li>
+              <li>過去に<strong>似た不具合</strong>が出ていないか</li>
+              <li>作った人は<strong>不安だと言っている</strong>か</li>
+              <li><strong>自分たちの外側</strong>（外部API・他チーム・移行データ）に依存しているか</li>
+            </ul>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="業務システムで毎回効く「時と人」の5問">
+    <h2>業務システムで毎回効く「時と人」の5問</h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;">
+        <ul style="margin:0;">
+          <li><strong>月末・締め日・年度替わり</strong>に、この機能は何をしているか</li>
+          <li><strong>同時に2人</strong>が同じデータを触ったら</li>
+          <li><strong>権限の違う人</strong>（一般社員・承認者・管理者・退職者）が同じ操作をしたら</li>
+          <li><strong>旧システムから移ってきたデータ</strong>（旧税率・未精算の申請）が来たら</li>
+          <li><strong>一番よく使われる操作</strong>は何か（<em>頻度が高い＝壊れたときに全員が踏む</em>）</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="ステップ3：リスクを「文」の形で書く">
+    <h2>ステップ3: リスクを「文」の形で書く<small>ここが一番差が出ます</small></h2>
+    <div class="body">
+      <p>
+        <em>機能名を並べただけのものはリスクではありません</em> — 評価も対策もできないからです。
+      </p>
+      <div class="example" style="font-size:25px;text-align:center;padding:24px;">
+        <strong>&lt;どこで&gt;　&lt;何が起きて&gt;　&lt;業務上どう困るか&gt;</strong><br>
+        <span style="font-size:19px;color:var(--muted);">の形で1文にする</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="リスク文：NG例とOK例">
+    <h2>NG例と OK例</h2>
+    <div class="body">
+      <div class="bad-box" style="margin-top:0;">
+        <span class="tag">NG</span>
+        <ul style="margin:6px 0 0;">
+          <li>「取込機能」 → ただの機能名。何が怖いのか誰にも伝わらない</li>
+          <li>「バグがあるかもしれない」 → 全部に当てはまる＝何も言っていない</li>
+          <li>「取込がうまくいかない」 → 「困りごと」がないので影響度を付けられない</li>
+        </ul>
+      </div>
+      <div class="good-box">
+        <span class="tag">OK</span>
+        <ul style="margin:6px 0 0;">
+          <li>「<strong>夜間バッチ</strong>が再実行されたとき<strong>同じ履歴が2件取り込まれ</strong>、<strong>二重申請で過払いが起きる</strong>」</li>
+          <li>「<strong>除外フラグ</strong>を付けた私用の履歴が<strong>申請の合計金額に含まれ</strong>、<strong>私費が経費で精算される</strong>」</li>
+          <li>「<strong>月末23時台</strong>の利用履歴が<strong>翌月分として取り込まれ</strong>、<strong>締め後の申請漏れになる</strong>」</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="書き方を揃えると評価が軽くなる">
+    <h2>書き方を揃えるだけで、次の評価が軽くなる</h2>
+    <div class="body">
+      <div class="cols" style="margin-top:6px;">
+        <div class="example" style="margin-top:0;">
+          <span class="tag">前半「どこで・何が起きて」</span>
+          そのまま<strong>発生確率</strong>の判断材料になる
+        </div>
+        <div class="example" style="margin-top:0;">
+          <span class="tag">後半「どう困るか」</span>
+          そのまま<strong>影響度</strong>の判断材料になる
+        </div>
+      </div>
+      <div class="mind" style="margin-top:24px;">
+        <span class="tag">つまり</span>
+        リスク文の型を守ることは、<em>書式のこだわりではなく、次の作業を軽くするための投資</em>です。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="ステップ4：数を整える">
+    <h2>ステップ4: 数を整える</h2>
+    <div class="body">
+      <ul>
+        <li><strong>まず15〜20個</strong>を目標に出す。少なすぎるときは<em>レンズを1つ飛ばしている</em>
+          <span class="small">（たいてい③品質特性か④過去）</span></li>
+        <li>粒度は「機能ごとに1つ」ではなく<strong>「怖さの単位」</strong>。1つの機能から3つ出てもよい</li>
+        <li>同じことを言っている項目は<strong>統合</strong>。逆に「〜まわり全般」のような大きすぎる項目は<strong>分割</strong>する</li>
+        <li>出し切ったら評価へ。全部を評価表に載せる必要はなく、<strong>上位を絞って濃淡を決める</strong></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. リスクの洗い出し" data-toc="マインドセット：一人でやらない">
+    <h2>リスクの洗い出しは、一人でやらない</h2>
+    <div class="body">
+      <div class="cols" style="margin-top:6px;">
+        <div class="example" style="margin-top:0;">
+          <span class="tag">開発者が知っている</span>
+          <strong>壊れやすい所</strong>
+        </div>
+        <div class="example" style="margin-top:0;">
+          <span class="tag">企画・業務担当が知っている</span>
+          <strong>起きたら困る所</strong>
+        </div>
+      </div>
+      <div class="mind" style="margin-top:22px;">
+        <span class="tag">その場でのQAの価値</span>
+        一番たくさんリスクを思いつくことではなく、
+        <strong>それぞれが持っている不安を引き出して1枚の表にまとめる</strong>こと。
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. ワーク① ============ -->
+  <section class="slide sec" data-section="Section 5" data-toc="【中扉】ワーク① リスク分析（2ステップ）">
+    <div class="num">SECTION 5 — WORK</div>
+    <h1>ワーク①<br>リスク分析（2ステップ）</h1>
+    <div><span class="time-badge">25分</span></div>
+    <div class="agenda">Step A で出し切り、Step B で評価する</div>
+  </section>
+
+  <section class="slide" data-section="5. ワーク①" data-toc="ワークの進め方">
+    <h2>ワークの進め方</h2>
+    <div class="body">
+      <p>
+        セクション4の手順（<strong>レンズ → 質問 → リスク文</strong>）をそのまま使います。
+      </p>
+      <div class="work">
+        <span class="tag">2ステップで進めます</span>
+        <strong>Step A</strong>（個人3分 → グループ7分 → 共有3分）で出し切り、<br>
+        <strong>Step B</strong>（グループ9分 → 共有3分）で評価します。
+      </div>
+      <div class="bad-box">
+        <span class="tag">禁止事項</span>
+        <strong>Step A の途中で「これは低リスクかな」と考えないこと。</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. ワーク①" data-toc="題材：交通系ICカード連携機能">
+    <h2>題材: 交通系ICカード連携機能（新規追加）</h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;">
+        <span class="tag">機能の概要</span>
+        <ul style="margin:0;">
+          <li>社員は自分の交通系ICカードを<strong>1枚</strong>登録できる</li>
+          <li>カードの利用履歴を<strong>夜間バッチ</strong>で自動取込し、経費申請のたたき台を作る</li>
+          <li>取り込んだ履歴は金額・区間を<strong>編集して</strong>申請に変換できる</li>
+          <li>私用の履歴には<strong>除外フラグ</strong>を付けられる（申請対象から外れる）</li>
+          <li>取込は<strong>外部のICカード事業者API</strong>を利用する</li>
+        </ul>
+      </div>
+      <div class="work">
+        <span class="tag">現場からの情報（レンズ④用）</span>
+        過去に別システムとの連携で<strong>「同じデータが二重に取り込まれる」障害</strong>を起こしたことがある。<br>
+        また開発者から<strong>「日またぎ・月またぎの履歴の扱いは自信がない」</strong>と聞いている。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. ワーク①" data-toc="Step A — リスクを出し切る">
+    <h2>Step A — リスクを出し切る<small>個人3分 → グループ7分 → 共有3分</small></h2>
+    <div class="body">
+      <div class="work" style="margin-top:0;">
+        <span class="tag">やること</span>
+        <strong>評価はしません。数を出すことだけに集中してください。</strong><br>
+        4つのレンズ（データの流れ／変更点／品質特性／過去と現場）を<em>順番に</em>当て、
+        引き金の質問をぶつけて、リスク文の形で書き出します。
+      </div>
+      <p style="margin:0 0 10px;">
+        <strong>目標: チームで15個以上。</strong>
+        レンズごとに最低2個は出すこと（特に<em>③品質特性＝非機能</em>を飛ばさない）。
+      </p>
+      <p class="small">
+        共有3分では<strong>各チーム「他のチームが出していなさそうな1つ」</strong>を紹介します。
+        ここで全体のリストを合流させてからStep Bへ進みます。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. ワーク①" data-toc="Step A ワークシート">
+    <h2>Step A ワークシート</h2>
+    <div class="body">
+      <table class="blank">
+        <tr><th style="width:14%" class="c">レンズ</th><th>リスク文（&lt;どこで&gt;&lt;何が起きて&gt;&lt;どう困るか&gt;）</th></tr>
+        <tr><td class="c">①流れ</td><td style="color:#9ca3af;">例）取込バッチが再実行され、同じ履歴が2件登録され、二重申請で過払いになる</td></tr>
+        <tr><td class="c">①流れ</td><td></td></tr>
+        <tr><td class="c">②変更点</td><td></td></tr>
+        <tr><td class="c">②変更点</td><td></td></tr>
+        <tr><td class="c">③品質特性</td><td></td></tr>
+        <tr><td class="c">③品質特性</td><td></td></tr>
+        <tr><td class="c">④過去/現場</td><td></td></tr>
+        <tr><td class="c">④過去/現場</td><td></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="5. ワーク① — Step A 解答例" data-toc="解答例：レンズ① データの流れ">
+    <span class="badge">講師用</span>
+    <h2>Step A 解答例 — レンズ① データの流れ</h2>
+    <div class="body">
+      <table>
+        <tr><th>リスク文</th></tr>
+        <tr><td>取込バッチが途中で失敗し再実行されると、同じ履歴が2件登録され、<strong>二重申請で過払いになる</strong></td></tr>
+        <tr><td>日をまたぐ深夜の利用履歴が翌日分として取り込まれ、<strong>締め後に申請漏れが発生する</strong></td></tr>
+        <tr><td>履歴の編集中に別タブで同じ履歴を開いて保存すると、古い内容で上書きされ、<strong>実費と申請額がずれる</strong></td></tr>
+        <tr><td>編集で金額をマイナスや全角で入力でき、そのまま申請に変換され、<strong>精算額が壊れる</strong></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="5. ワーク① — Step A 解答例" data-toc="解答例：レンズ② 変更点">
+    <span class="badge">講師用</span>
+    <h2>Step A 解答例 — レンズ② 変更点</h2>
+    <div class="body">
+      <table>
+        <tr><th>リスク文</th></tr>
+        <tr><td>除外フラグを付けた私用の履歴が申請一覧の合計金額には含まれ、<strong>私費が経費で精算される</strong></td></tr>
+        <tr><td>取込由来の申請が既存の月次締め処理の対象外になり、<strong>経理の集計から漏れる</strong></td></tr>
+        <tr><td>既存の手入力の交通費申請と取込分が重複し、<strong>同じ経路が2回精算される</strong></td></tr>
+      </table>
+      <div class="work">
+        <span class="tag">ここで拾うこと</span>
+        <strong>「手は入れていないが影響を受ける既存機能」</strong>が出ているか。
+        新規機能だけを見ているチームには、既存の締め処理・一覧・承認に目を向けさせる。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="5. ワーク① — Step A 解答例" data-toc="解答例：レンズ③ 品質特性">
+    <span class="badge">講師用</span>
+    <h2>Step A 解答例 — レンズ③ 品質特性</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:16%">特性</th><th>リスク文</th></tr>
+        <tr><td><strong>性能</strong></td><td>全社員分の履歴取込バッチが朝までに終わらず、月初の申請業務が始められない</td></tr>
+        <tr><td><strong>セキュリティ</strong></td><td>他人のICカード番号を登録でき、他人の行動履歴が見えてしまう</td></tr>
+        <tr><td><strong>信頼性</strong></td><td>外部APIが停止・遅延したときバッチが異常終了し、誰も気づかないまま翌朝を迎える</td></tr>
+        <tr><td><strong>互換性</strong></td><td>ICカード事業者API側の仕様変更で項目が変わり、取込が静かに欠落する</td></tr>
+        <tr><td><strong>使用性</strong></td><td>履歴一覧の並び順や表示が崩れ、目的の履歴を探しづらい</td></tr>
+      </table>
+      <p class="small" style="margin-top:8px;">
+        <strong>非機能はここで機械的に出る</strong>ことを体感させる。「思い出そうとしない」のがポイント。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="5. ワーク① — Step A 解答例" data-toc="解答例：レンズ④ 過去と現場">
+    <span class="badge">講師用</span>
+    <h2>Step A 解答例 — レンズ④ 過去と現場</h2>
+    <div class="body">
+      <table>
+        <tr><th>リスク文</th></tr>
+        <tr><td>過去の障害と同様に、連携のリトライで重複が発生する（＝①の重複と統合し、優先して確認する）</td></tr>
+        <tr><td>開発者が不安と言う月またぎで、前月分の履歴が当月に混ざり、締めた月の金額が変わる</td></tr>
+        <tr><td>旧システムから移行した未精算データと取込分が突合されず、二重に残る</td></tr>
+        <tr><td>カード再発行・退職・部署異動など、運用で必ず起きるイベントで登録カードの紐付けが壊れる</td></tr>
+      </table>
+      <div class="work">
+        <span class="tag">締め方</span>
+        4レンズ合計16個。<strong>正解のリストではありません</strong> —
+        大事なのは「<em>レンズを順に当てれば、思いつきではこの数は出ない</em>」と体感すること。<br>
+        なお④は①③と内容が重なることが多く、それは<strong>重なった＝重要度の高いサイン</strong>として扱う（統合して優先を上げる）。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. ワーク①" data-toc="Step B — 評価して濃淡に翻訳する">
+    <h2>Step B — 評価して濃淡に翻訳する<small>グループ9分 → 共有3分</small></h2>
+    <div class="body">
+      <div class="work" style="margin-top:0;">
+        <span class="tag">やること</span>
+        Step A のリストから<strong>6件を選び</strong>、影響度・発生確率を<strong>高／中／低</strong>で付けてマトリクスに配置し、
+        テストの濃淡（厚くする所・薄くする所）を決めてください。
+      </div>
+      <ul>
+        <li>評価は<strong>相対</strong>です。全部「高」になったら
+          <em>「時間が半分になったらどれを削るか」</em>で並べ替えてください</li>
+        <li>6件のうち<strong>非機能（性能・セキュリティ・信頼性など）を最低1つ</strong>含めること</li>
+        <li>6件のうち<strong>「薄くする」判断を最低1つ</strong>含めること</li>
+      </ul>
+      <p class="small">
+        共有では「<strong>一番薄くした箇所とその理由</strong>」をチームで1つ発表します。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="5. ワーク① — Step B 解答例" data-toc="解答例：マトリクス配置（1）">
+    <span class="badge">講師用</span>
+    <h2>Step B 解答例 — 配置の一例（1/2）</h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th style="width:30%">リスク</th><th class="c" style="width:9%">影響度</th><th class="c" style="width:11%">発生確率</th><th>濃淡の判断</th></tr>
+        <tr>
+          <td>取込データの重複・欠落（同じ履歴が2回申請される／履歴が消える）</td>
+          <td class="c">高</td><td class="c">高</td>
+          <td><strong>最優先</strong>。精算金額に直結×外部API連携＋新規開発。
+            境界（日またぎ・月またぎ・取込失敗後の再実行）を技法で設計＋探索も重ねる</td>
+        </tr>
+        <tr>
+          <td>除外フラグの誤り（私用の履歴が申請に混入する）</td>
+          <td class="c">高</td><td class="c">中</td>
+          <td><strong>厚く</strong>。「私費の経費化」はコンプライアンス問題。フラグ操作×申請変換の状態遷移を網羅</td>
+        </tr>
+        <tr>
+          <td>他人のカードを登録できてしまう（権限・本人確認）</td>
+          <td class="c">高</td><td class="c">低</td>
+          <td><strong>重点確認</strong>。起きにくいが起きたら信用問題。すり抜けシナリオを絞って確実に確認</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="5. ワーク① — Step B 解答例" data-toc="解答例：マトリクス配置（2）">
+    <span class="badge">講師用</span>
+    <h2>Step B 解答例 — 配置の一例（2/2）</h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th style="width:30%">リスク</th><th class="c" style="width:9%">影響度</th><th class="c" style="width:11%">発生確率</th><th>濃淡の判断</th></tr>
+        <tr>
+          <td>夜間バッチが朝までに終わらない（全社員分の履歴取込の性能）</td>
+          <td class="c">中</td><td class="c">中</td>
+          <td>本番相当件数でのバッチ実行を1回は必ずやる（環境とデータの準備を計画に入れる — 第3回の見積りの話）</td>
+        </tr>
+        <tr>
+          <td>履歴編集画面の入力チェック（金額のマイナス・全角など）</td>
+          <td class="c">中</td><td class="c">高</td>
+          <td><strong>効率化</strong>。よくあるバグだが直しやすい。チェックリスト＋自動化候補（第6回）</td>
+        </tr>
+        <tr>
+          <td>履歴一覧の表示崩れ・並び順</td>
+          <td class="c">低</td><td class="c">中</td>
+          <td><strong>薄く</strong>。スモークのみ。「業務影響が小さいため薄くする」と計画に明記</td>
+        </tr>
+      </table>
+      <div class="work">
+        <span class="tag">伝えること</span>
+        重要なのは配置の「正解」ではなく、<strong>チームで影響度・確率の根拠を議論して合意した</strong>こと。
+        本番では、この表を開発者・PMにも見せて認識を合わせてからテスト設計に入る。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="5. ワーク① — 進行" data-toc="ワークの狙いと進め方（1）">
+    <span class="badge">講師用</span>
+    <h2>このワークの狙いと進め方（1/2）<small>タイムテーブル: Step A 個人3分 → グループ7分 → 共有3分 ／ Step B グループ9分 → 共有3分（計25分）</small></h2>
+    <div class="body">
+      <ul>
+        <li><strong>Step A は必ず個人3分から始める</strong>。いきなりグループにすると声の大きい人のリストになり、
+          「自分で洗い出す」練習にならない</li>
+        <li>Step A 中に評価の議論（「これは低いよね」）が始まったら止める。
+          <strong>「今は出す時間、評価は後」</strong>と繰り返す。<em>ここを分けるのがこのワークの主眼</em></li>
+        <li>手が止まったチームには、評価軸ではなく<strong>レンズの名前</strong>を渡す:
+          「品質特性のレンズはもう当てた？」「開発者が不安だと言っていた所は？」。
+          <em>ヒントの出し方を手順に寄せると、次回から自走できる</em></li>
+        <li>共有3分は「他チームが出していなさそうな1つ」に限定して時間を守る。
+          ここで<strong>講師が抜けたレンズを補完</strong>してからStep Bへ</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="5. ワーク① — 進行" data-toc="ワークの狙いと進め方（2）">
+    <span class="badge">講師用</span>
+    <h2>このワークの狙いと進め方（2/2）</h2>
+    <div class="body">
+      <ul>
+        <li>Step B で「全部高リスク」にするチームには
+          <strong>「時間が半分になったらどれを削る？」</strong>と問い、<em>相対評価</em>であることを促す</li>
+        <li>「除外フラグ」は機能としては地味だが、コンプライアンス影響に気づくと影響度が跳ね上がる
+          — <strong>影響度は業務の文脈で決まる</strong>ことを体感させる</li>
+        <li>発表では「薄くした理由」が説明になっているかを講評する<br>
+          <span class="small">（「時間がないから」はNG、「影響が小さく回避策があるから」はOK）</span></li>
+        <li><strong>時間が押した場合</strong>: Step B の件数を6→4に減らす。
+          <em>Step A を削ってはいけない</em>（今日の中心はそこ）</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 6. 探索的テスト入門 ============ -->
+  <section class="slide sec" data-section="Section 6" data-toc="【中扉】探索的テスト入門">
+    <div class="num">SECTION 6</div>
+    <h1>探索的テスト入門</h1>
+    <div><span class="time-badge">10分</span></div>
+    <div class="agenda">スクリプトテストの死角 ／ セッションという型 ／ チャーターの書き方</div>
+  </section>
+
+  <section class="slide" data-section="6. 探索的テスト入門" data-toc="スクリプトテストの死角を埋める">
+    <h2>スクリプトテストの死角を埋める</h2>
+    <div class="body">
+      <p>
+        事前に書いたテストケース（スクリプトテスト）は、<em>書いた人の想像の範囲</em>しか確かめられません。
+        さらに同じケースを繰り返すほど新しいバグは見つからなくなります
+        <span class="small">（殺虫剤のパラドックス — 7原則の5）</span>。
+      </p>
+      <div class="mind">
+        <span class="tag">探索的テストとは</span>
+        <strong>テストの設計・実行・学習を同時に行い、直前の結果から次の一手を決める</strong>やり方。
+      </div>
+      <p style="margin-top:16px;">
+        第2回で「仕様だけでは挙動を掴みにくい新機能は、短時間の探索を先に行うと設計材料が増える」と触れました。
+        今日は<strong>それを仕事として成立させる型</strong>を学びます。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. 探索的テスト入門" data-toc="セッションという型（SBT）">
+    <h2>「行き当たりばったり」との違い — セッションという型<small>この型をセッションベースドテスト（SBT）と呼ぶ</small></h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:22%">要素</th><th>内容</th></tr>
+        <tr><td><strong>チャーター</strong></td>
+          <td>このセッションで「何を・どんな観点で・何のために」探索するかのお題。<strong>1セッション1チャーター</strong></td></tr>
+        <tr><td><strong>時間箱</strong></td>
+          <td>60〜120分で区切る（それ以上は集中が切れる）。区切るから集中でき、報告の単位になる</td></tr>
+        <tr><td><strong>セッションノート</strong></td>
+          <td>試したこと・起きたこと・気になったことをメモしながら進める。<strong>記録がない探索は蒸発する</strong></td></tr>
+        <tr><td><strong>デブリーフィング</strong></td>
+          <td>セッション後にリーダーへ口頭報告。見つけた問題＋<strong>「次に探索すべき場所」の提案</strong></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. 探索的テスト入門" data-toc="チャーターの書き方">
+    <h2>チャーターの書き方</h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;text-align:center;font-size:22px;padding:20px;">
+        <em>「〈対象〉を、〈リソース・データ〉を使って探索し、<br>〈見つけたい情報〉を明らかにする」</em>
+      </div>
+      <div class="good-box">
+        <span class="tag">チャーターの例（IC連携機能）</span>
+        <ul style="margin:6px 0 0;">
+          <li>「<strong>除外フラグまわり</strong>を、<strong>月またぎ・締め日直前の履歴データ</strong>を使って探索し、
+            <strong>精算金額に影響する問題がないか</strong>を明らかにする」</li>
+          <li>「<strong>履歴の編集→申請変換の流れ</strong>を、<strong>編集途中の中断・二重操作</strong>を混ぜて探索し、
+            <strong>データが壊れる操作列がないか</strong>を明らかにする」</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. 探索的テスト入門" data-toc="リスク分析と探索はセットで使う">
+    <h2>リスク分析と探索は、セットで使う</h2>
+    <div class="body">
+      <div class="mind" style="margin-top:0;">
+        <span class="tag">今日のワークとのつながり</span>
+        ワーク①で<strong>「高」にしたリスクが、そのまま良いチャーターになる</strong>。
+      </div>
+      <p style="margin-top:20px;">
+        洗い出した<strong>リスク文の「何が起きて」の部分</strong>が、
+        <em>探索で確かめにいく仮説そのもの</em>だからです。
+      </p>
+      <div class="example">
+        <span class="tag">流れ</span>
+        リスク文「除外フラグを付けた私用の履歴が申請の合計金額に含まれ、私費が経費で精算される」<br>
+        　↓<br>
+        チャーター「除外フラグまわりを、月またぎの履歴データを使って探索し、精算金額に影響する問題がないかを明らかにする」
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. 探索的テスト入門" data-toc="探索中の思考法">
+    <h2>探索中の思考法</h2>
+    <div class="body">
+      <ul>
+        <li>「おや？」と思ったら<strong>深追いする</strong>。バグは群れている（欠陥の偏在）— <em>1匹見つけたら周辺を掘る</em></li>
+        <li><strong>学んだことで次の一手を変える。</strong>「日付の編集が怪しい」と分かったら、日付が絡む操作を集中的に試す</li>
+        <li>チャーターから大きく外れたら、無理に追わず<strong>ノートに「次のチャーター候補」として書き残す</strong></li>
+      </ul>
+      <div class="mind">
+        <span class="tag">マインドセット</span>
+        探索がうまい人は運がいいのではなく、<strong>仮説→実験→学習を高速に回している</strong>。
+        「この作りなら、ここが弱いはず」という仮説の質は、<em>ドメイン知識と過去の不具合の記憶</em>から来る。<br>
+        探索的テストは<strong>キャリアと共に強くなるスキル</strong>。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="6. 探索的テスト入門 — 任意" data-toc="ミニ探索セッション（任意）">
+    <span class="badge">講師用・任意</span>
+    <h2>ミニ探索セッションをやってみる<small>時間が余ったとき／OJT用</small></h2>
+    <div class="body">
+      <p>
+        15分あれば「講師がシステム役」の口頭形式で体験できます
+        <span class="small">（チャーター作成5分 → 探索7分 → デブリーフィング3分）</span>。
+        デモ環境やモックがあればそれを使うのが理想。
+      </p>
+      <ul>
+        <li><strong>口頭形式の進め方</strong>: 受講者「除外フラグを付けた履歴を、そのあと申請に変換してみます」
+          → 講師「変換できてしまいました」のように応答する</li>
+        <li><strong>仕込み例</strong>: (a) 除外フラグ付き履歴が申請一覧の合計金額には含まれてしまう
+          (b) 履歴を編集中に別タブで同じ履歴を開くと古い内容で上書きできる
+          (c) 月末23時台の履歴が翌月分として取り込まれる</li>
+        <li>チャーターに沿わないランダムな操作宣言が続くグループには<strong>「今のチャーターは何だった？」</strong>と立ち返らせる</li>
+        <li>デブリーフィングでは「見つけた不具合の数」ではなく
+          <strong>「次に探索すべき場所を提案できたか」</strong>を褒める — <em>探索の成果は情報である</em></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ まとめ ============ -->
+  <section class="slide sec" data-section="Closing" data-toc="【中扉】まとめ">
+    <div class="num">CLOSING</div>
+    <h1>まとめ</h1>
+    <div><span class="time-badge">5分</span></div>
+  </section>
+
+  <section class="slide" data-section="まとめ" data-toc="持ち帰り（1）戦略とリスク分析">
+    <h2>今日の持ち帰り（1/2）</h2>
+    <div class="body">
+      <ul>
+        <li>戦略とは<strong>「やらないことを決めて、説明できること」</strong>。
+          アプローチはリリースの性質に合わせて<em>毎回配合し直す</em></li>
+        <li>リスク分析は<strong>① 洗い出す → ② 評価する → ③ 濃淡に翻訳する</strong>の3ステップ。
+          <strong>①と②は混ぜない</strong>（出しながら評価すると数が出ない）</li>
+        <li>洗い出しは手順でやる —
+          <strong>4つのレンズ</strong>（流れ・変更点・品質特性・過去と現場）
+          → <strong>引き金の質問</strong>
+          → <strong>リスク文</strong>（どこで・何が起きて・どう困るか）</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="まとめ" data-toc="持ち帰り（2）評価と探索">
+    <h2>今日の持ち帰り（2/2）</h2>
+    <div class="body">
+      <ul>
+        <li><strong>非機能リスク</strong>（性能・セキュリティ・信頼性）は<strong>品質特性のレンズ</strong>で機械的に出す。
+          <em>思い出そうとしない</em></li>
+        <li>優先順位のものさしは<em>リスク ＝ 影響度 × 発生確率</em>。
+          影響度は<strong>業務の文脈</strong>（お金・業務停止・信用）、
+          発生確率は<strong>複雑さ・変更・過去の欠陥</strong>から読む</li>
+        <li>探索的テストは「<strong>チャーター・時間箱・ノート・報告</strong>」の型を持てば仕事になる。
+          <strong>「高」にしたリスクがそのままチャーターになる</strong></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="まとめ" data-toc="次回予告とシラバス対応">
+    <h2>次回予告</h2>
+    <div class="body">
+      <div class="mind" style="margin-top:0;">
+        <span class="tag">第5回 — シフトレフトと上流品質</span>
+        次回は視点を<strong>上流</strong>へ移します。<br>
+        「テストで見つける」より安い<strong>「そもそも作り込ませない」</strong> — シフトレフトとレビューの話です。
+      </div>
+      <div class="example">
+        <span class="tag">シラバス対応</span>
+        ISTQB CTFL 2023 V4.0 — 第5章（5.2 リスクマネジメント）、第4章（4.4 経験ベースのテスト技法）／
+        ISTQB Advanced Level Test Management — リスクベースドテスト
+      </div>
+      <p class="small" style="margin-top:16px;">
+        資料版（読み物形式）は <code>phase4.html</code>、Step2の目次は <code>index.html</code> にあります。
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<div id="progress"></div>
+<div id="hud"><b>←/→</b> ページ　<b>O</b> 目次　<b>T</b> 講師用切替　<b>F</b> 全画面　<b>?</b> ヘルプ</div>
+
+<div class="overlay" id="toc">
+  <h3>目次 — クリックでジャンプ（Esc で閉じる）</h3>
+  <div id="tocList"></div>
+</div>
+
+<div class="overlay" id="help">
+  <h3>キーボード操作（Esc で閉じる）</h3>
+  <div class="keys">
+    <div><kbd>→</kbd> <kbd>↓</kbd> <kbd>Space</kbd> <kbd>PgDn</kbd></div><div>次のスライド</div>
+    <div><kbd>←</kbd> <kbd>↑</kbd> <kbd>PgUp</kbd></div><div>前のスライド</div>
+    <div><kbd>Home</kbd> / <kbd>End</kbd></div><div>最初 / 最後へ</div>
+    <div><kbd>O</kbd></div><div>目次を開く</div>
+    <div><kbd>T</kbd></div><div>講師用スライド（オレンジ）の表示／非表示</div>
+    <div><kbd>F</kbd></div><div>全画面表示</div>
+    <div><kbd>?</kbd></div><div>このヘルプ</div>
+  </div>
+  <div class="hint">
+    画面左半分クリックで前へ、右半分クリックで次へ進みます。<br>
+    印刷（Ctrl+P）すると、全スライドが1ページ1枚で出力されます（配布資料用。横向き・余白なし推奨）。
+  </div>
+</div>
+
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var tocEl = document.getElementById('toc');
+  var tocList = document.getElementById('tocList');
+  var helpEl = document.getElementById('help');
+  var hideTeacher = false;
+  var cur = 0;
+
+  // ページ番号を各スライドに埋め込む
+  slides.forEach(function (s, i) {
+    var n = document.createElement('div');
+    n.className = 'pnum';
+    n.textContent = (i + 1) + ' / ' + slides.length;
+    s.appendChild(n);
+  });
+
+  // ---- 画面サイズに合わせて 1280x720 を拡大縮小 ----
+  function fit() {
+    var scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    if (!isFinite(scale) || scale <= 0) scale = 1; // ウィンドウが未表示（0×0）のときに潰れないように
+    stage.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  function isTeacher(i) { return slides[i].classList.contains('teacher'); }
+
+  function show(i) {
+    if (i < 0) i = 0;
+    if (i > slides.length - 1) i = slides.length - 1;
+    slides[cur].classList.remove('active');
+    cur = i;
+    slides[cur].classList.add('active');
+    progress.style.width = ((cur + 1) / slides.length * 100) + '%';
+    history.replaceState(null, '', '#' + (cur + 1));
+    markToc();
+  }
+
+  function step(d) {
+    var i = cur;
+    do {
+      i += d;
+      if (i < 0 || i > slides.length - 1) return;
+    } while (hideTeacher && isTeacher(i));
+    show(i);
+  }
+
+  function jumpEdge(d) {
+    var i = d < 0 ? 0 : slides.length - 1;
+    while (hideTeacher && isTeacher(i) && i > 0 && i < slides.length - 1) i += (d < 0 ? 1 : -1);
+    show(i);
+  }
+
+  // ---- 目次 ----
+  function buildToc() {
+    var lastSec = null;
+    tocList.innerHTML = '';
+    slides.forEach(function (s, i) {
+      var sec = s.getAttribute('data-section') || '';
+      if (sec !== lastSec) {
+        var h = document.createElement('div');
+        h.className = 'toc-sec';
+        h.textContent = sec;
+        tocList.appendChild(h);
+        lastSec = sec;
+      }
+      var a = document.createElement('a');
+      a.href = '#' + (i + 1);
+      a.dataset.i = i;
+      if (s.classList.contains('teacher')) a.className = 't';
+      else if (s.classList.contains('note')) a.className = 'nt';
+      a.innerHTML = '<span class="n">' + (i + 1) + '</span>' +
+        (s.getAttribute('data-toc') || '').replace(/</g, '&lt;');
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        show(parseInt(this.dataset.i, 10));
+        closeOverlays();
+      });
+      tocList.appendChild(a);
+    });
+  }
+  function markToc() {
+    var links = tocList.querySelectorAll('a');
+    for (var i = 0; i < links.length; i++) {
+      links[i].classList.toggle('cur', parseInt(links[i].dataset.i, 10) === cur);
+    }
+  }
+  buildToc();
+
+  function closeOverlays() {
+    tocEl.classList.remove('open');
+    helpEl.classList.remove('open');
+  }
+  function toggle(el) {
+    var wasOpen = el.classList.contains('open');
+    closeOverlays();
+    if (!wasOpen) el.classList.add('open');
+  }
+
+  // ---- 講師用スライドの表示切替 ----
+  function toggleTeacher() {
+    hideTeacher = !hideTeacher;
+    if (hideTeacher && isTeacher(cur)) {
+      var i = cur;
+      while (i < slides.length - 1 && isTeacher(i)) i++;
+      show(i);
+    }
+    flash(hideTeacher ? '講師用スライド: 非表示（送り時にスキップ）' : '講師用スライド: 表示');
+  }
+
+  var toast;
+  function flash(msg) {
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);' +
+        'background:rgba(20,11,18,.94);color:#e2e8f0;padding:8px 18px;border-radius:999px;' +
+        'font-size:13px;z-index:50;transition:opacity .3s;pointer-events:none;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { toast.style.opacity = '0'; }, 1600);
+  }
+
+  // ---- キー操作 ----
+  document.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === 'Escape') { closeOverlays(); return; }
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === ' ' || k === 'PageDown') { e.preventDefault(); step(1); }
+    else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') { e.preventDefault(); step(-1); }
+    else if (k === 'Home') { e.preventDefault(); jumpEdge(-1); }
+    else if (k === 'End') { e.preventDefault(); jumpEdge(1); }
+    else if (k === 'o' || k === 'O') { toggle(tocEl); }
+    else if (k === 't' || k === 'T') { toggleTeacher(); }
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    }
+    else if (k === '?' || k === '/') { toggle(helpEl); }
+  });
+
+  // ---- クリック／タップ操作 ----
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.overlay')) return;
+    if (e.target.closest('a')) return;
+    if (tocEl.classList.contains('open') || helpEl.classList.contains('open')) { closeOverlays(); return; }
+    step(e.clientX < window.innerWidth / 2 ? -1 : 1);
+  });
+
+  // ---- スワイプ ----
+  var sx = null;
+  document.addEventListener('touchstart', function (e) { sx = e.changedTouches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
+    sx = null;
+  }, { passive: true });
+
+  // ---- 初期表示（#12 のようなハッシュに対応） ----
+  var start = parseInt((location.hash || '').replace('#', ''), 10);
+  slides[0].classList.add('active');
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>

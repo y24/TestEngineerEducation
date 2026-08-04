@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第5回 シフトレフトと上流品質（スライド）</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #7c2d5e;
+    --accent-light: #faeef5;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #140b12;
+    color: var(--ink);
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    overflow: hidden;
+  }
+
+  /* ---------- ステージ（1280×720を画面いっぱいに拡大縮小） ---------- */
+  #stage {
+    position: absolute; left: 50%; top: 50%;
+    width: 1280px; height: 720px;
+    transform-origin: center center;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    background: #fff;
+    padding: 76px 62px 54px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    line-height: 1.75;
+    font-size: 21px;
+  }
+  .slide.active { display: flex; }
+  .slide::before {
+    content: attr(data-section);
+    position: absolute; left: 62px; top: 30px;
+    font-size: 15px; letter-spacing: .06em; color: var(--muted);
+  }
+  .slide::after {
+    content: ""; position: absolute; left: 0; top: 0;
+    width: 100%; height: 7px; background: var(--accent);
+  }
+  .slide > h2 {
+    margin: 0 0 20px; padding-bottom: 12px;
+    font-size: 33px; line-height: 1.35; color: var(--accent);
+    border-bottom: 2px solid var(--accent-light);
+  }
+  .slide > h2 small { display: block; font-size: 17px; color: var(--muted); font-weight: normal; margin-top: 6px; }
+  .body { flex: 1; min-height: 0; }
+  .body > :first-child { margin-top: 0; }
+  .body > :last-child { margin-bottom: 0; }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 1.4em; }
+  li { margin-bottom: 8px; }
+  li:last-child { margin-bottom: 0; }
+  em { font-style: normal; background: linear-gradient(transparent 62%, #fde68a 62%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  .small { font-size: .86em; color: var(--muted); }
+  .c { text-align: center; }
+
+  /* ---------- 表紙・中扉 ---------- */
+  .slide.cover, .slide.sec {
+    background: var(--accent); color: #fff;
+    justify-content: center;
+  }
+  .slide.cover::before, .slide.sec::before { color: rgba(255,255,255,.7); }
+  .slide.cover::after, .slide.sec::after { background: var(--work); }
+  .slide.cover .label { font-size: 19px; letter-spacing: .1em; opacity: .85; margin-bottom: 18px; }
+  .slide.cover h1 { margin: 0 0 26px; font-size: 50px; line-height: 1.35; }
+  .slide.cover .lead { font-size: 22px; opacity: .92; margin: 0; }
+  .slide.cover .meta { margin-top: 46px; font-size: 17px; opacity: .7; }
+  .slide.sec .num { font-size: 20px; letter-spacing: .18em; opacity: .75; margin-bottom: 14px; }
+  .slide.sec h1 { margin: 0; font-size: 46px; line-height: 1.35; }
+  .slide.sec .time-badge {
+    display: inline-block; margin-top: 26px; padding: 5px 18px;
+    border: 1px solid rgba(255,255,255,.55); border-radius: 999px; font-size: 17px;
+  }
+  .slide.sec .agenda { margin-top: 30px; font-size: 19px; opacity: .85; line-height: 2; }
+
+  /* ---------- 講師用 / 補足スライド ---------- */
+  .slide.teacher { background: #fffdf7; }
+  .slide.teacher::after { background: var(--work); }
+  .slide.teacher > h2 { color: var(--work); border-bottom-color: #fde9c8; }
+  .slide.note { background: #f7fefd; }
+  .slide.note::after { background: var(--mind); }
+  .slide.note > h2 { color: var(--mind); border-bottom-color: #cbf0ea; }
+  .badge {
+    position: absolute; right: 62px; top: 26px;
+    color: #fff; font-size: 13px; letter-spacing: .08em; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .teacher .badge { background: var(--work); }
+  .note .badge { background: var(--mind); }
+
+  /* ---------- 箱 ---------- */
+  .mind, .work, .example { border-radius: 10px; padding: 16px 22px; margin: 16px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .mind .tag, .work .tag, .example .tag {
+    display: block; margin-bottom: 6px;
+    font-weight: 700; font-size: 15px; letter-spacing: .05em;
+  }
+  .mind .tag { color: var(--mind); }
+  .work .tag { color: var(--work); }
+  .example .tag { color: #4b5563; }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
+
+  /* ---------- 表 ---------- */
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 18.5px; line-height: 1.6; }
+  th, td { border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  th.c, td.c { text-align: center; }
+  .teacher th { background: #fdf3e3; color: var(--work); }
+  .note th { background: #e9f8f6; color: var(--mind); }
+  table.dense { font-size: 17px; }
+
+  /* ---------- 図 ---------- */
+  figure { margin: 10px 0; text-align: center; }
+  figure svg { display: block; margin: 0 auto; height: auto; max-width: 100%; }
+  figcaption { font-size: 15.5px; color: var(--muted); margin-top: 8px; line-height: 1.65; text-align: left; }
+
+  /* ---------- 2カラム ---------- */
+  .cols { display: flex; gap: 24px; }
+  .cols > * { flex: 1; min-width: 0; }
+
+  /* ---------- UI ---------- */
+  .pnum { position: absolute; right: 62px; bottom: 22px; font-size: 15px; color: #9ca3af; letter-spacing: .05em; }
+  .cover .pnum, .sec .pnum { color: rgba(255,255,255,.6); }
+  .teacher .pnum { color: #c9a06a; }
+  .note .pnum { color: #7fb8b0; }
+  #progress {
+    position: fixed; left: 0; bottom: 0; height: 4px;
+    background: var(--work); width: 0; transition: width .18s ease; z-index: 30;
+  }
+  #hud { position: fixed; left: 14px; bottom: 12px; z-index: 30; font-size: 12px; color: #8b7080; letter-spacing: .04em; }
+  #hud b { color: #b99aab; font-weight: 600; }
+  .overlay {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(20,11,18,.95); color: #e5e7eb;
+    display: none; flex-direction: column; padding: 34px 42px; font-size: 14px;
+  }
+  .overlay.open { display: flex; }
+  .overlay h3 { margin: 0 0 16px; font-size: 18px; color: #fff; font-weight: 700; }
+  #tocList { flex: 1; overflow: auto; column-count: 3; column-gap: 34px; }
+  #tocList .toc-sec {
+    break-inside: avoid; margin: 0 0 6px; padding-top: 10px;
+    font-size: 12px; letter-spacing: .08em; color: #f0abfc; font-weight: 700;
+  }
+  #tocList a { display: block; break-inside: avoid; color: #d8cad2; text-decoration: none; padding: 3px 8px; border-radius: 5px; line-height: 1.5; }
+  #tocList a:hover { background: #3b2233; color: #fff; }
+  #tocList a .n { color: #8b7080; margin-right: 8px; font-variant-numeric: tabular-nums; }
+  #tocList a.t .n { color: #f59e0b; }
+  #tocList a.nt .n { color: #2dd4bf; }
+  #tocList a.cur { background: var(--accent); color: #fff; }
+  .keys { display: grid; grid-template-columns: 130px 1fr; gap: 8px 16px; max-width: 620px; }
+  .keys kbd { background: #3b2233; border: 1px solid #5b3a4f; border-radius: 5px; padding: 2px 8px; font-family: inherit; font-size: 12px; color: #e2e8f0; }
+  .overlay .hint { margin-top: 20px; color: #8b7080; }
+
+  /* ---------- 印刷 ---------- */
+  @media print {
+    body { background: #fff; overflow: visible; }
+    #stage { position: static; transform: none !important; width: auto; height: auto; }
+    .slide { position: static; display: flex !important; width: 1280px; height: 720px; page-break-after: always; }
+    #progress, #hud, .overlay { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <!-- ============ 表紙 ============ -->
+  <section class="slide cover" data-section="テストエンジニア育成講座 — Step2" data-toc="表紙">
+    <div class="label">第 5 回（90分）</div>
+    <h1>シフトレフトと上流品質</h1>
+    <p class="lead">— テスト実行前に品質を作り込む<br><br>
+      最も安い不具合修正は、<strong>コードが書かれる前の修正</strong>。<br>QAの主戦場をテストフェーズの外に広げる。</p>
+    <div class="meta">← / → キーでページ送り　　O: 目次　　T: 講師用スライドの表示切替　　? : ヘルプ</div>
+  </section>
+
+  <section class="slide" data-section="オリエンテーション" data-toc="今日のゴール">
+    <h2>今日のゴール</h2>
+    <div class="body">
+      <ul>
+        <li>「早期テストで時間とコストを節約」（7原則）を、
+          レビューという<strong>実行可能な行動</strong>に変換できる</li>
+        <li><strong>シフトレフト（活動を早い工程へ）</strong>と<strong>検出から予防へ（QCからQA）</strong>を
+          区別して説明でき、両方を満たす活動を挙げられる</li>
+        <li>要件・設計ドキュメントを、<strong>テスト観点を武器に</strong>レビューできる</li>
+        <li>受け入れ条件と具体例（<strong>実例マッピング</strong>）で、実装前に仕様の認識を揃えられる</li>
+      </ul>
+      <div class="example">
+        <span class="tag">今日の流れ</span>
+        1. 前回の振り返り（5分）／ 2. シフトレフトの費用対効果（23分）／ 3. レビュー技法（15分）／
+        4. ワーク① 要件レビュー（15分）／ 5. 受け入れ条件と実例マッピング（15分）／
+        6. ワーク② 実例マッピング（15分）／ 7. まとめ（7分）
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 1. 前回の振り返り ============ -->
+  <section class="slide sec" data-section="Section 1" data-toc="【中扉】前回の振り返り">
+    <div class="num">SECTION 1</div>
+    <h1>前回の振り返り</h1>
+    <div><span class="time-badge">5分</span></div>
+  </section>
+
+  <section class="slide" data-section="1. 前回の振り返り" data-toc="リスク分析には続きがある">
+    <h2>リスク分析には、続きがある</h2>
+    <div class="body">
+      <p>
+        第4回では、リスク（影響度×発生確率）を共通のものさしにして<strong>テストの濃淡を決める方法</strong>と、
+        <strong>探索的テストの型</strong>を学びました。
+      </p>
+      <div class="mind">
+        <span class="tag">今日の出発点</span>
+        <em>リスクが高いと分かっている場所なら、テストで捕まえるより前に、<strong>作り込ませないほうが安い</strong>。</em>
+      </div>
+      <p style="margin-top:18px;">
+        今日は<strong>テスト実行が始まる前</strong>、要件・設計の段階でQAが何をできるかの話です。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 2. シフトレフトの費用対効果 ============ -->
+  <section class="slide sec" data-section="Section 2" data-toc="【中扉】シフトレフトの費用対効果">
+    <div class="num">SECTION 2</div>
+    <h1>シフトレフトの費用対効果</h1>
+    <div><span class="time-badge">23分</span></div>
+    <div class="agenda">並走するQA活動 ／ なぜ早く見つけると安いのか ／ 品質のアクセラレーターへ</div>
+  </section>
+
+  <section class="slide" data-section="2. シフトレフト" data-toc="テストを左（上流）へずらす">
+    <h2>シフトレフト — テストを左（上流）へずらす</h2>
+    <div class="body">
+      <p>
+        開発工程を左から右へ並べたとき、テスト活動を右端（テストフェーズ）に置くのではなく、
+        <em>各工程に並走させる</em>のがシフトレフトです。
+      </p>
+      <div class="mind">
+        <span class="tag">まず意識すべきこと</span>
+        <strong>検証できる対象は「動くソフトウェア」だけではない。</strong><br>
+        要件書も設計書もテスト対象になります
+        <span class="small">（動かさずに読んで欠陥を見つけるので<strong>静的テスト</strong>と呼びます）</span>。
+      </div>
+      <p style="margin-top:16px;">
+        だから、開発者が工程ごとの成果物を作成するたびに、QAには<strong>その場ですぐ始められる仕事</strong>があります。
+        <em>成果物ができた時点で手を動かし始める</em> — これが並走の中身です。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. シフトレフト" data-toc="並走中のQAは2本立て">
+    <h2>並走中のQAの仕事は、どの工程でも2本立て</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:18%">2本立て</th><th style="width:40%">やること</th><th>基本設計フェーズでの例</th></tr>
+        <tr>
+          <td><strong>① 読む</strong><br><span class="small">レビュー</span></td>
+          <td>いま出てきた成果物を、<strong>テスト観点を武器に</strong>読み、抜け・曖昧さ・矛盾を指摘する</td>
+          <td>基本設計書を読み「承認が差し戻されたときの画面遷移が書かれていない」と指摘する</td>
+        </tr>
+        <tr>
+          <td><strong>② 作る</strong><br><span class="small">テスト設計の前倒し</span></td>
+          <td>その成果物をもとに、後で使うテストを<strong>今のうちに</strong>設計しておく</td>
+          <td>その設計書からシステムテストのテスト条件を洗い出し始める</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. シフトレフト" data-toc="②をやること自体が①になる">
+    <h2>②「作る」は、実は強力な検出手段</h2>
+    <div class="body">
+      <p>
+        ②は「準備を早めるだけ」に見えて、実は強力な検出手段です。
+        <em>テストケースを書こうとすると、仕様の穴が自動的に見つかります。</em>
+      </p>
+      <div class="good-box">
+        <span class="tag">手が止まったら、それは発見</span>
+        期待結果の欄を埋めようとして手が止まったら、それは自分の理解不足ではなく
+        <strong>仕様がまだ決まっていないという発見</strong>です。
+      </div>
+      <div class="mind">
+        <span class="tag">つまり</span>
+        <strong>②をやること自体が①になっている</strong> — これがシフトレフトの効率のよさ。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. シフトレフト" data-toc="各工程に並走するQA活動（図）">
+    <h2>テストフェーズを待たない</h2>
+    <div class="body">
+      <figure style="margin-top:0;">
+        <svg viewBox="0 0 800 300" style="width:1010px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="開発工程に並走するテスト活動">
+          <g font-family="sans-serif" font-size="13">
+            <rect x="20"  y="40" width="140" height="52" rx="8" fill="#7c2d5e"/>
+            <rect x="180" y="40" width="140" height="52" rx="8" fill="#7c2d5e"/>
+            <rect x="340" y="40" width="140" height="52" rx="8" fill="#7c2d5e"/>
+            <rect x="500" y="40" width="140" height="52" rx="8" fill="#7c2d5e"/>
+            <rect x="660" y="40" width="120" height="52" rx="8" fill="#7c2d5e"/>
+            <text x="90"  y="71" text-anchor="middle" fill="#fff">要件定義</text>
+            <text x="250" y="71" text-anchor="middle" fill="#fff">基本設計</text>
+            <text x="410" y="71" text-anchor="middle" fill="#fff">詳細設計</text>
+            <text x="570" y="71" text-anchor="middle" fill="#fff">実装</text>
+            <text x="720" y="71" text-anchor="middle" fill="#fff">テスト</text>
+            <line x1="160" y1="66" x2="180" y2="66" stroke="#6b7280" stroke-width="2"/>
+            <line x1="320" y1="66" x2="340" y2="66" stroke="#6b7280" stroke-width="2"/>
+            <line x1="480" y1="66" x2="500" y2="66" stroke="#6b7280" stroke-width="2"/>
+            <line x1="640" y1="66" x2="660" y2="66" stroke="#6b7280" stroke-width="2"/>
+            <line x1="90"  y1="92" x2="90"  y2="150" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3"/>
+            <line x1="250" y1="92" x2="250" y2="150" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3"/>
+            <line x1="410" y1="92" x2="410" y2="150" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3"/>
+            <line x1="570" y1="92" x2="570" y2="150" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3"/>
+            <line x1="720" y1="92" x2="720" y2="150" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3"/>
+            <rect x="20"  y="150" width="140" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+            <rect x="180" y="150" width="140" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+            <rect x="340" y="150" width="140" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+            <rect x="500" y="150" width="140" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+            <rect x="660" y="150" width="120" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e"/>
+            <g fill="#134e4a" font-size="11.5">
+              <text x="90" y="178" text-anchor="middle">要件レビュー</text>
+              <text x="90" y="196" text-anchor="middle">受け入れ条件づくり</text>
+              <text x="90" y="214" text-anchor="middle">実例マッピング</text>
+              <text x="250" y="178" text-anchor="middle">設計レビュー</text>
+              <text x="250" y="196" text-anchor="middle">システムテストの</text>
+              <text x="250" y="214" text-anchor="middle">設計を開始</text>
+              <text x="410" y="178" text-anchor="middle">詳細設計レビュー</text>
+              <text x="410" y="196" text-anchor="middle">テストケース化</text>
+              <text x="410" y="214" text-anchor="middle">テストデータ準備</text>
+              <text x="570" y="178" text-anchor="middle">できた所から</text>
+              <text x="570" y="196" text-anchor="middle">早期テスト・</text>
+              <text x="570" y="214" text-anchor="middle">探索セッション</text>
+              <text x="720" y="178" text-anchor="middle">実行は</text>
+              <text x="720" y="196" text-anchor="middle">「答え合わせ」</text>
+              <text x="720" y="214" text-anchor="middle">になる</text>
+            </g>
+            <text x="400" y="278" text-anchor="middle" fill="#6b7280" font-size="12">← 左（上流）に行くほど、1件の指摘の価値が大きい</text>
+          </g>
+        </svg>
+        <figcaption style="text-align:center;">理想は、<strong>テスト実行が「答え合わせ」で済む状態</strong></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. シフトレフト" data-toc="並走していないQA／しているQA">
+    <h2>並走していないQA / しているQA<small>基本設計フェーズの2週間で、何が違うか</small></h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th style="width:20%"></th><th style="width:38%">並走していない</th><th>並走している</th></tr>
+        <tr>
+          <td><strong>この2週間で<br>やっていること</strong></td>
+          <td>まだ動くものがないので、テストの出番は先。前案件の残作業をしている</td>
+          <td>設計書ドラフトのレビュー会に出て観点リストで読み、確定分からテスト条件を洗い出している</td>
+        </tr>
+        <tr>
+          <td><strong>設計書を<br>読むタイミング</strong></td>
+          <td>実装完了後、テスト設計を始めるとき<br><span class="small">（＝直せる余地がもうない時点）</span></td>
+          <td>設計中<br><span class="small">（＝1行の追記で直せる時点）</span></td>
+        </tr>
+        <tr>
+          <td><strong>実装開始時点<br>での手持ち</strong></td>
+          <td>なし</td>
+          <td>疑問・指摘12件が解決済み、テスト条件の骨格ができている</td>
+        </tr>
+        <tr>
+          <td><strong>テストフェーズ<br>の姿</strong></td>
+          <td>テスト設計から始める。実行中に仕様の穴が次々出る</td>
+          <td>設計済みのテストを実行するだけ。<strong>「答え合わせ」で済む</strong></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. シフトレフト" data-toc="よくある誤解">
+    <h2>よくある誤解</h2>
+    <div class="body">
+      <div class="bad-box" style="margin-top:0;">
+        <span class="tag">誤解</span>
+        「シフトレフト＝テスト<strong>実行</strong>を前倒しする」
+      </div>
+      <p style="margin-top:18px;">
+        実装前は<em>動かすものがない</em>ので、実行はそもそもできません。
+        前倒しするのは<strong>レビューとテスト設計</strong>です。
+      </p>
+      <div class="mind">
+        <span class="tag">この話の核心</span>
+        <strong>動くものがない期間こそ、QAが最も安く欠陥を潰せる期間。</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. シフトレフト" data-toc="なぜ「早く見つける」と安いのか">
+    <h2>なぜ「早く見つける」と安いのか</h2>
+    <div class="body">
+      <p class="small">
+        第1回で「欠陥の発見が遅れるほど修正コストが跳ね上がる」グラフを見ました
+        （要件段階を1とすると、テストで見つけたら20、本番なら100以上）。理由は3つあります。
+      </p>
+      <ul>
+        <li><strong>手戻りの連鎖</strong><br>
+          要件の誤りに実装後に気づくと、設計→コード→テストケース→実施済みテストの<em>すべてがやり直し</em>になる</li>
+        <li><strong>巻き込む人数の増加</strong><br>
+          要件段階なら関係者2人の会話で済む修正が、本番障害なら開発・QA・運用・営業・顧客対応まで巻き込む</li>
+        <li><strong>お金と信用</strong><br>
+          本番の不具合は修正コストに加えて、業務停止・データ消失・信用毀損という
+          <em>「値札のつかないコスト」</em>を伴う</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. シフトレフト" data-toc="同じ欠陥、見つかる時期でこう変わる">
+    <h2>同じ欠陥、見つかる時期でこう変わる</h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;">
+        <span class="tag">題材</span>
+        「<strong>締め日をまたいで承認された申請がどちらの月の精算になるか</strong>」が要件から漏れていたとする。
+      </div>
+      <table>
+        <tr><th style="width:26%">見つけた時期</th><th>何が起きるか</th></tr>
+        <tr>
+          <td>要件レビュー<br><span class="small">（30分の会議）</span></td>
+          <td>その場で質問→要件に1行追記。<strong>コストほぼゼロ</strong></td>
+        </tr>
+        <tr>
+          <td>システムテスト</td>
+          <td>不具合票→仕様確認→設計修正→実装修正→再テスト。<strong>関係者5人で1週間</strong></td>
+        </tr>
+        <tr>
+          <td>本番<br><span class="small">（月初の締め処理）</span></td>
+          <td>精算誤り→データ補正→全社アナウンス→経理の締めやり直し。<strong>金額換算不能</strong></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="2. シフトレフト" data-toc="番人からアクセラレーターへ">
+    <h2>「品質の番人」から「品質のアクセラレーター」へ</h2>
+    <div class="body">
+      <div class="bad-box" style="margin-top:0;">
+        <span class="tag">従来のQA像</span>
+        リリース直前に門番として立ち、問題を見つけて<em>止める</em>。<br>
+        しかし<strong>止めるだけでは品質は上がらず、リリースが遅れるだけ</strong>。
+      </div>
+      <div class="good-box">
+        <span class="tag">再定義されつつあるQA像</span>
+        <strong>初日から品質を作り込み、チームが安心して速く進めるようにする役割</strong>
+      </div>
+      <div class="mind">
+        <span class="tag">検出から予防へ</span>
+        上流での30分の指摘が、下流での1週間の手戻りを消す。
+        <em>これがQAが開発速度を「上げる」仕組みです。</em>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. レビュー技法 ============ -->
+  <section class="slide sec" data-section="Section 3" data-toc="【中扉】レビュー技法">
+    <div class="num">SECTION 3</div>
+    <h1>レビュー技法<br>— 観点を持って読む</h1>
+    <div><span class="time-badge">15分</span></div>
+    <div class="agenda">観点フレームをレビューの問いに ／ 曖昧語アンテナ ／ 指摘の伝え方</div>
+  </section>
+
+  <section class="slide" data-section="3. レビュー技法" data-toc="「なんとなく読む」と誤字しか見つからない">
+    <h2>「なんとなく読む」と誤字しか見つからない</h2>
+    <div class="body">
+      <p>
+        要件書を頭から素直に読むと、書いてあることの正しさは追えても、
+        <em>書かれていないこと</em>には気づけません。
+      </p>
+      <div class="mind">
+        <span class="tag">レビューで欠陥を見つける人は</span>
+        <strong>観点という「問いのリスト」</strong>を持って読んでいます。
+      </div>
+      <p style="margin-top:18px;">
+        実は<strong>武器はもう持っています</strong> — 第2回の観点フレーム（7つの引き出し）は、
+        そのままレビューの問いに変換できます。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. レビュー技法" data-toc="7つの引き出し → レビューの問い">
+    <h2>7つの引き出しを、レビューの問いに変換する</h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th style="width:16%">引き出し</th><th>レビューでの問い</th></tr>
+        <tr><td>機能</td><td>この要件の<strong>裏</strong>（〜でない場合、失敗した場合）はどこに書いてある？</td></tr>
+        <tr><td>データ</td><td>型・桁・単位・端数処理は定義されている？ 既存データとの整合は？</td></tr>
+        <tr><td>状態</td><td>途中で中断したら？ 差し戻されたら？ この状態遷移に行き止まりや抜け道はない？</td></tr>
+        <tr><td>タイミング</td><td>締め日・月末・年度末・同時操作のときはどうなる？</td></tr>
+        <tr><td>環境</td><td>この機能が動く環境（ブラウザ・端末・接続先システム）の前提は明記されている？</td></tr>
+        <tr><td>ユーザー</td><td>権限ごとに読んだか？（申請者・承認者・経理・管理者）初めての人がこの文で操作できる？</td></tr>
+        <tr><td>組み合わせ</td><td>要件Aと要件Cは同時に成立する？ 矛盾していない？</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. レビュー技法" data-toc="曖昧語アンテナ">
+    <h2>曖昧語アンテナ<small>この言葉を見たら立ち止まる、という警報リスト</small></h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;text-align:center;font-size:24px;padding:22px;">
+        <em>「適切に」「必要に応じて」「原則として」「〜など」<br>「速やかに」「柔軟に」「基本的に」</em>
+      </div>
+      <div class="mind">
+        <span class="tag">これらに共通するもの</span>
+        いずれも<strong>「決めていないこと」を隠す言葉</strong>です。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. レビュー技法" data-toc="曖昧語：Before / After">
+    <h2>曖昧なまま流すか、決めさせるか</h2>
+    <div class="body">
+      <div class="bad-box" style="margin-top:0;">
+        <span class="tag">曖昧なまま実装に流れる要件</span>
+        「換算後の金額に小数が出た場合は<strong>適切に</strong>処理する」<br>
+        → 開発者Aは切り捨て、画面Bの担当者は四捨五入で実装。<em>テストで初めて不一致が発覚する。</em>
+      </div>
+      <div class="good-box">
+        <span class="tag">レビューで決めさせた要件</span>
+        「換算後の金額は<strong>小数第1位を切り捨て</strong>、円単位で精算する
+        （既存の国内精算の端数処理と同一ルール）」<br>
+        → 実装前に全員の理解が一致。<em>テストケースの期待結果も迷わず書ける。</em>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. レビュー技法" data-toc="指摘の伝え方 — 成果物へ、質問の形で">
+    <h2>指摘の伝え方 — 成果物へ、質問の形で</h2>
+    <div class="body">
+      <p>
+        第1回のマインドセット「批判は人ではなく成果物に向ける」は<strong>レビューでこそ効きます</strong>。
+        用語で言えば、レビューで見つけているのは<strong>成果物の中にある「欠陥」</strong>であって、
+        書き手の「エラー」を裁く場ではありません。
+      </p>
+      <div class="mind">
+        <span class="tag">おすすめは「質問の形にする」</span>
+        指摘ではなく質問なら、書き手は<strong>防御ではなく思考で応じられます</strong>。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. レビュー技法" data-toc="悪い指摘／良い指摘">
+    <h2>同じ内容でも、伝え方で受け取れる量が変わる</h2>
+    <div class="body">
+      <div class="bad-box" style="margin-top:0;">
+        <span class="tag">悪い指摘</span>
+        「この仕様は穴だらけです。為替のことを何も考えていませんよね。」
+      </div>
+      <div class="good-box">
+        <span class="tag">良い指摘</span>
+        「為替レートは<strong>いつ時点</strong>のものを使う想定ですか？
+        利用日と申請日でレートが変わると精算額に差が出るケースが気になっています。」
+      </div>
+      <p style="margin-top:16px;" class="small">
+        なお、レビューには非公式レビューからインスペクション（役割と手順を定めた公式レビュー）まで形式のレベルがあります。
+        まずは<strong>観点を持った非公式レビュー</strong>で十分。
+        ここで成果を出せると<em>「QAに早めに見せると得だ」</em>という空気ができ、上流に呼ばれるようになります。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-section="3. レビュー技法" data-toc="マインドセット：チーム全員の時間を守る">
+    <h2>レビューは「揚げ足取り」ではない</h2>
+    <div class="body">
+      <div class="mind" style="margin-top:0;">
+        <span class="tag">マインドセット</span>
+        レビューは<strong>チーム全員の時間を守る共同作業</strong>。
+      </div>
+      <p style="margin-top:22px;">
+        実装後なら手戻り数日の欠陥を、<strong>会議室の30分で潰している</strong> —
+        その価値を自覚して、<em>堂々と、しかし謙虚に問う。</em>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 4. ワーク① ============ -->
+  <section class="slide sec" data-section="Section 4" data-toc="【中扉】ワーク① 要件レビュー演習">
+    <div class="num">SECTION 4 — WORK</div>
+    <h1>ワーク①<br>要件レビュー演習</h1>
+    <div><span class="time-badge">15分（個人7分 → グループ共有8分）</span></div>
+  </section>
+
+  <section class="slide" data-section="4. ワーク①" data-toc="題材：海外出張精算機能の要件ドラフト">
+    <h2>題材: 「海外出張精算機能」要件定義書ドラフト（抜粋）</h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;">
+        <ol style="margin:0;">
+          <li>社員は海外出張の経費を現地通貨で入力できること。</li>
+          <li>入力された金額は為替レートで円換算して精算すること。</li>
+          <li>換算後の金額に小数が出た場合は適切に処理すること。</li>
+          <li>1回の出張の精算合計の上限は50万円とし、上限を超えた場合はエラーとすること。</li>
+          <li>領収書は現地語のものも添付できること。</li>
+          <li>出張期間中は日当5,000円/日を自動加算すること。</li>
+          <li>精算は帰国後速やかに行うこと。</li>
+          <li>対応通貨はUSD、EUR、GBPなど主要通貨とすること。</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="4. ワーク①" data-toc="ワーク① やること">
+    <h2>やること</h2>
+    <div class="body">
+      <div class="work" style="margin-top:0;">
+        <span class="tag">ワーク（個人7分 → グループ共有8分）</span>
+        <strong>観点フレーム</strong>と<strong>曖昧語アンテナ</strong>を使ってこのドラフトをレビューし、
+        欠陥・懸念を<strong>「質問の形」で指摘リストに</strong>してください。<br>
+        目標は<strong>1人5件以上</strong>。
+      </div>
+      <p style="margin-top:18px;">
+        グループで持ち寄り、<strong>「実装後に見つけたら一番高くついた指摘」</strong>を1つ選んで発表します。
+      </p>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="4. ワーク① — 解答例" data-toc="解答例：項2〜4">
+    <span class="badge">講師用</span>
+    <h2>仕込まれた欠陥と質問例（1/2）</h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th class="c" style="width:6%">項</th><th style="width:20%">観点</th><th>質問例（＝仕込まれた欠陥）</th></tr>
+        <tr>
+          <td class="c">2</td><td>データ×タイミング</td>
+          <td>為替レートは<strong>いつ時点・どこの</strong>レートですか？
+            （利用日／申請日／承認日で金額が変わる。レートの取得元・更新頻度も未定義）</td>
+        </tr>
+        <tr>
+          <td class="c">3</td><td>曖昧語</td>
+          <td>「適切に処理」とは具体的に？（切り捨て／四捨五入。国内精算の既存ルールとの整合も要確認）</td>
+        </tr>
+        <tr>
+          <td class="c">4</td><td>データ／組み合わせ</td>
+          <td>上限50万円は<strong>円換算後</strong>の判定ですか？
+            また、Step1で学んだ「5万円超は部長承認」ルートとの関係は？
+            （海外精算はほぼ全件5万円超になるが、全部部長承認でよい？）</td>
+        </tr>
+        <tr>
+          <td class="c">4</td><td>機能の裏</td>
+          <td>「エラーとする」の後、ユーザーは何ができますか？（分割申請は可能？ 例外承認の道は？）</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="4. ワーク① — 解答例" data-toc="解答例：項5〜8">
+    <span class="badge">講師用</span>
+    <h2>仕込まれた欠陥と質問例（2/2）</h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th class="c" style="width:6%">項</th><th style="width:20%">観点</th><th>質問例（＝仕込まれた欠陥）</th></tr>
+        <tr>
+          <td class="c">5</td><td>データ</td>
+          <td>添付ファイルの形式・サイズ上限は？ 現地語の領収書を経理は<strong>どう検証</strong>する想定ですか？</td>
+        </tr>
+        <tr>
+          <td class="c">6</td><td>タイミング</td>
+          <td>「出張期間中」に出発日・帰国日は含みますか？
+            時差で現地泊数と日本時間の日数がずれる場合の数え方は？ 日当に上限（出張何日まで）はありますか？</td>
+        </tr>
+        <tr>
+          <td class="c">7</td><td>曖昧語</td>
+          <td>「速やかに」とは何営業日ですか？ 期限を過ぎた精算はどうなりますか？（締め処理との関係）</td>
+        </tr>
+        <tr>
+          <td class="c">8</td><td>曖昧語（〜など）</td>
+          <td>対応通貨の<strong>確定リスト</strong>はどこにありますか？ リスト外の通貨（例: 韓国ウォン）で出張したら？</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="4. ワーク① — 解答例" data-toc="「一番高くつく」候補と締め方">
+    <span class="badge">講師用</span>
+    <h2>「一番高くつく」候補と、締め方</h2>
+    <div class="body">
+      <div class="work" style="margin-top:0;">
+        <span class="tag">候補は項2の「為替レート適用日」</span>
+        全精算データの金額に波及し、本番で見つかれば<strong>経理の締めやり直し＋過去精算分の補正</strong>になる。
+      </div>
+      <div class="mind">
+        <span class="tag">このワークの狙い</span>
+        1つの文書から<strong>8つ以上の質問が出た</strong> —
+        <em>この30分が何日分の手戻りを消したか</em>、を体感すること。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="4. ワーク① — 進行" data-toc="ワーク①の狙いと展開例">
+    <span class="badge">講師用</span>
+    <h2>ワーク①の狙いと展開例</h2>
+    <div class="body">
+      <ul>
+        <li>指摘が「誤字・体裁」に偏る人には、観点フレームの表を指して
+          <strong>「データの行で読み直してみて」</strong>と促す</li>
+        <li>指摘の<strong>形</strong>も講評対象: 断定・非難調になっていたら、<em>質問形に言い換えさせる</em></li>
+        <li>項4の「承認ルートとの矛盾」は既存仕様（Step1第2回の5万円ルール）との<strong>組み合わせ欠陥</strong>。
+          気づいたグループは大いに褒める — <em>新機能の要件は既存仕様と突き合わせて読む</em>、が上級者の読み方</li>
+        <li>時間が余ったら「この8項目のうち、リスクが最も高いのはどれか」を
+          <strong>第4回のマトリクス</strong>で議論させると前回と接続できる</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 5. 受け入れ条件と実例マッピング ============ -->
+  <section class="slide sec" data-section="Section 5" data-toc="【中扉】受け入れ条件と実例マッピング">
+    <div class="num">SECTION 5</div>
+    <h1>受け入れ条件と<br>実例マッピング</h1>
+    <div><span class="time-badge">15分</span></div>
+    <div class="agenda">完成の定義を実装前に合意する ／ 4色のカード ／ 枚数が診断になる</div>
+  </section>
+
+  <section class="slide" data-section="5. 受け入れ条件と実例マッピング" data-toc="「完成の定義」を実装前に合意する">
+    <h2>「完成の定義」を実装前に合意する</h2>
+    <div class="body">
+      <p>
+        アジャイル開発では要件を<strong>ユーザーストーリー</strong>
+        （「〈誰〉として〈何〉をしたい、なぜなら〈価値〉」）で表し、
+        <strong>受け入れ条件</strong>（Acceptance Criteria）で「何ができたら完成か」を定めます。
+      </p>
+      <div class="bad-box">
+        <span class="tag">ただし</span>
+        受け入れ条件は<strong>文章</strong>です。<em>文章は人によって解釈が割れます。</em>
+      </div>
+      <div class="mind">
+        <span class="tag">そこで</span>
+        <strong>具体例で認識を揃える</strong>のが実例マッピング（Example Mapping）。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 受け入れ条件と実例マッピング" data-toc="実例マッピングの4色カード（図）">
+    <h2>実例マッピングのやり方 — 4色のカード</h2>
+    <div class="body">
+      <figure style="margin:0;">
+        <svg viewBox="0 0 800 330" style="width:960px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="実例マッピングの4色カード構造">
+          <g font-family="sans-serif" font-size="12.5">
+            <rect x="270" y="16" width="260" height="48" rx="6" fill="#fef9c3" stroke="#eab308"/>
+            <text x="400" y="36" text-anchor="middle" fill="#713f12" font-weight="bold">ストーリー（黄）</text>
+            <text x="400" y="54" text-anchor="middle" fill="#713f12" font-size="11.5">承認済みの経費申請を月次で締めたい</text>
+            <rect x="40"  y="100" width="220" height="46" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+            <rect x="290" y="100" width="220" height="46" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+            <rect x="540" y="100" width="220" height="46" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+            <text x="150" y="119" text-anchor="middle" fill="#1e3a8a" font-weight="bold">ルール（青）＝受け入れ条件</text>
+            <text x="150" y="137" text-anchor="middle" fill="#1e3a8a" font-size="11.5">締め日までの承認分は当月精算</text>
+            <text x="400" y="119" text-anchor="middle" fill="#1e3a8a" font-weight="bold">ルール（青）</text>
+            <text x="400" y="137" text-anchor="middle" fill="#1e3a8a" font-size="11.5">締め後の承認分は翌月精算</text>
+            <text x="650" y="119" text-anchor="middle" fill="#1e3a8a" font-weight="bold">ルール（青）</text>
+            <text x="650" y="137" text-anchor="middle" fill="#1e3a8a" font-size="11.5">締め済みの月は編集不可</text>
+            <rect x="40"  y="162" width="220" height="42" rx="6" fill="#dcfce7" stroke="#22c55e"/>
+            <rect x="40"  y="212" width="220" height="42" rx="6" fill="#dcfce7" stroke="#22c55e"/>
+            <rect x="290" y="162" width="220" height="42" rx="6" fill="#dcfce7" stroke="#22c55e"/>
+            <rect x="540" y="162" width="220" height="42" rx="6" fill="#dcfce7" stroke="#22c55e"/>
+            <g fill="#14532d" font-size="11.5">
+              <text x="150" y="179" text-anchor="middle">具体例（緑）: 1/31 23:59承認</text>
+              <text x="150" y="196" text-anchor="middle">→ 1月分として精算される</text>
+              <text x="150" y="229" text-anchor="middle">具体例: 1/15承認 → 1月分</text>
+              <text x="150" y="246" text-anchor="middle">（代表値）</text>
+              <text x="400" y="179" text-anchor="middle">具体例: 2/1 00:00承認</text>
+              <text x="400" y="196" text-anchor="middle">→ 2月分として精算される</text>
+              <text x="650" y="179" text-anchor="middle">具体例: 締め済み1月分の申請を</text>
+              <text x="650" y="196" text-anchor="middle">開くと編集ボタンが非活性</text>
+            </g>
+            <rect x="290" y="240" width="470" height="66" rx="6" fill="#fee2e2" stroke="#ef4444"/>
+            <text x="525" y="263" text-anchor="middle" fill="#7f1d1d" font-weight="bold">疑問（赤）＝その場で答えられなかったこと</text>
+            <text x="525" y="284" text-anchor="middle" fill="#7f1d1d" font-size="11.5">「締め日が土日の場合は？」「締めの瞬間に承認ボタンを押していたら？」</text>
+          </g>
+        </svg>
+        <figcaption style="text-align:center;">ストーリー1枚・ルールは数枚・ルールごとに具体例・答えられない問いは「疑問」カードへ</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 受け入れ条件と実例マッピング" data-toc="進め方はシンプル">
+    <h2>進め方はシンプル</h2>
+    <div class="body">
+      <ol>
+        <li><strong>ストーリー</strong>（黄）を置く</li>
+        <li><strong>受け入れ条件をルール</strong>（青）として並べる</li>
+        <li><strong>ルールごとに、具体的な値の入った例</strong>（緑）を出していく</li>
+        <li>その場で答えられない問いが出たら、<em>議論で止まらず</em>
+          <strong>赤カード（疑問）に書いて先へ進む</strong></li>
+      </ol>
+      <div class="mind">
+        <span class="tag">時間の目安</span>
+        <strong>25分で1ストーリー。</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 受け入れ条件と実例マッピング" data-toc="カードの枚数がそのまま診断になる">
+    <h2>カードの枚数が、そのまま診断になる</h2>
+    <div class="body">
+      <ul>
+        <li><strong>緑（具体例）が出ないルール</strong><br>
+          → 誰もそのルールを具体的に理解していない。<em>実装に入るのは危険</em></li>
+        <li><strong>赤（疑問）が多い</strong><br>
+          → 仕様が生煮え。持ち帰って要件を固めてから再度マッピング</li>
+        <li><strong>青（ルール）が多すぎる</strong><br>
+          → ストーリーが大きすぎる。<em>分割のサイン</em></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="5. 受け入れ条件と実例マッピング" data-toc="合意した具体例は、そのままテストになる">
+    <h2>合意した具体例は、そのまま受け入れテストになる</h2>
+    <div class="body">
+      <div class="good-box" style="margin-top:0;">
+        <span class="tag">ATDD（受け入れテスト駆動開発）</span>
+        この流れを仕組み化したもの。<br>
+        合意した緑カードが、そのまま<strong>受け入れテストのケース</strong>になる。
+      </div>
+      <div class="mind">
+        <span class="tag">シフトレフトの完成形</span>
+        <strong>テスト設計が、実装より先に終わっている。</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. ワーク② ============ -->
+  <section class="slide sec" data-section="Section 6" data-toc="【中扉】ワーク② 実例マッピング">
+    <div class="num">SECTION 6 — WORK</div>
+    <h1>ワーク②<br>実例マッピング</h1>
+    <div><span class="time-badge">15分（グループ12分 → 共有3分）</span></div>
+  </section>
+
+  <section class="slide" data-section="6. ワーク②" data-toc="題材：ユーザーストーリーと受け入れ条件">
+    <h2>題材: ユーザーストーリーと受け入れ条件</h2>
+    <div class="body">
+      <div class="example" style="margin-top:0;">
+        <span class="tag">ストーリー</span>
+        <strong>経理担当者として、承認済みの経費申請を月次で締めたい。</strong><br>
+        なぜなら月次決算を確定させる必要があるから。
+      </div>
+      <table>
+        <tr><th style="width:12%">条件</th><th>内容</th></tr>
+        <tr><td><strong>AC1</strong></td><td>締め日（毎月末日）までに承認された申請は、当月の精算対象になる</td></tr>
+        <tr><td><strong>AC2</strong></td><td>締め後に承認された申請は、翌月の精算対象になる</td></tr>
+        <tr><td><strong>AC3</strong></td><td>締め済みの月の申請は編集できない</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="6. ワーク②" data-toc="ワーク② やること">
+    <h2>やること</h2>
+    <div class="body">
+      <div class="work" style="margin-top:0;">
+        <span class="tag">ワーク（グループ12分 → 共有3分）</span>
+        実例マッピングで、<strong>ルールごとの具体例（具体的な日時・金額入り）と「疑問」を洗い出して</strong>ください。<br>
+        付箋3色（なければ枠線で色分け）: <strong>青＝ルール、緑＝具体例、赤＝疑問</strong>。
+      </div>
+      <div class="mind">
+        <span class="tag">このワークの成果は</span>
+        出てきた<strong>「疑問」の数</strong>です。<br>
+        <em>多いほど、実装前に救った手戻りが多いということ。</em>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="6. ワーク② — 解答例" data-toc="解答例：緑（具体例）">
+    <span class="badge">講師用</span>
+    <h2>緑（具体例）の例</h2>
+    <div class="body">
+      <table class="dense">
+        <tr><th style="width:10%">AC</th><th>具体例</th></tr>
+        <tr><td><strong>AC1</strong></td>
+          <td>1/31 23:59に承認された5,000円の申請 → 1月分の精算に含まれる（<strong>境界の内側</strong>）</td></tr>
+        <tr><td><strong>AC2</strong></td>
+          <td>2/1 00:00に承認された申請 → 2月分（境界の外側。<em>1分差で月が変わる</em>ことの確認）</td></tr>
+        <tr><td><strong>AC2</strong></td>
+          <td>1/28に申請、承認者が放置して2/3に承認 → 2月分
+            （申請日ではなく<strong>承認日</strong>基準であることの確認）</td></tr>
+        <tr><td><strong>AC3</strong></td>
+          <td>締め済みの1月分申請を申請者が開く → 編集ボタン非活性。経理担当者が開いても同じく編集不可</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="6. ワーク② — 解答例" data-toc="解答例：赤（疑問）">
+    <span class="badge">講師用</span>
+    <h2>赤（疑問）の例 — 出てきたら大成功</h2>
+    <div class="body">
+      <ul>
+        <li>「締め日が<strong>土日・祝日</strong>でも末日固定？ 前営業日に前倒し？」</li>
+        <li>「<strong>締め処理の実行中</strong>（23:59〜0:05）に承認ボタンを押したらどちらの月？」</li>
+        <li>「<strong>差し戻し中</strong>の申請は締め時点でどうなる？ 未承認扱い？」</li>
+        <li>「AC3の『編集』に<strong>削除・取り下げ</strong>は含む？ 編集不可でも削除できたら統制の穴では？」</li>
+        <li>「締め後に金額誤りが発覚したら<strong>訂正の手段</strong>は？（編集不可なら赤伝処理？）」</li>
+      </ul>
+      <div class="work">
+        <span class="tag">第2回とのつながり</span>
+        AC3の「削除は含むか」は、デシジョンテーブルで「要確認」マスを見つけたのと同じ構造 —
+        <strong>具体例を作ろうとすると仕様の穴が機械的に見つかる</strong>。これが実例マッピングの価値。
+      </div>
+    </div>
+  </section>
+
+  <section class="slide teacher" data-section="6. ワーク② — 進行" data-toc="ワーク②の狙いと展開例">
+    <span class="badge">講師用</span>
+    <h2>ワーク②の狙いと展開例</h2>
+    <div class="body">
+      <ul>
+        <li>具体例が「締め日までに承認→当月」のように<em>ルールの言い換え</em>になっているグループには
+          <strong>「日付と金額を入れて」</strong>と促す。<strong>値が入って初めて解釈のズレが露出する</strong></li>
+        <li>境界（23:59/00:00）に自力で行けたら、<strong>第2回の境界値分析が身についている証拠</strong>。
+          ワークの後に明示的に指摘して接続する</li>
+        <li>疑問が出ないグループには<strong>「承認者が月をまたいで放置したら？」</strong>を投げ込む</li>
+        <li>時間があれば「この緑カードを<strong>そのままテストケースの期待結果として書けるか</strong>」を確認
+          — ATDDへの橋渡し</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 7. まとめ ============ -->
+  <section class="slide sec" data-section="Section 7" data-toc="【中扉】アジャイルでのQAの動き方・まとめ">
+    <div class="num">SECTION 7 — CLOSING</div>
+    <h1>アジャイル開発での<br>QAの動き方・まとめ</h1>
+    <div><span class="time-badge">7分</span></div>
+  </section>
+
+  <section class="slide" data-section="7. まとめ" data-toc="スプリントの中でQAはいつ何をするか">
+    <h2>スプリントの中で、QAはいつ何をするか</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:30%">場面</th><th>QAの動き</th></tr>
+        <tr>
+          <td>リファインメント／<br>プランニング</td>
+          <td>ストーリーに観点で質問し、<strong>受け入れ条件を一緒に作る</strong>。
+            必要なら実例マッピングを提案・進行する</td>
+        </tr>
+        <tr>
+          <td>実装中</td>
+          <td>できた画面から触る（早期の探索セッション）。開発者とペアで<em>「これどう壊せる？」</em>を試す</td>
+        </tr>
+        <tr>
+          <td>スプリントレビュー</td>
+          <td>合意した具体例が満たされているかをデモで確認する</td>
+        </tr>
+        <tr>
+          <td>ふりかえり</td>
+          <td>今スプリントで漏れた欠陥を<strong>「どの上流活動で防げたか」に翻訳して</strong>プロセスを直す</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="7. まとめ" data-toc="同じスプリント、QAの居場所でこう変わる">
+    <h2>同じスプリント、QAの居場所でこう変わる</h2>
+    <div class="body">
+      <table>
+        <tr><th style="width:20%"></th><th style="width:38%">テストフェーズを待つQA</th><th>初日から品質を作るQA</th></tr>
+        <tr>
+          <td>要件の欠陥</td>
+          <td>実装後にテストで発見 → 手戻り</td>
+          <td>リファインメントの質問で消える</td>
+        </tr>
+        <tr>
+          <td>テスト設計</td>
+          <td>実装完了後に着手 → スプリント末に渋滞</td>
+          <td>実例マッピングの緑カードが<strong>既に設計になっている</strong></td>
+        </tr>
+        <tr>
+          <td>スプリント末</td>
+          <td>テストが終わらず持ち越し</td>
+          <td>実行は答え合わせ。<strong>探索に時間を使える</strong></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" data-section="7. まとめ" data-toc="持ち帰り（1）">
+    <h2>今日の持ち帰り（1/2）</h2>
+    <div class="body">
+      <ul>
+        <li>欠陥は<strong>見つける時期</strong>で値段が変わる。<em>上流の30分は下流の1週間に等しい</em></li>
+        <li><strong>シフトレフト（工程を早く）と、検出から予防へ（QC→QA）は別の軸</strong>。<br>
+          同じ不具合票から「1件の修正」だけでなく<strong>「それを生んだプロセスの欠落」</strong>を読み、
+          次の要件レビューの観点に載せると<em>両方が起きる</em></li>
+        <li>レビューの武器は第2回の観点フレーム。<strong>書かれていないこと</strong>を問う。<br>
+          曖昧語（適切に・など・速やかに）は警報</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="7. まとめ" data-toc="持ち帰り（2）">
+    <h2>今日の持ち帰り（2/2）</h2>
+    <div class="body">
+      <ul>
+        <li>指摘は成果物へ、<strong>質問の形</strong>で。
+          <em>「QAに早く見せると得」という信頼が、上流への招待状になる</em></li>
+        <li>受け入れ条件は<strong>具体的な値の入った例</strong>で固める。
+          <strong>具体例が出ないルールは実装してはいけない</strong></li>
+        <li><strong>疑問カードの数は成果。</strong>
+          実装前に見つけた「決まっていないこと」の数だから</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-section="7. まとめ" data-toc="次回予告とシラバス対応">
+    <h2>次回予告</h2>
+    <div class="body">
+      <div class="mind" style="margin-top:0;">
+        <span class="tag">最終回 — 第6回 テスト自動化とAI時代のQA</span>
+        ここまでの全部 — <strong>リスク分析・上流での作り込み</strong> — に
+        <strong>「自動化」と「AI」</strong>を重ねます。<br>
+        QAの仕事がこれからどう変わるのか、<em>キャリアの地図を持って卒業する回</em>です。
+      </div>
+      <div class="example">
+        <span class="tag">シラバス対応</span>
+        ISTQB CTFL 2023 V4.0 — 第2章（2.1.5 シフトレフト）、第1章（1.2 テストと品質保証、根本原因分析）、
+        第3章（静的テスト・レビュー）、第4章（4.5 コラボレーションベースのテストアプローチ:
+        ユーザーストーリー・受け入れ条件・ATDD）
+      </div>
+      <p class="small" style="margin-top:16px;">
+        資料版（読み物形式）は <code>phase5.html</code>、Step2の目次は <code>index.html</code> にあります。
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<div id="progress"></div>
+<div id="hud"><b>←/→</b> ページ　<b>O</b> 目次　<b>T</b> 講師用切替　<b>F</b> 全画面　<b>?</b> ヘルプ</div>
+
+<div class="overlay" id="toc">
+  <h3>目次 — クリックでジャンプ（Esc で閉じる）</h3>
+  <div id="tocList"></div>
+</div>
+
+<div class="overlay" id="help">
+  <h3>キーボード操作（Esc で閉じる）</h3>
+  <div class="keys">
+    <div><kbd>→</kbd> <kbd>↓</kbd> <kbd>Space</kbd> <kbd>PgDn</kbd></div><div>次のスライド</div>
+    <div><kbd>←</kbd> <kbd>↑</kbd> <kbd>PgUp</kbd></div><div>前のスライド</div>
+    <div><kbd>Home</kbd> / <kbd>End</kbd></div><div>最初 / 最後へ</div>
+    <div><kbd>O</kbd></div><div>目次を開く</div>
+    <div><kbd>T</kbd></div><div>講師用スライド（オレンジ）の表示／非表示</div>
+    <div><kbd>F</kbd></div><div>全画面表示</div>
+    <div><kbd>?</kbd></div><div>このヘルプ</div>
+  </div>
+  <div class="hint">
+    画面左半分クリックで前へ、右半分クリックで次へ進みます。<br>
+    印刷（Ctrl+P）すると、全スライドが1ページ1枚で出力されます（配布資料用。横向き・余白なし推奨）。
+  </div>
+</div>
+
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var tocEl = document.getElementById('toc');
+  var tocList = document.getElementById('tocList');
+  var helpEl = document.getElementById('help');
+  var hideTeacher = false;
+  var cur = 0;
+
+  // ページ番号を各スライドに埋め込む
+  slides.forEach(function (s, i) {
+    var n = document.createElement('div');
+    n.className = 'pnum';
+    n.textContent = (i + 1) + ' / ' + slides.length;
+    s.appendChild(n);
+  });
+
+  // ---- 画面サイズに合わせて 1280x720 を拡大縮小 ----
+  function fit() {
+    var scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    if (!isFinite(scale) || scale <= 0) scale = 1; // ウィンドウが未表示（0×0）のときに潰れないように
+    stage.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  function isTeacher(i) { return slides[i].classList.contains('teacher'); }
+
+  function show(i) {
+    if (i < 0) i = 0;
+    if (i > slides.length - 1) i = slides.length - 1;
+    slides[cur].classList.remove('active');
+    cur = i;
+    slides[cur].classList.add('active');
+    progress.style.width = ((cur + 1) / slides.length * 100) + '%';
+    history.replaceState(null, '', '#' + (cur + 1));
+    markToc();
+  }
+
+  function step(d) {
+    var i = cur;
+    do {
+      i += d;
+      if (i < 0 || i > slides.length - 1) return;
+    } while (hideTeacher && isTeacher(i));
+    show(i);
+  }
+
+  function jumpEdge(d) {
+    var i = d < 0 ? 0 : slides.length - 1;
+    while (hideTeacher && isTeacher(i) && i > 0 && i < slides.length - 1) i += (d < 0 ? 1 : -1);
+    show(i);
+  }
+
+  // ---- 目次 ----
+  function buildToc() {
+    var lastSec = null;
+    tocList.innerHTML = '';
+    slides.forEach(function (s, i) {
+      var sec = s.getAttribute('data-section') || '';
+      if (sec !== lastSec) {
+        var h = document.createElement('div');
+        h.className = 'toc-sec';
+        h.textContent = sec;
+        tocList.appendChild(h);
+        lastSec = sec;
+      }
+      var a = document.createElement('a');
+      a.href = '#' + (i + 1);
+      a.dataset.i = i;
+      if (s.classList.contains('teacher')) a.className = 't';
+      else if (s.classList.contains('note')) a.className = 'nt';
+      a.innerHTML = '<span class="n">' + (i + 1) + '</span>' +
+        (s.getAttribute('data-toc') || '').replace(/</g, '&lt;');
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        show(parseInt(this.dataset.i, 10));
+        closeOverlays();
+      });
+      tocList.appendChild(a);
+    });
+  }
+  function markToc() {
+    var links = tocList.querySelectorAll('a');
+    for (var i = 0; i < links.length; i++) {
+      links[i].classList.toggle('cur', parseInt(links[i].dataset.i, 10) === cur);
+    }
+  }
+  buildToc();
+
+  function closeOverlays() {
+    tocEl.classList.remove('open');
+    helpEl.classList.remove('open');
+  }
+  function toggle(el) {
+    var wasOpen = el.classList.contains('open');
+    closeOverlays();
+    if (!wasOpen) el.classList.add('open');
+  }
+
+  // ---- 講師用スライドの表示切替 ----
+  function toggleTeacher() {
+    hideTeacher = !hideTeacher;
+    if (hideTeacher && isTeacher(cur)) {
+      var i = cur;
+      while (i < slides.length - 1 && isTeacher(i)) i++;
+      show(i);
+    }
+    flash(hideTeacher ? '講師用スライド: 非表示（送り時にスキップ）' : '講師用スライド: 表示');
+  }
+
+  var toast;
+  function flash(msg) {
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);' +
+        'background:rgba(20,11,18,.94);color:#e2e8f0;padding:8px 18px;border-radius:999px;' +
+        'font-size:13px;z-index:50;transition:opacity .3s;pointer-events:none;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { toast.style.opacity = '0'; }, 1600);
+  }
+
+  // ---- キー操作 ----
+  document.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === 'Escape') { closeOverlays(); return; }
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === ' ' || k === 'PageDown') { e.preventDefault(); step(1); }
+    else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') { e.preventDefault(); step(-1); }
+    else if (k === 'Home') { e.preventDefault(); jumpEdge(-1); }
+    else if (k === 'End') { e.preventDefault(); jumpEdge(1); }
+    else if (k === 'o' || k === 'O') { toggle(tocEl); }
+    else if (k === 't' || k === 'T') { toggleTeacher(); }
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    }
+    else if (k === '?' || k === '/') { toggle(helpEl); }
+  });
+
+  // ---- クリック／タップ操作 ----
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.overlay')) return;
+    if (e.target.closest('a')) return;
+    if (tocEl.classList.contains('open') || helpEl.classList.contains('open')) { closeOverlays(); return; }
+    step(e.clientX < window.innerWidth / 2 ? -1 : 1);
+  });
+
+  // ---- スワイプ ----
+  var sx = null;
+  document.addEventListener('touchstart', function (e) { sx = e.changedTouches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
+    sx = null;
+  }, { passive: true });
+
+  // ---- 初期表示（#12 のようなハッシュに対応） ----
+  var start = parseInt((location.hash || '').replace('#', ''), 10);
+  slides[0].classList.add('active');
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>

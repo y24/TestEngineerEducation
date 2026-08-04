@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ワークシート一覧 — テストエンジニア育成講座</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #1e3a5f;
+    --accent-light: #eef3f9;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --ex-bg: #f3f4f6;
+    --spec-bg: #fffbeb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 14px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 28px 32px; margin-bottom: 26px;
+  }
+  header.hero .label { font-size: .82rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.5rem; line-height: 1.4; }
+  header.hero .time {
+    display: inline-block; font-size: .82rem; background: rgba(255,255,255,.18);
+    border-radius: 999px; padding: 2px 14px;
+  }
+  header.hero p { margin: 12px 0 0; opacity: .92; font-size: .95rem; }
+  .work, .example, .spec, .sit-common, .extra {
+    border-radius: 10px; padding: 18px 24px; margin: 20px 0;
+  }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .spec { background: var(--spec-bg); border: 1px solid #fcd34d; }
+  .spec .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 6px; }
+  .sit-common { background: #fffbeb; border: 1px solid #fcd34d; font-size: .92rem; }
+  .sit-common .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 6px; }
+  .sit-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin: 18px 0; }
+  .sit-card { border: 1px solid #d1d5db; border-radius: 10px; background: #fff; overflow: hidden; font-size: .9rem; line-height: 1.7; }
+  .sit-card .head { padding: 8px 16px; color: #fff; font-weight: 700; }
+  .sit-card .body { padding: 6px 16px 14px; }
+  .sit-card dl { margin: 0; }
+  .sit-card dt { font-weight: 700; color: var(--accent); margin-top: 10px; font-size: .8rem; letter-spacing: .03em; }
+  .sit-card dd { margin: 2px 0 0; }
+  .extra { background: #fff; border: 1px dashed #9ca3af; }
+  .extra .tag { color: var(--muted); font-weight: 700; font-size: .82rem; display: block; margin-bottom: 4px; }
+  .memo {
+    background: #fff; border: 1px dashed #b45309; border-radius: 8px;
+    padding: 16px 22px; margin: 14px 0;
+    font-size: .88rem; line-height: 1.85; color: #374151;
+    white-space: pre-wrap;
+  }
+  .memo .memo-head { font-weight: 700; color: var(--work); display: block; margin-bottom: 6px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; background: #fff; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  td.c, th.c { text-align: center; }
+  figure { margin: 20px 0; text-align: center; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  .sheet { border-top: 1px dashed #d1d5db; margin-top: 34px; padding-top: 18px; }
+  .sheet h2 { font-size: 1rem; color: var(--accent); margin: 0 0 10px; }
+  .sheet textarea {
+    width: 100%; min-height: 260px; padding: 14px 16px;
+    border: 1px solid #d1d5db; border-radius: 10px; background: #fff;
+    font-family: inherit; font-size: .95rem; line-height: 1.8; color: inherit; resize: vertical;
+  }
+  .sheet .note { font-size: .82rem; color: var(--muted); margin: 8px 0 0; }
+  @media print {
+    body { background: #fff; }
+    .wrap { max-width: none; padding: 0; }
+    nav.crumb, .sheet .note { display: none; }
+    header.hero { background: #fff; color: var(--ink); border: 2px solid var(--accent); }
+    header.hero .time { background: var(--accent-light); }
+    .sheet textarea { min-height: 340px; }
+  }
+
+  .card {
+    display: block; background: #fff; border: 1px solid #e5e7eb;
+    border-left: 6px solid var(--work); border-radius: 10px;
+    padding: 16px 22px; margin-bottom: 12px;
+    text-decoration: none; color: inherit;
+  }
+  .card:hover { box-shadow: 0 4px 14px rgba(30,58,95,.15); }
+  .card .no { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; }
+  .card h3 { margin: 2px 0 4px; font-size: 1.05rem; }
+  .card p { margin: 0; color: var(--muted); font-size: .9rem; }
+  .group { margin-top: 30px; }
+  .group > h2 { font-size: 1.05rem; color: var(--accent); margin: 0 0 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="label">テストエンジニア育成講座</div>
+    <h1>ワークシート一覧</h1>
+    <p>講義中に配布するワーク用のページです。各ワークは題材と設問だけを載せています。</p>
+  </header>
+  <div class="group">
+    <h2>Step1 — テスターの土台を作る</h2>
+    <a class="card" href="step1/phase1-work1.html">
+      <span class="no">第1回 ／ ワーク①（個人5分 → 全体共有10分）</span>
+      <h3>その"バグ"は、どこにあったのか</h3>
+      <p>題材を読み、故障・欠陥・エラーに分解して表を埋めてください。</p>
+    </a>
+    <a class="card" href="step1/phase1-work2.html">
+      <span class="no">第1回 ／ ワーク②（ペア10分）</span>
+      <h3>観測メモを不具合チケットにする</h3>
+      <p>走り書きのメモから、開発者が動ける不具合チケットを1件起こします。</p>
+    </a>
+    <a class="card" href="step1/phase2-work1.html">
+      <span class="no">第2回 ／ ワーク①（個人7分 → グループ共有8分）</span>
+      <h3>曖昧な仕様から質問リストを作る</h3>
+      <p>仕様書の抜粋を読み、確認すべき質問を5つ書き出して優先度を付けます。</p>
+    </a>
+    <a class="card" href="step1/phase2-work2.html">
+      <span class="no">第2回 ／ ワーク②（グループ10分）</span>
+      <h3>観点ブレスト</h3>
+      <p>ワーク①と同じ仕様を題材に、7つの引き出しからテスト観点を出します。</p>
+    </a>
+    <a class="card" href="step1/phase2-work3.html">
+      <span class="no">第2回 ／ ワーク③（ペア: 作成9分 → 相互レビュー3分）</span>
+      <h3>境界値とデシジョンテーブルでケース化</h3>
+      <p>観点「金額の範囲・境界」を、境界値一覧とデシジョンテーブルに落とします。</p>
+    </a>
+    <a class="card" href="step1/phase3-work1.html">
+      <span class="no">第3回 ／ ワーク①（グループ15分 → 発表5分）</span>
+      <h3>このプロジェクト、リリースしてよい？</h3>
+      <p>担当するB曲線と状況カードを読み、リリース判定会議への説明をまとめます。</p>
+    </a>
+  </div>
+  <div class="group">
+    <h2>Step2 — 設計者として一段上がる</h2>
+    <a class="card" href="step2/phase4-work1.html">
+      <span class="no">第4回 ／ ワーク①（全25分（Step A 13分 / Step B 12分））</span>
+      <h3>リスク分析（2ステップ）</h3>
+      <p>4つのレンズ（データの流れ／変更点／品質特性／過去と現場）でリスクを出し切り、評価して濃淡に翻訳します。</p>
+    </a>
+    <a class="card" href="step2/phase5-work1.html">
+      <span class="no">第5回 ／ ワーク①（個人7分 → グループ共有8分）</span>
+      <h3>要件レビュー演習</h3>
+      <p>観点フレームと曖昧語アンテナで要件定義書ドラフトをレビューし、指摘を質問の形にします。</p>
+    </a>
+    <a class="card" href="step2/phase5-work2.html">
+      <span class="no">第5回 ／ ワーク②（グループ12分 → 共有3分）</span>
+      <h3>実例マッピング</h3>
+      <p>受け入れ条件から、具体例（ルール・例・疑問）を洗い出します。</p>
+    </a>
+    <a class="card" href="step2/phase6-work1.html">
+      <span class="no">第6回 ／ ミニ演習（個人8分 →（任意）ペアで確認）</span>
+      <h3>AI生成テストケースをレビューしてみる</h3>
+      <p>AIが出したテストケース一覧を、このまま使ってよいか判定します。（任意／自習にも使えます）</p>
+    </a>
+    <a class="card" href="step2/phase6-work2.html">
+      <span class="no">第6回 ／ ワーク（個人5分 → 共有5分）</span>
+      <h3>AIに任せたい仕事・握り続けたい仕事</h3>
+      <p>自分の業務を3つに仕分けし、「握り続けたい」理由を言葉にします。</p>
+    </a>
+  </div>
+</div>
+</body>
+</html>

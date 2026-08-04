@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第1回 ワーク① その"バグ"は、どこにあったのか — ワークシート</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #1e3a5f;
+    --accent-light: #eef3f9;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --ex-bg: #f3f4f6;
+    --spec-bg: #fffbeb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 14px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 28px 32px; margin-bottom: 26px;
+  }
+  header.hero .label { font-size: .82rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.5rem; line-height: 1.4; }
+  header.hero .time {
+    display: inline-block; font-size: .82rem; background: rgba(255,255,255,.18);
+    border-radius: 999px; padding: 2px 14px;
+  }
+  header.hero p { margin: 12px 0 0; opacity: .92; font-size: .95rem; }
+  .work, .example, .spec, .sit-common, .extra {
+    border-radius: 10px; padding: 18px 24px; margin: 20px 0;
+  }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .spec { background: var(--spec-bg); border: 1px solid #fcd34d; }
+  .spec .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 6px; }
+  .sit-common { background: #fffbeb; border: 1px solid #fcd34d; font-size: .92rem; }
+  .sit-common .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 6px; }
+  .sit-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin: 18px 0; }
+  .sit-card { border: 1px solid #d1d5db; border-radius: 10px; background: #fff; overflow: hidden; font-size: .9rem; line-height: 1.7; }
+  .sit-card .head { padding: 8px 16px; color: #fff; font-weight: 700; }
+  .sit-card .body { padding: 6px 16px 14px; }
+  .sit-card dl { margin: 0; }
+  .sit-card dt { font-weight: 700; color: var(--accent); margin-top: 10px; font-size: .8rem; letter-spacing: .03em; }
+  .sit-card dd { margin: 2px 0 0; }
+  .extra { background: #fff; border: 1px dashed #9ca3af; }
+  .extra .tag { color: var(--muted); font-weight: 700; font-size: .82rem; display: block; margin-bottom: 4px; }
+  .memo {
+    background: #fff; border: 1px dashed #b45309; border-radius: 8px;
+    padding: 16px 22px; margin: 14px 0;
+    font-size: .88rem; line-height: 1.85; color: #374151;
+    white-space: pre-wrap;
+  }
+  .memo .memo-head { font-weight: 700; color: var(--work); display: block; margin-bottom: 6px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; background: #fff; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  td.c, th.c { text-align: center; }
+  figure { margin: 20px 0; text-align: center; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  .sheet { border-top: 1px dashed #d1d5db; margin-top: 34px; padding-top: 18px; }
+  .sheet h2 { font-size: 1rem; color: var(--accent); margin: 0 0 10px; }
+  .sheet textarea {
+    width: 100%; min-height: 260px; padding: 14px 16px;
+    border: 1px solid #d1d5db; border-radius: 10px; background: #fff;
+    font-family: inherit; font-size: .95rem; line-height: 1.8; color: inherit; resize: vertical;
+  }
+  .sheet .note { font-size: .82rem; color: var(--muted); margin: 8px 0 0; }
+  @media print {
+    body { background: #fff; }
+    .wrap { max-width: none; padding: 0; }
+    nav.crumb, .sheet .note { display: none; }
+    header.hero { background: #fff; color: var(--ink); border: 2px solid var(--accent); }
+    header.hero .time { background: var(--accent-light); }
+    .sheet textarea { min-height: 340px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="crumb"><a href="../index.html">← ワーク一覧</a></nav>
+
+  <header class="hero">
+    <div class="label">第1回 テストとは何か — マインドセットと基礎</div>
+    <h1>ワーク① その"バグ"は、どこにあったのか</h1>
+    <span class="time">個人5分 → 全体共有10分</span>
+    <p>題材を読み、故障・欠陥・エラーに分解して表を埋めてください。</p>
+  </header>
+
+  <div class="work">
+        <span class="tag">ワーク（個人5分 → 全体共有10分）</span>
+        <p style="margin:6px 0;">
+          次の題材を読み、下の表を埋めてください。
+          <em>埋める順番は、表の上から下へ</em>。
+        </p>
+
+        <p style="margin:14px 0 4px;"><strong>題材: 経費データ連携の金額ズレ</strong></p>
+        <p style="margin:0 0 6px;">
+          経費精算システムは、承認済みの経費データを毎晩CSVで出力し、会計システムに取り込んで仕訳を作っている。
+          経費精算システムは社内の開発チーム、会計システムは外部ベンダーのパッケージで、担当する組織が別々である。
+        </p>
+        <p style="margin:0 0 6px;">
+          リリースから数か月後の締め処理で、経理から「会計システム上の経費計上額が、経費精算システムで見える承認済みの合計と合わない。
+          差額が数十万円ある」と連絡があった。調査の結果、連携CSVの金額列を、経費精算システム側は<strong>税込金額</strong>で出力していたのに対し、
+          会計システム側は<strong>税抜金額</strong>として受け取り、そこに消費税を上乗せして仕訳を作っていたことが分かった。
+        </p>
+        <p style="margin:0 0 6px;">
+          両システムの間のデータ仕様を定める「連携インターフェース仕様書」には、金額列は税抜と明記されていた。
+          だが経費精算システム側は、申請画面も一覧表示も税込であることから、CSVも税込が自然だと考えていた。
+          会計システム側は、仕訳は税抜が基本という会計の常識を前提に受け取っていた。
+        </p>
+        <p style="margin:0 0 6px;">
+          リリース前、連携を<strong>実際につないだ状態でのテスト</strong>は、代表的な1件を流して「取り込みがエラーにならないこと」の確認にとどまり、
+          金額そのものの突き合わせは行われていなかった。
+          なおテスト期間中、担当者は<strong>取り込み後の合計金額に違和感を持っていた</strong>が、
+          端数処理か、テストデータの作り方の違いだろうと解釈し、正式な不具合として記録しないまま先に進んでいた。
+        </p>
+      </div>
+
+  <table>
+        <tr><th style="width:30%">分類</th><th>問い</th></tr>
+        <tr><td><strong>① 故障</strong></td><td>実際に観測された、期待した動作からの逸脱は何か？</td></tr>
+        <tr><td><strong>② 欠陥</strong></td><td>どの成果物（仕様・手順・コード）の、どこに不備があったか？</td></tr>
+        <tr><td><strong>③ エラー</strong></td><td>誰の、どんな判断・思い込みがその不備を生んだか？</td></tr>
+      </table>
+
+  <div class="sheet">
+    <h2>メモ・記入欄</h2>
+    <textarea placeholder="ここに書き込めます（このページを閉じると消えます）"></textarea>
+    <p class="note">※ 保存されません。残したい場合はコピーするか、ブラウザの印刷（Ctrl+P）で紙／PDFにしてください。</p>
+  </div>
+</div>
+</body>
+</html>

@@ -48,9 +48,10 @@ WORKS = [
         wid="phase2-work2", step="step1", src="phase2.html",
         phase="第2回", phase_title="仕様を読み、テストを設計する",
         label="ワーク②", title="観点ブレスト", time="グループ10分",
-        lead="ワーク①と同じ仕様を題材に、7つの引き出しからテスト観点を出します。",
+        lead="ワーク①の仕様と確認結果を題材に、7つの引き出しからテスト観点を出します。",
         blocks=[("5. ワーク②", "cls", "work", 0),
-                ("3. ワーク①", "cls", "spec", 0)],
+                ("3. ワーク①", "cls", "spec", 0),
+                ("3. ワーク①", "cls", "reply", 0)],
     ),
     dict(
         wid="phase2-work3", step="step1", src="phase2.html",
@@ -59,6 +60,7 @@ WORKS = [
         lead="観点「金額の範囲・境界」を、境界値一覧とデシジョンテーブルに落とします。",
         blocks=[("7. ワーク③", "cls", "work", 0),
                 ("3. ワーク①", "cls", "spec", 0),
+                ("3. ワーク①", "cls", "reply", 0),
                 ("7. ワーク③", "details", "時間が余った", 0)],
     ),
     dict(
@@ -149,7 +151,7 @@ STYLE = """
     border-radius: 999px; padding: 2px 14px;
   }
   header.hero p { margin: 12px 0 0; opacity: .92; font-size: .95rem; }
-  .work, .example, .spec, .sit-common, .extra {
+  .work, .example, .spec, .reply, .sit-common, .extra {
     border-radius: 10px; padding: 18px 24px; margin: 20px 0;
   }
   .work { background: var(--work-bg); border-left: 5px solid var(--work); }
@@ -158,6 +160,9 @@ STYLE = """
   .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
   .spec { background: var(--spec-bg); border: 1px solid #fcd34d; }
   .spec .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 6px; }
+  .reply { background: #f0fdfa; border: 1px solid #5eead4; }
+  .reply .tag { font-weight: 700; color: #0f766e; font-size: .82rem; display: block; margin-bottom: 6px; }
+  .reply .open { color: var(--work); font-weight: 700; }
   .sit-common { background: #fffbeb; border: 1px solid #fcd34d; font-size: .92rem; }
   .sit-common .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 6px; }
   .sit-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin: 18px 0; }

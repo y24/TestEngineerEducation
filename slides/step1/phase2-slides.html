@@ -127,6 +127,11 @@
     padding: 18px 26px; margin: 16px 0;
   }
   .spec .tag { display: block; margin-bottom: 6px; font-weight: 700; color: #92400e; font-size: 15px; }
+  .reply {
+    background: #f0fdfa; border: 1px solid #5eead4; border-radius: 10px;
+    padding: 18px 26px; margin: 16px 0;
+  }
+  .reply .tag { display: block; margin-bottom: 6px; font-weight: 700; color: var(--mind); font-size: 15px; }
   .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; }
   .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
   .bad-box .tag { color: var(--bad); font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
@@ -226,13 +231,13 @@
         <tr><th style="width:66%">内容</th><th class="c">時間</th></tr>
         <tr><td>1. 今日の道すじ</td><td class="c">3分</td></tr>
         <tr><td>2. 仕様把握の勘所</td><td class="c">15分</td></tr>
-        <tr><td>3. ワーク① 質問リスト</td><td class="c">15分</td></tr>
+        <tr><td>3. ワーク① 質問リスト → 確認結果の共有</td><td class="c">17分</td></tr>
         <tr><td>4. 観点 → 条件 → ケースと、リスクによる濃淡</td><td class="c">10分</td></tr>
         <tr><td>5. ワーク② 観点ブレスト</td><td class="c">10分</td></tr>
         <tr><td>6. 技法ダイジェスト</td><td class="c">15分</td></tr>
         <tr><td>7. ワーク③ ケース化</td><td class="c">12分</td></tr>
         <tr><td>まとめ・出口問題</td><td class="c">5分</td></tr>
-        <tr><td><strong>調整余白</strong>（ワークの指示確認・グループ編成・質疑応答）</td><td class="c">5分</td></tr>
+        <tr><td><strong>調整余白</strong>（ワークの指示確認・グループ編成・質疑応答）</td><td class="c">3分</td></tr>
       </table>
     </div>
   </section>
@@ -734,6 +739,35 @@
     </div>
   </section>
 
+  <section class="slide" data-section="3. ワーク①" data-toc="ワーク①のあと：仕様確認の結果">
+    <h2>質問には、回答が返ってくる<small>ワーク②以降は、この確認結果を反映した仕様を前提にします</small></h2>
+    <div class="body">
+      <div class="cols" style="font-size:17px;">
+        <div class="reply" style="margin-top:0;">
+          <span class="tag">回答があった → ここから先は確定仕様</span>
+          <ol style="margin:2px 0 0;padding-left:1.2em;">
+            <li><strong>5万円ちょうどは課長承認</strong><br>「5万円を<em>超える</em>場合は部長」が正しい（境界は 50,000 と 50,001）</li>
+            <li><strong>1回の申請あたりの上限は 1,000,000円</strong><br>超える金額は入力エラー（今回あわせて決定）</li>
+            <li><strong>新規申請できるのは「在籍中」のみ</strong><br>雇用区分（正社員・契約社員・派遣社員・アルバイト）は4区分すべて可。休職中・退職は新規申請不可（参照のみ）</li>
+          </ol>
+        </div>
+        <div class="spec" style="margin-top:0;">
+          <span class="tag">まだ決まっていない → 調整中</span>
+          <ol start="4" style="margin:2px 0 0;padding-left:1.2em;">
+            <li>部長本人が申請したときの承認者<br><span class="small">人事・経理と協議中</span></li>
+            <li>承認前の修正・取り下げ、差し戻しの有無<br><span class="small">今回のリリース範囲を調整中</span></li>
+            <li>領収書が添付されていない場合の挙動<br><span class="small">領収書が出ない経費（交通費など）とあわせて検討中</span></li>
+          </ol>
+        </div>
+      </div>
+      <p style="margin-top:14px;">
+        回答が返ってきた3件は、テストすべきことを<strong>減らしたのではなく増やしています</strong>
+        — 上限という新しい境界と、在籍状態という新しい同値クラスが生まれました。
+        調整中の3件は<em>まだ期待結果を書けない領域</em>。この2つを混ぜないこと。
+      </p>
+    </div>
+  </section>
+
   <!-- ============ 4. 観点 → 条件 → ケース ============ -->
   <section class="slide sec" data-section="Section 4" data-toc="【中扉】観点→条件→ケースと濃淡">
     <div class="num">SECTION 4</div>
@@ -967,9 +1001,10 @@
     <div class="body">
       <div class="work" style="margin-top:0;">
         <span class="tag">ワーク（グループ10分）</span>
-        ワーク①の経費申請仕様について、7つの引き出しを使って<strong>テスト観点をチームで12個ほど</strong>挙げてください
-        （1引き出しにつき1〜2個が目安）。<br>
-        付箋（またはホワイトボード）に<em>1観点1枚</em>で書き出し、引き出しごとにグルーピングします。
+        <strong>ワーク①の仕様（§4）と、そのあとの確認結果</strong>をあわせて題材にします。
+        7つの引き出しを使って<strong>テスト観点をチームで12個ほど</strong>挙げてください（1引き出しにつき1〜2個が目安）。<br>
+        付箋（またはホワイトボード）に<em>1観点1枚</em>で書き出し、引き出しごとにグルーピングします。<br>
+        <strong>調整中の3件も観点にしてよい</strong> — ただし付箋に「回答待ち」と付けること。
       </div>
       <p style="margin:0 0 6px;">
         次に「<strong>最も濃くテストすべき観点</strong>」を1つ選び、次の3つを言葉にしてください。
@@ -978,7 +1013,7 @@
       <ol>
         <li>なぜこの観点を濃くするのか</li>
         <li>ここが壊れると、何が起きて誰が困るのか</li>
-        <li>その判断は、どの情報を根拠にしたのか（仕様の記述・業務知識・ワーク①で出た疑問など）</li>
+        <li>その判断は、どの情報を根拠にしたのか（仕様の記述・確認結果・業務知識・調整中のまま残った項目など）</li>
       </ol>
     </div>
   </section>
@@ -996,7 +1031,7 @@
         <tr>
           <td>データ</td>
           <td>④金額の境界値（0 / 1 / 50,000 / 50,001） ⑤金額の形式異常（全角数字・小数・カンマ付き・空欄・マイナス）
-            ⑥領収書ファイルの形式・サイズ上限・複数枚添付 ⑦極端な高額（上限は仕様未定義 → 要質問）</td>
+            ⑥領収書ファイルの形式・サイズ上限・複数枚添付 ⑦上限金額の境界（999,999 / 1,000,000 / 1,000,001）＝<strong>確認結果で新しく増えた境界</strong></td>
         </tr>
         <tr>
           <td>状態</td>
@@ -1026,7 +1061,7 @@
         <tr>
           <td>ユーザー</td>
           <td>⑱権限別（一般/課長/部長/経理）の見え方と操作可否 ⑲部長本人が申請したときの承認者（仕様未定義 → 要質問）
-            ⑳他人の申請が見えない・操作できないこと ㉑休職中・退職者・異動者のアカウントの扱い、雇用区分による申請可否</td>
+            ⑳他人の申請が見えない・操作できないこと ㉑在籍状態による新規申請の可否（在籍中は可／休職中・退職は不可）、休職・退職の時点で承認待ちだった申請の扱い</td>
         </tr>
         <tr>
           <td>組み合わせ</td>
@@ -1061,11 +1096,12 @@
         <tr>
           <td>④ 金額の範囲・境界</td><td>実装ミスの可能性が高い</td>
           <td>5万円ちょうどが誤って部長承認に回り、承認が滞る／逆に高額が課長決裁で通る</td>
-          <td>ワーク①で「以上／超える」の仕様揺れを実際に発見している</td>
+          <td>ワーク①で質問し、確認結果で「50,000円は課長」と確定した境界。実装のズレがあれば必ずここに出る</td>
         </tr>
       </table>
       <p class="small" style="margin-top:8px;">
-        根拠の列が「なんとなく怪しいから」で埋まっていないかも見てください。
+        根拠の列が「なんとなく怪しいから」で埋まっていないか、確認結果で決まった3件が観点に反映されているか、
+        逆に<strong>調整中の3件を「決まったこと」として扱っていないか</strong>も見てください。
       </p>
     </div>
   </section>
@@ -1199,6 +1235,7 @@
         表にした瞬間、「領収書を添付せずに申請したらどうなるのか」という穴が<em>機械的に</em>見つかる。
         仕様書は「添付すること」という<strong>義務だけを書いていて、違反したときの挙動を書いていない</strong>
         — セクション2で見た<strong>「エラー処理の欠落」</strong>の典型です。
+        この点はセクション3の確認結果でも<em>「調整中」のまま返ってきました</em>。
       </p>
     </div>
   </section>
@@ -1344,7 +1381,8 @@
       <ul>
         <li>金額: <strong>50,000円以下 ／ 50,001円以上</strong>の2値</li>
         <li>申請者: <strong>一般社員 ／ 課長 ／ 部長</strong>の3値</li>
-        <li>期待する承認者: 仕様から判断できないマスは<strong>「要確認」</strong>と書く（空欄で残さない）</li>
+        <li>期待する承認者: 仕様と確認結果から判断できないマスは<strong>「要確認」</strong>と書く（空欄で残さない）</li>
+        <li>境界値一覧のほうは、確認結果で決まった<strong>上限 1,000,000円</strong>のまわりも含める</li>
       </ul>
       <p style="margin-top:10px;">
         最後にペアを交換して相互レビュー:
@@ -1379,11 +1417,12 @@
         <tr><td>1円</td><td class="c">境界（有効側）</td><td>申請でき、承認ルートは<strong>課長</strong>になる</td></tr>
         <tr>
           <td>50,000円</td><td class="c">境界（課長側）</td>
-          <td>申請でき、承認ルートは<strong>課長</strong>になる（仕様は「5万円を<em>超える</em>場合は部長」のため。ワーク①で確認した「以上/超える」の揺れの答え合わせがここで必要）</td>
+          <td>申請でき、承認ルートは<strong>課長</strong>になる（<strong>確認結果1</strong>で確定。ワーク①で質問していなければ、このマスは「要確認」のままだった）</td>
         </tr>
         <tr><td>50,001円</td><td class="c">境界（部長側）</td><td>申請でき、承認ルートは<strong>部長</strong>になる</td></tr>
         <tr><td>25,000円 / 80,000円</td><td class="c">代表値</td><td>それぞれ課長／部長ルート。境界と同じ結果になることを1点ずつ確認</td></tr>
-        <tr><td>9,999,999円など高額</td><td class="c">上限？</td><td><strong>仕様に上限の記載なし → 要確認</strong>。確認結果次第で境界値を追加する</td></tr>
+        <tr><td>999,999円 / 1,000,000円</td><td class="c">境界（有効側）</td><td>申請でき、承認ルートは<strong>部長</strong>になる（<strong>確認結果2</strong>で上限が決まり、境界がもう1組増えた）</td></tr>
+        <tr><td>1,000,001円</td><td class="c">境界（無効側）</td><td>エラーとなり申請できない（メッセージ文言は仕様未定義 → 要確認）</td></tr>
         <tr><td>空欄・全角・マイナス・小数</td><td class="c">形式異常</td><td>エラーとなり申請できない（エラー時の挙動・メッセージは仕様未定義 → 要確認）</td></tr>
       </table>
     </div>
@@ -1429,7 +1468,7 @@
       <div class="work">
         <span class="tag">締め方</span>
         今日のワークは①質問 → ②観点 → ③ケースと一本につながっています。
-        <em>ワーク①で「以上／超える」を確認していなければ、ワーク③の期待結果は書けなかった</em>ことを、最後に確認してください。
+        <em>ワーク①で質問し、その回答（確認結果1・2）が返ってきたからこそ、ワーク③の期待結果が書けた</em>ことを、最後に確認してください。
       </div>
     </div>
   </section>
@@ -1460,6 +1499,7 @@
         <li>いきなりケースを書かない。<strong>観点 → 条件 → ケース</strong>。観点は7つの引き出しで機械的に出す</li>
         <li>同じ観点の中でケースを増やしても、<strong>別の観点の抜けは埋まらない</strong></li>
         <li>書かれていないことに気づくのは半分。<strong>推測を仕様にするのは、確認と合意と記録</strong>。この2つを混ぜない</li>
+        <li>質問は投げっぱなしにしない。<strong>返ってきた回答は仕様に反映され、テストの境界を増やす</strong></li>
         <li>テストベースは仕様書だけではない。<strong>過去の不具合票と「人」</strong>は特に重要な情報源</li>
         <li>濃淡はリスクで決め、<strong>「やらないこと」は宣言する</strong></li>
         <li>仕様ベースの技法は条件をケースへ変換する道具。<strong>探索的テストは条件そのものを見つける道具</strong></li>

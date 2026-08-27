@@ -123,41 +123,54 @@
       今日やることは一本道です。<strong>仕様を読んで疑問を出す → 観点を整理する → 条件に落とす → ケースにする</strong>。
     </p>
     <figure>
-      <svg viewBox="0 0 800 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="仕様からテストケースまでの一本道と、テスト分析・テスト設計の対応">
+      <svg viewBox="0 0 800 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="仕様からテストケース、テスト手順までの流れと、テスト分析・テスト設計・テスト実装の対応">
         <defs>
           <marker id="arr1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
             <path d="M0,0 L6,3 L0,6 z" fill="#1e3a5f"/>
           </marker>
+          <marker id="arr1g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="#9ca3af"/>
+          </marker>
         </defs>
         <g font-family="sans-serif" font-size="12" text-anchor="middle">
-          <rect x="10" y="26" width="170" height="54" rx="8" fill="#1e3a5f"/>
-          <text x="95" y="48" fill="#fff" font-weight="bold">仕様を読んで</text>
-          <text x="95" y="67" fill="#fff" font-weight="bold">疑問を出す</text>
-          <rect x="210" y="26" width="170" height="54" rx="8" fill="#1e3a5f"/>
-          <text x="295" y="58" fill="#fff" font-weight="bold">観点を整理する</text>
-          <rect x="410" y="26" width="170" height="54" rx="8" fill="#1e3a5f"/>
-          <text x="495" y="58" fill="#fff" font-weight="bold">条件に落とす</text>
-          <rect x="610" y="26" width="170" height="54" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
-          <text x="695" y="58" fill="#1e3a5f" font-weight="bold">ケースにする</text>
-          <line x1="180" y1="53" x2="206" y2="53" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr1)"/>
-          <line x1="380" y1="53" x2="406" y2="53" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr1)"/>
-          <line x1="580" y1="53" x2="606" y2="53" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr1)"/>
-          <text x="95" y="18" fill="#6b7280" font-size="11">入力＝テストベース</text>
-          <text x="495" y="18" fill="#6b7280" font-size="11">成果物＝テスト条件</text>
-          <text x="695" y="18" fill="#6b7280" font-size="11">成果物＝テストケース</text>
-          <path d="M10,92 L10,104 L580,104 L580,92" fill="none" stroke="#0f766e" stroke-width="1.5"/>
-          <text x="295" y="124" fill="#0f766e" font-weight="bold">テスト分析：何をテストするか を決める</text>
-          <path d="M610,92 L610,104 L780,104 L780,92" fill="none" stroke="#b45309" stroke-width="1.5"/>
-          <text x="680" y="124" fill="#b45309" font-weight="bold">テスト設計：どうテストするか を決める</text>
+          <rect x="15" y="26" width="132" height="54" rx="8" fill="#1e3a5f"/>
+          <text x="81" y="48" fill="#fff" font-weight="bold">仕様を読んで</text>
+          <text x="81" y="67" fill="#fff" font-weight="bold">疑問を出す</text>
+          <rect x="172" y="26" width="132" height="54" rx="8" fill="#1e3a5f"/>
+          <text x="238" y="58" fill="#fff" font-weight="bold">観点を整理する</text>
+          <rect x="329" y="26" width="132" height="54" rx="8" fill="#1e3a5f"/>
+          <text x="395" y="58" fill="#fff" font-weight="bold">条件に落とす</text>
+          <rect x="486" y="26" width="132" height="54" rx="8" fill="#eef3f9" stroke="#1e3a5f"/>
+          <text x="552" y="58" fill="#1e3a5f" font-weight="bold">ケースにする</text>
+          <rect x="643" y="26" width="132" height="54" rx="8" fill="#f9fafb" stroke="#9ca3af" stroke-dasharray="4 3"/>
+          <text x="709" y="48" fill="#6b7280" font-weight="bold">値・手順を確定し</text>
+          <text x="709" y="67" fill="#6b7280" font-weight="bold">実行可能にする</text>
+          <line x1="147" y1="53" x2="168" y2="53" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr1)"/>
+          <line x1="304" y1="53" x2="325" y2="53" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr1)"/>
+          <line x1="461" y1="53" x2="482" y2="53" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arr1)"/>
+          <line x1="618" y1="53" x2="639" y2="53" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#arr1g)"/>
+          <text x="81" y="18" fill="#6b7280" font-size="11">入力＝テストベース</text>
+          <text x="395" y="18" fill="#6b7280" font-size="11">成果物＝テスト条件</text>
+          <text x="552" y="18" fill="#6b7280" font-size="10">成果物＝ハイレベルテストケース</text>
+          <text x="709" y="18" fill="#9ca3af" font-size="10">成果物＝テスト手順・データ</text>
+          <path d="M15,92 L15,104 L461,104 L461,92" fill="none" stroke="#0f766e" stroke-width="1.5"/>
+          <text x="238" y="124" fill="#0f766e" font-size="11" font-weight="bold">テスト分析：何をテストするか</text>
+          <path d="M486,92 L486,104 L618,104 L618,92" fill="none" stroke="#b45309" stroke-width="1.5"/>
+          <text x="552" y="124" fill="#b45309" font-size="11" font-weight="bold">テスト設計：どうテストするか</text>
+          <path d="M643,92 L643,104 L775,104 L775,92" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="709" y="124" fill="#9ca3af" font-size="11" font-weight="bold">テスト実装：実行の準備</text>
+          <text x="400" y="150" fill="#9ca3af" font-size="11">今日扱うのは「ケースにする」まで。テスト実装は、テスト実行の直前に行う準備工程。</text>
         </g>
       </svg>
-      <figcaption>これらの活動をまとめて「テスト設計」と呼ぶことも多い。</figcaption>
+      <figcaption>ISTQBは分析・設計・実装を分けるが、現場ではこれらをまとめて「テスト設計」と呼ぶことも多い。</figcaption>
     </figure>
     <p>
       第2回は、<strong>仕様書などのテストベースを分析し、何を確認するかをテスト条件として整理し、それをテストケースへ具体化</strong>していきます。
     </p>
     <p>
-      ISTQBの用語では、テスト条件を識別・定義する活動を<em>テスト分析</em>、テスト条件からテストケースを作成する活動を<em>テスト設計</em>と呼びます。
+      ISTQBの用語では、テストベースを分析してテスト条件を識別・定義する活動を<em>テスト分析</em>（何をテストするか）、
+      テスト条件を<strong>ハイレベル（論理的）テストケース</strong>へ詳細化する活動を<em>テスト設計</em>（どうテストするか）と呼びます。
+      さらに、具体的な入力値や期待結果を確定させ、テスト手順・テストデータ・テスト環境を準備する活動は<em>テスト実装</em>として区別されます。
       実際の現場では、この一連の活動を広い意味でまとめて「テスト設計」と呼ぶことも多くあります。
     </p>
     <p>

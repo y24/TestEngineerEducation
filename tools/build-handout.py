@@ -20,11 +20,14 @@ PAGES = [
     ("step1", "phase1.html"),
     ("step1", "phase2.html"),
     ("step1", "phase3.html"),
+    ("step1.5", "phaseM1.html"),
+    ("step1.5", "phaseM2.html"),
+    ("step1.5", "phaseM3.html"),
     ("step2", "phase4.html"),
     ("step2", "phase5.html"),
     ("step2", "phase6.html"),
 ]
-INDEXES = [("step1", "index.html"), ("step2", "index.html")]
+INDEXES = [("step1", "index.html"), ("step1.5", "index.html"), ("step2", "index.html")]
 
 # summary がこのいずれかに当たる <details> を丸ごと削除する
 DROP_PATTERNS = [

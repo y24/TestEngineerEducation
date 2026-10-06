@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理編 第3回 チケット全体を読む — 滞留・傾向・報告、そして改善へ</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #4a3a8c;
+    --accent-light: #efedf8;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --warn: #b91c1c;
+    --warn-bg: #fef2f2;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 16px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 36px; margin-bottom: 36px;
+  }
+  header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
+  header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
+  section {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 30px 34px; margin-bottom: 30px;
+  }
+  section > h2 {
+    margin: -30px -34px 24px; padding: 16px 34px;
+    background: var(--accent-light); border-radius: 12px 12px 0 0;
+    font-size: 1.25rem; color: var(--accent);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  section > h2 .time { float: right; font-size: .8rem; color: var(--muted); font-weight: normal; margin-top: 4px; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 28px 0 10px; }
+  .goal { background: var(--accent-light); border-radius: 10px; padding: 20px 26px; margin-bottom: 30px; }
+  .goal h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--accent); }
+  .goal ul { margin: 0; padding-left: 1.4em; }
+  .mind, .work, .example, .warn { border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .mind .tag { color: var(--mind); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .warn { background: var(--warn-bg); border-left: 5px solid var(--warn); }
+  .warn .tag { color: var(--warn); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; font-size: .93rem; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: .8rem; display: block; margin-bottom: 2px; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: .8rem; display: block; margin-bottom: 2px; }
+  .sit-common {
+    background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px;
+    padding: 16px 22px; margin: 18px 0; font-size: .92rem;
+  }
+  .sit-common .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 6px; }
+  /* チケットボード */
+  .board { overflow-x: auto; margin: 18px 0; }
+  .board table { font-size: .8rem; line-height: 1.55; margin: 0; background: #fff; min-width: 780px; }
+  .board th, .board td { padding: 6px 8px; }
+  .board th { white-space: nowrap; }
+  .board td.id { font-family: Consolas, "Courier New", monospace; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .board td.nw { white-space: nowrap; }
+  .sev { display: inline-block; min-width: 2.2em; text-align: center; border-radius: 4px; padding: 0 6px; font-weight: 700; }
+  .sev.h { background: #fee2e2; color: #b91c1c; }
+  .sev.m { background: #ffedd5; color: #b45309; }
+  .sev.l { background: #f3f4f6; color: #4b5563; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  td.c, th.c { text-align: center; }
+  details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  figure { margin: 20px 0; text-align: center; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
+  .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
+  footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
+  footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="crumb"><a href="index.html">← Step1.5 目次に戻る</a></nav>
+
+  <header class="hero">
+    <div class="label">テストエンジニア育成講座 Step1.5 — 管理編 第3回（90分）</div>
+    <h1>チケット全体を読む<br>— 滞留・傾向・報告、そして改善へ</h1>
+    <p>1件ずつは正しく動かせても、全体が見えていなければ管理とは言えない。ボードを読み、伝え、次に活かす。</p>
+  </header>
+
+  <div class="goal">
+    <h2>今日のゴール</h2>
+    <ul>
+      <li>チケットの一覧から、<strong>今日動かすべきもの</strong>を選べる</li>
+      <li>欠陥に関するメトリクス（累計の推移、内訳、却下・再オープン・滞留）を読み、<strong>打ち手</strong>につなげられる</li>
+      <li>相手に合わせて、欠陥の状況を<strong>5行で報告</strong>できる</li>
+      <li>チケットの傾向から、<strong>テストと開発のプロセスを良くする種</strong>を見つけられる</li>
+      <li>自分が今どこまで任されているかを知り、<strong>相談してから動くチケット</strong>を見分けられる</li>
+    </ul>
+  </div>
+
+  <details>
+    <summary>本日の進行（90分）</summary>
+    <table>
+      <tr><th style="width:60%">内容</th><th class="c" style="width:20%">時間</th></tr>
+      <tr><td>1. 前回の振り返り</td><td class="c">5分</td></tr>
+      <tr><td>2. チケットボードを読む — 毎朝15分の巡回</td><td class="c">10分</td></tr>
+      <tr><td>3. 欠陥メトリクスを読む</td><td class="c">15分</td></tr>
+      <tr><td>4. ワーク③ ボードを読んで、今日の動きと報告を決める</td><td class="c">25分</td></tr>
+      <tr><td>5. 報告する — 相手ごとに、何を伝えるか</td><td class="c">10分</td></tr>
+      <tr><td>6. チケットから改善の種を拾う</td><td class="c">10分</td></tr>
+      <tr><td>7. 任され方を広げる — 5つの段階</td><td class="c">8分</td></tr>
+      <tr><td>まとめ</td><td class="c">5分</td></tr>
+      <tr><td><strong>調整余白</strong></td><td class="c">2分</td></tr>
+    </table>
+  </details>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>1. 前回の振り返り <span class="time">5分</span></h2>
+    <p>
+      管理編の第1回は、届いた1件の<strong>一次判断</strong>。第2回は、1件を<strong>起票からクローズまで運ぶ</strong>話でした。
+      依頼コメントの4点、返ってきた言葉別の次の一手、止まったチケットのフォロー、終わらせ方。
+    </p>
+    <p>
+      ここまでは、いわば1件ずつの腕前です。しかし実際の現場では、チケットは同時に何十件も動いています。
+      1件ずつは正しく処理していても、<em>全体としては終了基準に届かない方向へ進んでいる</em>、ということが起こります。
+      今日は一歩引いて、<strong>チケット全体</strong>を眺めます。
+    </p>
+    <div class="example">
+      <span class="tag">問いかけ（2分・口頭で数名）</span>
+      自分が所有者になっているチケットのうち、3営業日以上動いていないものは何件ありましたか？
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>2. チケットボードを読む — 毎朝15分の巡回 <span class="time">10分</span></h2>
+
+    <h3>5つの切り口で絞り込む</h3>
+    <p>
+      未解決のチケットを上から順に全部読んでいては、朝が終わります。<strong>見る切り口を決めて、絞り込んで</strong>読みます。
+    </p>
+    <table>
+      <tr><th class="c" style="width:6%"></th><th style="width:24%">切り口</th><th style="width:30%">絞り込み方</th><th>見つけたいもの</th></tr>
+      <tr><td class="c"><strong>1</strong></td><td><strong>まだ誰も判断していない</strong></td><td>状態がオープン。所有者が空欄</td><td>一次判断がまだのチケット</td></tr>
+      <tr><td class="c"><strong>2</strong></td><td><strong>重要度が高い未解決</strong></td><td>重要度が高で、クローズ以外</td><td>終了基準に直結するもの。1件ずつ「今だれの番か」を言えるか</td></tr>
+      <tr><td class="c"><strong>3</strong></td><td><strong>止まっている</strong></td><td>最終更新が、滞留の目安より古い</td><td>フォローが必要なもの（管理編 第2回）</td></tr>
+      <tr><td class="c"><strong>4</strong></td><td><strong>テスト側のボール</strong></td><td>状態が解決。所有者がテストチーム</td><td>確認テスト待ち、情報待ちの滞留</td></tr>
+      <tr><td class="c"><strong>5</strong></td><td><strong>自分のボール</strong></td><td>所有者が自分</td><td>抱え込み</td></tr>
+    </table>
+    <p>
+      4と5は、<strong>自分たちの側の滞留</strong>です。開発の対応の遅れは目につきやすいのに、自分たちの確認テスト待ちは見落としがちです。
+      先にこちらを片付けておくと、開発へフォローするときの言葉に説得力が出ます。
+    </p>
+
+    <h3>ボールの偏りを見る</h3>
+    <p>
+      1件ずつではなく、<strong>所有者ごとの件数</strong>を数えます。誰のところにボールが溜まっているかが、今のボトルネックです。
+    </p>
+    <ul>
+      <li>特定の開発者に集中している → その人が詰まっている。開発リーダーに振り分けを相談する</li>
+      <li>特定のテスターに確認テスト待ちが集中している → 別のテスターへ振り分ける</li>
+      <li><strong>自分に集中している</strong> → 一次判断が追いついていない。あるいは抱え込んでいる</li>
+      <li>所有者が空欄のものが多い → 巡回が回っていない</li>
+    </ul>
+
+    <div class="example">
+      <span class="tag">朝の15分（例）</span>
+      <ol style="margin:4px 0 0;padding-left:1.4em;">
+        <li>新しく届いたチケットを一次判断する（管理編 第1回の5つの問い）</li>
+        <li>重要度が高い未解決を、1件ずつ「今だれの番か」確かめる</li>
+        <li>滞留の目安を過ぎたものに、フォローを入れる</li>
+        <li>確認テスト待ちを、今日の担当に割り振る</li>
+        <li>自分のボールを手放す</li>
+      </ol>
+    </div>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      全部を動かそうとしない。<strong>今日動かすべきものを選ぶ</strong>。<br>
+      順調に進んでいるチケットを突いて回るのは、管理ではなく邪魔。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>3. 欠陥メトリクスを読む <span class="time">15分</span></h2>
+
+    <h3>メトリクスの3つの種類</h3>
+    <p>JSTQBのシラバスは、テストメトリクスを3つに分類しています。欠陥に関する数字も、どれに当たるかで使い道が違います。</p>
+    <table>
+      <tr><th style="width:24%">種類</th><th style="width:34%">測るもの</th><th>欠陥に関する例</th></tr>
+      <tr><td><strong>プロジェクトメトリクス</strong></td><td>終了基準に対する進み具合</td><td>未解決の件数（重要度別）、起票とクローズの累計</td></tr>
+      <tr><td><strong>プロダクトメトリクス</strong></td><td>製品の品質</td><td>機能別の欠陥の件数、重要度の内訳</td></tr>
+      <tr><td><strong>プロセスメトリクス</strong></td><td>テストや開発のやり方の良し悪し</td><td>却下・重複・再オープンの割合、状態ごとの滞留日数</td></tr>
+    </table>
+
+    <h3>起票の累計と、クローズの累計</h3>
+    <p>
+      Step1の第3回で見た<strong>B曲線</strong>は、検出した欠陥の累計でした。そこに<strong>もう1本、クローズした欠陥の累計</strong>を重ねます。
+      2本の線の<strong>差が、未解決の件数</strong>です。シラバスも、モニタリングとコントロールに使うメトリクスの例として、欠陥数の累計と解決数の累計の対比を挙げています。
+    </p>
+    <figure>
+      <svg viewBox="0 0 840 262" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="起票の累計とクローズの累計の3パターン。Aは差が縮んでいく。Bは差が開き続ける。Cはどちらも横ばい">
+        <g font-family="sans-serif">
+          <!-- A -->
+          <g transform="translate(10,10)">
+            <rect x="0" y="0" width="260" height="206" rx="10" fill="#fff" stroke="#d1d5db"/>
+            <text x="14" y="26" font-size="14" fill="#15803d" font-weight="bold">A. 差が縮んでいく</text>
+            <line x1="40" y1="172" x2="244" y2="172" stroke="#9ca3af" stroke-width="1.5"/>
+            <line x1="40" y1="172" x2="40" y2="44" stroke="#9ca3af" stroke-width="1.5"/>
+            <path d="M40,170 C90,152 110,82 160,64 C200,54 220,52 240,52" fill="none" stroke="#4a3a8c" stroke-width="3"/>
+            <path d="M40,171 C100,168 130,124 180,84 C210,64 225,58 240,56" fill="none" stroke="#15803d" stroke-width="3" stroke-dasharray="7 4"/>
+            <text x="142" y="192" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+          </g>
+          <!-- B -->
+          <g transform="translate(290,10)">
+            <rect x="0" y="0" width="260" height="206" rx="10" fill="#fff" stroke="#d1d5db"/>
+            <text x="14" y="26" font-size="14" fill="#b91c1c" font-weight="bold">B. 差が開き続ける</text>
+            <line x1="40" y1="172" x2="244" y2="172" stroke="#9ca3af" stroke-width="1.5"/>
+            <line x1="40" y1="172" x2="40" y2="44" stroke="#9ca3af" stroke-width="1.5"/>
+            <path d="M40,170 L240,52" fill="none" stroke="#4a3a8c" stroke-width="3"/>
+            <path d="M40,171 L240,118" fill="none" stroke="#15803d" stroke-width="3" stroke-dasharray="7 4"/>
+            <line x1="232" y1="60" x2="232" y2="116" stroke="#b91c1c" stroke-width="1.5"/>
+            <path d="M228,66 L232,58 L236,66 M228,110 L232,118 L236,110" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+            <text x="224" y="92" font-size="11" fill="#b91c1c" text-anchor="end">未解決</text>
+            <text x="142" y="192" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+          </g>
+          <!-- C -->
+          <g transform="translate(570,10)">
+            <rect x="0" y="0" width="260" height="206" rx="10" fill="#fff" stroke="#d1d5db"/>
+            <text x="14" y="26" font-size="14" fill="#b45309" font-weight="bold">C. どちらも横ばい</text>
+            <line x1="40" y1="172" x2="244" y2="172" stroke="#9ca3af" stroke-width="1.5"/>
+            <line x1="40" y1="172" x2="40" y2="44" stroke="#9ca3af" stroke-width="1.5"/>
+            <path d="M40,170 C70,152 90,112 120,107 L240,105" fill="none" stroke="#4a3a8c" stroke-width="3"/>
+            <path d="M40,171 C80,168 100,142 130,137 L240,135" fill="none" stroke="#15803d" stroke-width="3" stroke-dasharray="7 4"/>
+            <text x="142" y="192" font-size="11" fill="#6b7280" text-anchor="middle">時間（テスト日数）</text>
+          </g>
+          <!-- 凡例 -->
+          <line x1="250" y1="242" x2="290" y2="242" stroke="#4a3a8c" stroke-width="3"/>
+          <text x="298" y="246" font-size="12" fill="#374151">起票の累計</text>
+          <line x1="420" y1="242" x2="460" y2="242" stroke="#15803d" stroke-width="3" stroke-dasharray="7 4"/>
+          <text x="468" y="246" font-size="12" fill="#374151">クローズの累計</text>
+        </g>
+      </svg>
+      <figcaption>2本の線の差が、未解決の件数。形は結論ではなく、確かめるべき問いの出発点（Step1 第3回のB曲線と同じ）</figcaption>
+    </figure>
+    <table>
+      <tr><th class="c" style="width:8%">形</th><th style="width:38%">まず確かめること</th><th>打ち手の例</th></tr>
+      <tr>
+        <td class="c"><strong>A</strong></td>
+        <td>残っている未解決の<strong>中身</strong>。重要度が高いものが最後まで残っていないか</td>
+        <td>残りを1件ずつ、クローズか見送りかを決めていく</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>B</strong></td>
+        <td>詰まっているのは<strong>修正</strong>か、<strong>確認テスト</strong>か。状態別の件数を見る</td>
+        <td>修正が詰まっている → 優先順位を絞る、トリアージの頻度を上げる。<br>確認テストが詰まっている → テスト側の割り振りを変える</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>C</strong></td>
+        <td>収束したのではなく、<strong>テストや更新が止まっている</strong>のではないか</td>
+        <td>P曲線と合わせて見る。環境、ブロック、起票やクローズの溜め込みを確かめる</td>
+      </tr>
+    </table>
+    <p style="font-size:.93rem;color:var(--muted);">
+      線を3本（起票／解決／クローズ）にすると、もっと分かります。<strong>解決とクローズの差は、確認テスト待ちの件数</strong>。つまりテスト側の滞留です。
+    </p>
+
+    <h3>内訳で見る</h3>
+    <p>合計だけを見ていると、偏りに気づけません。シラバスは、欠陥の件数を次のような切り口で分けることを挙げています。</p>
+    <table>
+      <tr><th style="width:32%">切り口</th><th>分かること</th></tr>
+      <tr><td>機能・コンポーネント別</td><td>欠陥が偏っている場所（Step1 第1回の原則「欠陥は偏在する」）。追加テストやリスク見直しの候補</td></tr>
+      <tr><td>重要度・優先度別</td><td>終了基準までの距離</td></tr>
+      <tr><td>状態別（オープン、却下、重複、クローズなど）</td><td>ワークフローのどこに溜まっているか</td></tr>
+      <tr><td>発生源別（新機能、リグレッション、要件仕様など）</td><td>直したら別が壊れる状況になっていないか。上流に原因がないか</td></tr>
+      <tr><td>根本原因別</td><td>同じ種類の欠陥を減らす手がかり（セクション6）</td></tr>
+    </table>
+
+    <h3>プロセスを映す数字</h3>
+    <table>
+      <tr><th style="width:30%">数字</th><th>高いときに確かめること</th></tr>
+      <tr>
+        <td><strong>却下の割合</strong>（理由別）</td>
+        <td>「仕様どおり」「テストの誤り」が多い → テスト側の仕様理解、仕様書の曖昧さ。<br>「再現できない」が多い → 起票の情報不足、環境の違い</td>
+      </tr>
+      <tr><td><strong>重複の割合</strong></td><td>起票前に既存のチケットを探していない。見つかった不具合がチーム内で共有されていない</td></tr>
+      <tr><td><strong>再オープンの割合</strong></td><td>修正が不十分。または、修正の内容が伝わらず、確認の条件がずれている</td></tr>
+      <tr><td><strong>明確化の往復回数</strong></td><td>起票の質。一次判断を素通りしているチケットが多い</td></tr>
+      <tr><td><strong>状態ごとの滞留日数</strong></td><td>どの状態で長く止まるか。そこがワークフローの詰まり</td></tr>
+    </table>
+    <p>
+      シラバスも、再オープンされた欠陥の情報は<strong>修正時の実装の品質</strong>を、重複や却下の情報は<strong>欠陥レポート作成の品質</strong>を評価するのに使える、としています。
+    </p>
+    <div class="warn">
+      <span class="tag">数字で人を評価しない</span>
+      テスター別の起票数や却下率を、個人の評価に使ってはいけない。
+      起票数で評価すれば<strong>細切れの起票</strong>が増え、却下率で評価すれば<strong>迷ったら起票しない</strong>ようになる。
+      どちらも数字そのものが壊れて、使えなくなる。<br>
+      メトリクスは<em>会話の入口であって、結論ではない</em>（Step1 第3回）。見るのは人ではなく、仕組み。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>4. ワーク③ ボードを読んで、今日の動きと報告を決める <span class="time">25分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（個人6分 → グループ12分 → 全体共有7分）</span>
+      <p style="margin:6px 0;">
+        あなたはチケットの管理担当です。今朝のチケットボード（未解決の15件）を読み、次の3つを決めてください。
+      </p>
+      <ol style="margin:6px 0;">
+        <li><strong>今日中に動かすチケットを、優先順に最大5件</strong>。それぞれ「誰に・何をするか」も書く</li>
+        <li>個別のチケットではなく、<strong>ボード全体から読み取れる問題</strong>を2つ以上</li>
+        <li>PM（山本さん）宛ての<strong>欠陥状況の報告を5行で</strong>（結論／数字／懸念／お願い／次回の報告）</li>
+      </ol>
+      <p style="margin:6px 0;">
+        個人ワークでは1と2まで。3はグループで1つ作ります。<br>
+        ヒント: セクション2の<strong>5つの切り口</strong>で順に絞り込むと、15件を全部読まなくても動かすべきものが浮かびます。
+      </p>
+    </div>
+
+    <div class="sit-common">
+      <span class="tag">プロジェクトの状況</span>
+      経費精算システム刷新プロジェクトのシステムテスト。テスト期間は<strong>20営業日</strong>で、本日は<strong>15日目</strong>の朝。
+      リリース判定会議は<strong>5営業日後</strong>。終了基準は「消化率100%、未解決の重要度高チケット0件」。<br>
+      <strong>欠陥の件数</strong>: 5営業日前は 起票の累計83件／クローズの累計75件／未解決8件。
+      今朝は <strong>起票の累計96件／クローズの累計81件／未解決15件</strong>。<br>
+      <strong>滞留の目安</strong>（チームの決まり）: オープンは当日中に一次判断／明確化は1営業日／進行中は優先度高で1営業日・それ以外は3営業日／解決は1営業日以内に確認テスト着手
+    </div>
+
+    <div class="board">
+      <table>
+        <tr><th>ID</th><th style="width:27%">タイトル</th><th class="c">重要度</th><th>状態</th><th>所有者</th><th class="c">起票</th><th class="c">最終更新</th><th style="width:25%">メモ（最後のコメントなど）</th></tr>
+        <tr><td class="id">#2048</td><td>ヘルプ画面の誤字</td><td class="c"><span class="sev l">低</span></td><td class="nw">進行中</td><td class="nw">開発 高橋</td><td class="c nw">12日前</td><td class="c nw">9日前</td><td>—</td></tr>
+        <tr><td class="id">#2061</td><td>交通費の経路検索で、一部の駅名が候補に出ない</td><td class="c"><span class="sev l">低</span></td><td class="nw">進行中</td><td class="nw">開発 伊藤</td><td class="c nw">11日前</td><td class="c nw">7日前</td><td>開発「次回リリースで対応したい」。以降、誰も返答していない</td></tr>
+        <tr><td class="id">#2079</td><td>課長不在時の承認代行の設定が、翌日まで反映されない</td><td class="c"><span class="sev m">中</span></td><td class="nw">再オープン<br>（2回目）</td><td class="nw">開発 伊藤</td><td class="c nw">10日前</td><td class="c nw">1日前</td><td>2回修正され、2回とも確認テストでNG</td></tr>
+        <tr><td class="id">#2090</td><td>経費科目マスタの並び順が、画面によって違う</td><td class="c"><span class="sev l">低</span></td><td class="nw">オープン</td><td class="nw">管理担当<br>（あなた）</td><td class="c nw">8日前</td><td class="c nw">8日前</td><td>欠陥か仕様か迷って、保留にしている</td></tr>
+        <tr><td class="id">#2102</td><td>一括承認で10件以上を選択すると、500エラーになる</td><td class="c"><span class="sev h">高</span></td><td class="nw">進行中</td><td class="nw">開発 高橋</td><td class="c nw">6日前</td><td class="c nw">5日前</td><td>一括承認シナリオのテスト38件が未実行のまま</td></tr>
+        <tr><td class="id">#2103</td><td>差し戻し後に再申請すると、承認が課長からやり直しになる</td><td class="c"><span class="sev m">中</span></td><td class="nw">明確化</td><td class="nw">管理担当<br>（あなた）</td><td class="c nw">6日前</td><td class="c nw">5日前</td><td>仕様担当に聞く前に、前のシステムの動作を自分で調べている途中</td></tr>
+        <tr><td class="id">#2104</td><td>下書き保存した申請を開き直すと、まれに金額が0円になっている</td><td class="c"><span class="sev h">高</span></td><td class="nw">明確化</td><td class="nw">テスター 鈴木</td><td class="c nw">6日前</td><td class="c nw">4日前</td><td>開発「発生した時刻とブラウザを教えてほしい」。鈴木さんは今週いっぱい休暇</td></tr>
+        <tr><td class="id">#2121</td><td>差し戻しコメントが500文字を超えると、保存できない</td><td class="c"><span class="sev l">低</span></td><td class="nw">解決</td><td class="nw">テスター 田中</td><td class="c nw">6日前</td><td class="c nw">4日前</td><td>確認テスト待ち</td></tr>
+        <tr><td class="id">#2133</td><td>代理承認者を設定すると、元の承認者にも承認依頼の通知が届く</td><td class="c"><span class="sev m">中</span></td><td class="nw">解決</td><td class="nw">テスター 佐藤</td><td class="c nw">5日前</td><td class="c nw">3日前</td><td>確認テスト待ち</td></tr>
+        <tr><td class="id">#2140</td><td>承認を取り消して再承認すると、承認日時が更新されない</td><td class="c"><span class="sev m">中</span></td><td class="nw">解決</td><td class="nw">テスター 佐藤</td><td class="c nw">5日前</td><td class="c nw">3日前</td><td>確認テスト待ち</td></tr>
+        <tr><td class="id">#2152</td><td>承認待ち一覧が、申請日の昇順で並ばない</td><td class="c"><span class="sev l">低</span></td><td class="nw">解決</td><td class="nw">テスター 田中</td><td class="c nw">4日前</td><td class="c nw">3日前</td><td>確認テスト待ち</td></tr>
+        <tr><td class="id">#2158</td><td>領収書PDFのプレビューが、一部崩れて表示される</td><td class="c"><span class="sev m">中</span></td><td class="nw">オープン</td><td class="nw">（未設定）</td><td class="c nw">4日前</td><td class="c nw">4日前</td><td>—</td></tr>
+        <tr><td class="id">#2166</td><td>経理権限で承認済み申請の金額を修正すると、承認履歴が消える</td><td class="c"><span class="sev h">高</span></td><td class="nw">解決</td><td class="nw">テスター 佐藤</td><td class="c nw">4日前</td><td class="c nw">2日前</td><td>修正はビルド 2026.10.16.2 に入っている。確認テスト待ち</td></tr>
+        <tr><td class="id">#2171</td><td>月次締めのあとに申請を取り下げると、締め済みの集計から金額が引かれない</td><td class="c"><span class="sev h">高</span></td><td class="nw">進行中</td><td class="nw">開発 伊藤</td><td class="c nw">3日前</td><td class="c nw">今朝</td><td>開発（今朝）「原因を特定。明日のビルドで修正予定」</td></tr>
+        <tr><td class="id">#2180</td><td>会計連携CSVが、BOMなしのUTF-8で出力される（連携IF仕様書はBOMあり）</td><td class="c"><span class="sev m">中</span></td><td class="nw">オープン</td><td class="nw">（未設定）</td><td class="c nw">1日前</td><td class="c nw">1日前</td><td>—</td></tr>
+      </table>
+    </div>
+
+    <details>
+      <summary>講師用: 解答例と見るべきポイント</summary>
+      <p style="font-size:.9rem;">唯一の正解ではありません。<strong>優先順位の根拠</strong>が語れていれば、順番が違っても構いません。</p>
+
+      <p style="margin:10px 0 4px;"><strong>1. 今日中に動かすチケット（例）</strong></p>
+      <table>
+        <tr><th class="c" style="width:6%">順</th><th style="width:12%">チケット</th><th style="width:32%">なぜ今日か</th><th>誰に・何をする</th></tr>
+        <tr>
+          <td class="c">1</td><td>#2102</td>
+          <td>重要度高。進行中のまま5日更新なし（目安は1営業日）。テスト38件が止まっていて、リリース判定に直結する</td>
+          <td>開発リーダー高橋さんに<strong>直接</strong>聞く。着手しているか、修正はいつ入るか。今日中に見込みが出なければ、PMへエスカレーション（優先順位の判断を依頼）。38件を消化するのに必要な日数も伝える</td>
+        </tr>
+        <tr>
+          <td class="c">2</td><td>#2104</td>
+          <td>重要度高。<strong>ボールが休暇中の人にある</strong>。開発の質問に4日間、誰も答えていない</td>
+          <td>所有者を付け替える。別のテスターに再現を採り直してもらうか、鈴木さんの実行記録から管理担当が回答する。開発には、回答が遅れたことを一言添える</td>
+        </tr>
+        <tr>
+          <td class="c">3</td><td>#2166</td>
+          <td>重要度高。修正済みなのに確認テストが2日止まっている（目安は1営業日）。<strong>テスト側のボール</strong></td>
+          <td>佐藤さんの今日の最優先にする。佐藤さんは確認テスト待ちを3件抱えているので、#2133 と #2140 は別のテスターへ振り分ける</td>
+        </tr>
+        <tr>
+          <td class="c">4</td><td>#2103<br>#2090</td>
+          <td><strong>自分が持ったまま</strong>5日と8日。抱え込み</td>
+          <td>#2103: いま分かっていることを書いて、仕様担当の渡辺さんへ判断を依頼する。前のシステムの調査は、渡してから。<br>#2090: 迷っていること自体を書いて、仕様担当へ聞く（画面ごとの並び順に決まりはあるか）</td>
+        </tr>
+        <tr>
+          <td class="c">5</td><td>#2079</td>
+          <td>再オープン2回目。3回目の往復をチケット上でやっても、同じことが起きる</td>
+          <td>開発の伊藤さん、確認したテスターと<strong>15分話す</strong>。修正の内容と、確認している条件（「翌日まで」とはいつの時点か）がずれていないか。話した結果をチケットに書く</td>
+        </tr>
+      </table>
+      <p style="margin:6px 0;"><strong>次点</strong></p>
+      <ul>
+        <li>#2158・#2180: 所有者が未設定。一次判断をする。特に #2180 は連携先の会計システムに影響しうるので、連携IF仕様書のどちらが正かを先に確かめる。#2158 は4日放置されており、「当日中に一次判断」の決まりが守られていない</li>
+        <li>#2061: 「次回リリースで」が宙に浮いている。見送りは誰も決めていない。次回のトリアージに載せて、正式に決める（理由・回避策・決めた人を残す）</li>
+        <li>残りの確認テスト待ち（#2121、#2152）: 低だが、3〜4日止まっている。今日・明日で割り振る</li>
+      </ul>
+      <p style="margin:6px 0;"><strong>今日は動かさなくてよいもの</strong></p>
+      <ul>
+        <li>#2171: 重要度は高いが、今朝開発から見通しが出ている。<strong>動いているチケットは突かない</strong>。明日のビルドに入ったかだけ確かめる</li>
+        <li>#2048: 低で古い。急がない。ただしリリース前に、直すか見送るかは決めておく</li>
+      </ul>
+
+      <p style="margin:14px 0 4px;"><strong>2. ボード全体から読み取れる問題（例）</strong></p>
+      <ul>
+        <li><strong>未解決が増えている</strong>。5営業日で起票13件に対し、クローズは6件。未解決は8件から15件へほぼ倍増。このままでは終了基準に届かない（セクション3のBの形）</li>
+        <li><strong>確認テスト待ちが5件溜まっている</strong>（#2121、#2133、#2140、#2152、#2166）。未解決15件の3分の1は、開発ではなく<strong>テスト側のボール</strong>。うち3件が佐藤さんに集中している</li>
+        <li><strong>承認まわりに欠陥が集中している</strong>。15件中7件（#2079、#2102、#2103、#2133、#2140、#2152、#2166）。承認機能のリスクを見直し、追加のテストを検討する材料。リリース判定でも論点になる</li>
+        <li><strong>一次判断の巡回が回っていない</strong>。所有者が未設定のものが2件、管理担当が持ったままのものが2件</li>
+        <li><strong>重要度が高い未解決が4件</strong>（#2102、#2104、#2166、#2171）。終了基準は0件。4件それぞれについて「今だれの番か」「いつ解決の見込みか」を言える状態にする必要がある</li>
+        <li>見送りが正式に決まらないまま置かれているチケットがある（#2061）</li>
+      </ul>
+
+      <p style="margin:14px 0 4px;"><strong>3. PM宛ての報告（例）</strong></p>
+      <div class="good-box">
+        <span class="tag">欠陥状況の報告（テスト15日目・朝）</span>
+        <strong>① 結論</strong>: 終了基準「重要度高の未解決0件」に対し、現在4件が未解決です。うち #2102 は5営業日進展がなく、一括承認シナリオのテスト38件が未実行です。<br>
+        <strong>② 数字</strong>: 起票の累計96件／クローズ81件／未解決15件（高4・中6・低5）。直近5営業日は起票13件に対しクローズ6件で、未解決は8件から15件に増えています。<br>
+        <strong>③ 懸念</strong>: 未解決の約半数（7件）が承認まわりに集中しています。また、修正済みで確認テスト待ちのものが5件あります。こちらはテスト側の滞留なので、本日から優先して消化します。<br>
+        <strong>④ お願い</strong>: #2102 の修正の見込みを、本日中に開発から頂きたいです。出ない場合は、優先順位のご判断をお願いします。#2061 の見送りは、次回のトリアージで決めさせてください。<br>
+        <strong>⑤ 次回の報告</strong>: 明日の夕方。重要度高4件の見通しを中心に報告します。
+      </div>
+      <ul>
+        <li><strong>自分たちの側の滞留を、自分から書いているか</strong>を見る。開発の遅れだけを書いた報告は、読み手の信頼を失う</li>
+        <li>「未解決15件です」で止まっていないか。<strong>終了基準に対して今どこにいるか</strong>が結論</li>
+        <li>お願いが具体的か。「ご支援ください」ではなく、何を・いつまでに</li>
+      </ul>
+
+      <p style="margin:14px 0 4px;"><strong>進め方のヒント</strong></p>
+      <ul>
+        <li>個人ワークで上から順に読み始めた人には、「重要度が高のものだけ先に見てみて」と声をかける。4件に絞れることに気づく</li>
+        <li>5件に絞らせるのが要点。「全部やります」は不可。<strong>選ぶ根拠は、重要度×止まっている×テストやリリースへの影響</strong></li>
+        <li>#2171 を動かすチケットに入れたグループには、「今日、開発に何を言いますか」と聞く。言うことが無いと気づけばよい</li>
+        <li>#2103 と #2090 を挙げなかったグループが多ければ、ここが今日の山場。「所有者が自分のものは何件ありますか」と聞く</li>
+        <li>時間が押したら、3の報告は全体共有で講師が解答例を見せ、足りなかった要素を挙げさせる</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>5. 報告する — 相手ごとに、何を伝えるか <span class="time">10分</span></h2>
+
+    <h3>相手によって、知りたいことが違う</h3>
+    <p>
+      テストに関わる人たち（テストステークホルダー）は、それぞれ違う関心を持っています。同じ15件でも、相手によって伝える中身が変わります。
+    </p>
+    <table>
+      <tr><th style="width:20%">相手</th><th style="width:38%">知りたいこと</th><th>伝えるもの</th></tr>
+      <tr><td><strong>PM</strong></td><td>リリースに間に合うか。自分が判断すべきことは何か</td><td>結論、数字、リスク、お願い</td></tr>
+      <tr><td><strong>開発リーダー</strong></td><td>どれから直すべきか。テストは何で止まっているか</td><td>優先順に並べたリスト、止まっているテスト</td></tr>
+      <tr><td><strong>仕様担当・PO</strong></td><td>決めるべき仕様は何か。業務に残る問題は何か</td><td>判断待ちの一覧、見送りの候補と回避策</td></tr>
+      <tr><td><strong>テスター</strong></td><td>自分のチケットはどうなったか。次に何を確かめるか</td><td>確認テスト待ち、戻されたチケット、重要度を変えた理由</td></tr>
+    </table>
+
+    <h3>欠陥状況の報告は、5行で</h3>
+    <table>
+      <tr><th class="c" style="width:7%"></th><th style="width:20%">書くこと</th><th>ポイント</th></tr>
+      <tr><td class="c"><strong>①</strong></td><td><strong>結論</strong></td><td>終了基準に対して、今どこにいるか。件数ではなく<em>基準との距離</em></td></tr>
+      <tr><td class="c"><strong>②</strong></td><td><strong>数字</strong></td><td>今の値（スナップショット）と、増えているか減っているか（傾向）の両方</td></tr>
+      <tr><td class="c"><strong>③</strong></td><td><strong>懸念</strong></td><td>止まっているもの、偏っている場所。<strong>自分たちの側の滞留も隠さない</strong></td></tr>
+      <tr><td class="c"><strong>④</strong></td><td><strong>お願い</strong></td><td>誰に、何を、いつまでに判断・対応してほしいか</td></tr>
+      <tr><td class="c"><strong>⑤</strong></td><td><strong>次回の報告</strong></td><td>いつ、何を報告するか</td></tr>
+    </table>
+    <div class="bad-box">
+      <span class="tag">悪い例</span>
+      未解決は15件です。開発の対応が遅れており、テストが進んでいません。
+    </div>
+    <p>
+      この2文には、結論（基準との距離）も、傾向も、お願いもありません。あるのは件数と、開発への不満だけです。
+      読んだPMは、<em>自分が何をすればよいのか</em>分かりません。5行で書いた例は、ワーク③の講評で確認します。
+    </p>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      報告は、状況の説明ではなく<strong>判断の依頼</strong>。<br>
+      「悪い報せほど、早く・正確に」（Step1 第1回）。5日後の判定会議で初めて言うのではなく、今日言う。
+    </div>
+
+    <details>
+      <summary>誰にどこまで関わってもらうか — ステークホルダーマトリクス（自習用）</summary>
+      <p style="margin:6px 0;">
+        シラバスは、ステークホルダーを<strong>影響力</strong>と<strong>関心</strong>の2軸で整理する方法を紹介しています。
+        報告の頻度と深さを決めるときの目安になります。
+      </p>
+      <table>
+        <tr><th style="width:26%">象限</th><th style="width:30%">影響力・関心</th><th>関わり方の目安</th></tr>
+        <tr><td><strong>推進者</strong></td><td>影響力が高い・関心が高い</td><td>計画や判断に深く関わってもらう。こまめに報告する</td></tr>
+        <tr><td><strong>潜在的協力者</strong></td><td>影響力が高い・関心が低い</td><td>日々の細部には関心がないが、資源や方向性の決定権を持つ。要点を絞って伝える</td></tr>
+        <tr><td><strong>擁護者</strong></td><td>影響力が低い・関心が高い</td><td>定期的な報告や、特定の議論への参加で関心を保つ</td></tr>
+        <tr><td><strong>無関心者</strong></td><td>影響力が低い・関心が低い</td><td>重要なマイルストーンで報告する。特定の課題で意見をもらう</td></tr>
+      </table>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>6. チケットから改善の種を拾う <span class="time">10分</span></h2>
+
+    <h3>チケットは、1件を直すためだけのものではない</h3>
+    <p>
+      管理編 第1回で触れたとおり、チケットの情報は<strong>プロセスを良くするためのデータ</strong>でもあります。
+      シラバスは、欠陥の情報を使って、ふりかえりで話し合うような改善の取り組みを支えるべきだとしています。
+    </p>
+    <table>
+      <tr><th style="width:30%">チケットから見えたこと</th><th style="width:32%">示していること</th><th>改善の例</th></tr>
+      <tr>
+        <td>「情報不足」で戻すチケットが多い</td>
+        <td>起票の型が揃っていない</td>
+        <td>起票テンプレートを整える。出す前のセルフチェックを決める</td>
+      </tr>
+      <tr>
+        <td>「仕様どおり」での却下が多い</td>
+        <td>テスト側の仕様理解が足りない。または仕様書が曖昧</td>
+        <td>テスト設計の前に、仕様の質問をまとめて出す（Step1 第2回）。期待結果に根拠を書く</td>
+      </tr>
+      <tr>
+        <td>重複が多い</td>
+        <td>見つけた不具合が、チーム内で共有されていない</td>
+        <td>起票前に検索する。朝会で前日の起票を共有する。タイトルの付け方を揃える</td>
+      </tr>
+      <tr>
+        <td>再オープンが多い</td>
+        <td>修正が不十分。または、確認の条件が開発と揃っていない</td>
+        <td>「直しました」に、修正内容とビルドを必ず書いてもらう。開発側の確認手順を見直す</td>
+      </tr>
+      <tr>
+        <td>特定の機能に欠陥が集中している</td>
+        <td>その機能が技術的に難しい。または設計に問題がある</td>
+        <td>リスクを見直して追加のテストをする。開発側では作り直しの検討（Step2 第4回）</td>
+      </tr>
+      <tr>
+        <td>「環境が原因」が多い</td>
+        <td>テスト環境の準備が、開始基準を満たしていなかった</td>
+        <td>開始基準に、環境の確認項目を加える（Step1 第3回）</td>
+      </tr>
+      <tr>
+        <td>要件や設計に原因がある欠陥が多い</td>
+        <td>上流で欠陥が作り込まれている</td>
+        <td>要件・設計のレビューに、テストが参加する（Step2 第5回）</td>
+      </tr>
+    </table>
+    <p>
+      逆に言えば、<strong>却下や終結の理由が残っていないチケットからは、何も読み取れません</strong>。
+      前回、「理由を残して閉じる」と繰り返したのは、このためです。
+    </p>
+    <p style="font-size:.93rem;color:var(--muted);">
+      シラバスは、効率を理由に欠陥を追跡しないと決めるチームもあるが、そうするとプロセスの能力が見えなくなり、改善の裏付けとなるデータが無くなる、とも注意しています。
+    </p>
+
+    <h3>ふりかえりに、データを持っていく</h3>
+    <p>シラバスは、典型的なふりかえりの流れを次のように示しています。</p>
+    <table>
+      <tr><th class="c" style="width:7%"></th><th style="width:24%">ステップ</th><th>管理担当ができること</th></tr>
+      <tr><td class="c">1</td><td>イントロダクション</td><td>非難せずに話せる雰囲気づくりに協力する</td></tr>
+      <tr><td class="c">2</td><td><strong>データの収集</strong></td><td><strong>ここが出番</strong>。却下の理由別の件数、再オープンの件数、状態ごとの滞留日数を持っていく</td></tr>
+      <tr><td class="c">3</td><td>改善策の導出</td><td>数字の裏にあった具体的なチケットを例に出す</td></tr>
+      <tr><td class="c">4</td><td>改善アクションの決定</td><td>一度にたくさん決めない。担当と、効果の確かめ方を決める</td></tr>
+      <tr><td class="c">5</td><td>クロージング</td><td>次回、決めたアクションの数字がどう変わったかを報告する</td></tr>
+    </table>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      「誰が悪かったか」ではなく、<strong>「何があれば防げたか」</strong>。<br>
+      Step1 第1回で学んだとおり、欠陥は成果物の属性で、人の属性ではない。再オープンが多いのは開発者の腕のせいではなく、たいていは<em>修正内容を伝える仕組みが無い</em>せい。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>7. 任され方を広げる — 5つの段階 <span class="time">8分</span></h2>
+
+    <h3>「チケット管理を任される」を、5つに分ける</h3>
+    <p>
+      「チケット管理を任せる」は、一つの仕事に見えて、実は段階のある仕事です。
+      一度に全部を背負う必要はありません。<strong>自分が今どの段階を任されているか</strong>を、任せる側と揃えておきましょう。
+    </p>
+    <figure>
+      <svg viewBox="0 0 820 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="チケット管理の5つの段階。レベル1は精査する、レベル2は次の一手を決める、レベル3は自分で渡す、レベル4は停滞を動かす、レベル5はクローズまで運び全体を報告する">
+        <g font-family="sans-serif" text-anchor="middle">
+          <rect x="20" y="170" width="150" height="50" rx="6" fill="#efedf8" stroke="#4a3a8c"/>
+          <rect x="178" y="135" width="150" height="85" rx="6" fill="#e2def3" stroke="#4a3a8c"/>
+          <rect x="336" y="100" width="150" height="120" rx="6" fill="#cfc8ea" stroke="#4a3a8c"/>
+          <rect x="494" y="65" width="150" height="155" rx="6" fill="#8f82c9" stroke="#4a3a8c"/>
+          <rect x="652" y="30" width="150" height="190" rx="6" fill="#4a3a8c"/>
+          <g font-weight="bold" font-size="12">
+            <text x="95" y="189" fill="#4a3a8c">レベル1</text>
+            <text x="253" y="154" fill="#4a3a8c">レベル2</text>
+            <text x="411" y="119" fill="#4a3a8c">レベル3</text>
+            <text x="569" y="84" fill="#fff">レベル4</text>
+            <text x="727" y="49" fill="#fff">レベル5</text>
+          </g>
+          <g font-size="14" font-weight="bold">
+            <text x="95" y="209" fill="#1f2937">精査する</text>
+            <text x="253" y="176" fill="#1f2937">次の一手を決める</text>
+            <text x="411" y="141" fill="#1f2937">自分で渡す</text>
+            <text x="569" y="106" fill="#fff">停滞を動かす</text>
+            <text x="727" y="71" fill="#fff">クローズまで運ぶ</text>
+          </g>
+          <g font-size="11.5" fill="#374151">
+            <text x="253" y="198">提案して、確認をもらう</text>
+            <text x="411" y="163">低リスクのものから</text>
+            <text x="411" y="180">一人で</text>
+          </g>
+          <g font-size="11.5" fill="#fff">
+            <text x="569" y="128">巡回・フォロー・</text>
+            <text x="569" y="145">エスカレーション</text>
+            <text x="727" y="93">全体を見て報告する</text>
+            <text x="727" y="110">例外だけ相談する</text>
+          </g>
+          <text x="95" y="240" font-size="11" fill="#6b7280">管理編 第1回</text>
+          <text x="253" y="240" font-size="11" fill="#6b7280">第1回</text>
+          <text x="411" y="240" font-size="11" fill="#6b7280">第2回</text>
+          <text x="569" y="240" font-size="11" fill="#6b7280">第2回・第3回</text>
+          <text x="727" y="240" font-size="11" fill="#6b7280">第3回</text>
+        </g>
+      </svg>
+      <figcaption>チケット管理の5つの段階（本講座の実務モデル）。下の段が安定してから、上の段に進む</figcaption>
+    </figure>
+    <table>
+      <tr><th class="c" style="width:12%">段階</th><th style="width:38%">任されること</th><th>できている、の目安</th></tr>
+      <tr><td class="c"><strong>レベル1</strong></td><td>チケットを読み、足りない情報を起票者に戻す</td><td>開発から「情報が足りない」と戻されるチケットが減る</td></tr>
+      <tr><td class="c"><strong>レベル2</strong></td><td>分類・次の持ち主・出口条件を決めて<strong>提案する</strong>。動かす前に確認をもらう</td><td>提案がそのまま通る割合が上がる</td></tr>
+      <tr><td class="c"><strong>レベル3</strong></td><td>低リスクのチケットは、<strong>自分でコメントして渡す</strong></td><td>渡したチケットが、聞き返されずに進む</td></tr>
+      <tr><td class="c"><strong>レベル4</strong></td><td>毎日巡回し、滞留に気づいてフォローする</td><td>目安を超えて止まっているチケットが減る</td></tr>
+      <tr><td class="c"><strong>レベル5</strong></td><td>クローズまで追い、全体の状況を報告する。例外だけ相談する</td><td>終了基準に対する距離を、いつ聞かれても答えられる</td></tr>
+    </table>
+
+    <h3>相談してから動くチケット</h3>
+    <p>
+      どの段階にいても、<strong>一人で決めずに、先に相談するチケット</strong>があります。
+      線を引いておけば、それ以外は迷わず自分で動けます。
+    </p>
+    <div class="example">
+      <span class="tag">相談してから動く（例。基準はチームで決める）</span>
+      <ul style="margin:4px 0 0;padding-left:1.3em;">
+        <li>重要度が高い。特に、<strong>お金・データの破壊・セキュリティ・法令</strong>に関わる</li>
+        <li><strong>仕様の解釈</strong>が絡み、関係者の意見が割れそう</li>
+        <li><strong>複数のチームや社外</strong>（連携先、ベンダー）にまたがる</li>
+        <li><strong>リリースの判断</strong>に影響する。見送りの提案が出ている</li>
+        <li>フローチャートのどの箱にも<strong>当てはまらない</strong></li>
+        <li>フォローを2回しても動かない</li>
+      </ul>
+    </div>
+    <p>
+      相談は、判断を丸ごと預けることではありません。管理編 第1回の5つの問いに自分なりの答えを書いたうえで、
+      <strong>「こう動こうと思いますが、合っていますか」</strong>と持っていきます。これがレベル2の動き方そのものです。
+    </p>
+
+    <h3>セルフチェック — 6つの観点</h3>
+    <p>自分が動かしたチケットを10件選び、1件ずつ○△×を付けてみてください。月に一度やると、伸びたところと苦手なところが見えます。</p>
+    <table>
+      <tr><th class="c" style="width:6%"></th><th style="width:42%">観点</th><th>弱いときに出やすい症状</th></tr>
+      <tr><td class="c">1</td><td>足りない情報に気づけたか</td><td rowspan="2">横流し</td></tr>
+      <tr><td class="c">2</td><td>何として扱うか、適切に分類できたか</td></tr>
+      <tr><td class="c">3</td><td>重要度・優先度の見立ては妥当だったか</td><td>重大な欠陥が埋もれる</td></tr>
+      <tr><td class="c">4</td><td>次の持ち主を、正しく選べたか</td><td>抱え込み。または宛先違いの往復</td></tr>
+      <tr><td class="c">5</td><td>コメントで、次にしてほしいことが伝わったか</td><td>聞き返される。返事が来ない</td></tr>
+      <tr><td class="c">6</td><td>止めずに、クローズまで追えたか</td><td>気づいたら何日も止まっている</td></tr>
+    </table>
+
+    <details>
+      <summary>講師用・任せる側の方へ: 任せ方の4つのフェーズと、評価の付け方</summary>
+      <p style="margin:6px 0;">
+        「チケット管理をお願い」と一度に渡すと、受け取った側はレベル1・2が固まらないままレベル5を背負うことになります。
+        横流しと抱え込みは、多くの場合ここから生まれます。<strong>段階に分けて渡す</strong>のが近道です。
+      </p>
+      <table>
+        <tr><th style="width:24%">フェーズ</th><th style="width:38%">任せる側がやること</th><th>任される側がやること</th></tr>
+        <tr>
+          <td><strong>1. 見せる</strong><br><span style="font-size:.85em;color:var(--muted);">1週間ほど</span></td>
+          <td>毎日3〜5件、自分がチケットを処理するときに、<strong>判断の理由を声に出す</strong>。「これは情報不足だから戻す」「これは仕様の話だから開発ではなく渡辺さん」</td>
+          <td>隣で見る。5つの問いのどれに当たるかを考える</td>
+        </tr>
+        <tr>
+          <td><strong>2. 判断だけ任せる</strong></td>
+          <td>提案をレビューし、違うところは理由を伝える。OKならそのとおりに動かしてもらう</td>
+          <td>チケットごとに、分類・次の一手・理由・重要度の見立て・出口条件を書いて提案する（レベル2）</td>
+        </tr>
+        <tr>
+          <td><strong>3. 低リスクを任せる</strong></td>
+          <td>任せる範囲を言葉で決める（再現が明確、重要度が低〜中、既知の機能、など）。それ以外は相談してもらう。週に一度、数件を抜き出して一緒に見る</td>
+          <td>範囲内は自分でコメントして渡す（レベル3〜4）</td>
+        </tr>
+        <tr>
+          <td><strong>4. 例外だけ相談</strong></td>
+          <td>「相談してから動く」基準に当たるものだけ受ける</td>
+          <td>通常のチケットは最後まで運ぶ（レベル5）</td>
+        </tr>
+      </table>
+      <p style="margin:10px 0 4px;"><strong>評価の付け方</strong></p>
+      <ul>
+        <li>セルフチェックの6観点を、<strong>10件×6観点＝60点満点</strong>で付ける（○1点、△0.5点、×0点など）。本人の自己採点と、任せる側の採点を並べて、ずれたところを話す</li>
+        <li>月ごとの合計よりも、<strong>どの観点が低いか</strong>を見る。1・2が低ければ横流しの傾向、4が低ければ抱え込みの傾向、6が低ければ巡回の習慣が無い</li>
+        <li>点数は育成のためのもの。人事評価に流用しない（セクション3の「数字で人を評価しない」と同じ理由）</li>
+      </ul>
+      <p style="margin:10px 0 4px;"><strong>学び方の配分の目安</strong></p>
+      <p style="margin:0;">
+        座学（この3回）が2割、過去チケットの追体験（管理編 第2回ワークの形式）が4割、実案件とレビューが4割。
+        欠陥マネジメントは技法のように覚えれば使える知識ではなく、<strong>状況判断の積み重ね</strong>です。
+        経験は必要ですが、<em>経験 → フィードバック → 判断基準を言葉にする → 別のチケットで試す</em>の輪にすれば、漫然と件数をこなす必要はありません。
+      </p>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>まとめ <span class="time">5分</span></h2>
+    <h3>今日の持ち帰り</h3>
+    <ul>
+      <li>ボードは<strong>5つの切り口</strong>で絞って読む。まだ誰も判断していない／重要度が高い未解決／止まっている／テスト側のボール／自分のボール</li>
+      <li>全部を動かそうとせず、<strong>今日動かすべきものを選ぶ</strong>。根拠は、重要度×止まっている×テストやリリースへの影響</li>
+      <li><strong>起票の累計とクローズの累計</strong>の差が未解決。差が開いているなら、詰まっているのが修正か確認テストかを見る</li>
+      <li>却下・重複・再オープンの割合は、<strong>プロセスを映す数字</strong>。人ではなく仕組みを見る</li>
+      <li>報告は5行。<strong>結論（基準との距離）／数字／懸念／お願い／次回</strong>。自分たちの側の滞留も隠さない</li>
+      <li>チケットの傾向は<strong>改善の種</strong>。理由を残して閉じたチケットだけが、あとで使える</li>
+      <li>任され方には段階がある。<strong>相談してから動くチケット</strong>の線を、任せる側と揃えておく</li>
+    </ul>
+
+    <h3>管理編3回の全体像</h3>
+    <ul>
+      <li><strong>第1回</strong>: 届いた1件を、5つの問いで一次判断する。横に流さない、抱え込まない</li>
+      <li><strong>第2回</strong>: コメントと合意で、起票からクローズまで運ぶ。判断できる人のところへ、材料を添えて届ける</li>
+      <li><strong>第3回</strong>: 全体を読み、選び、報告し、改善につなげる</li>
+    </ul>
+    <p>
+      3回を通して伝えたかったのは一つです。チケット管理は、<strong>自分で問題を解く仕事ではなく、解決に必要な人と情報を揃えて、判断を前へ進める仕事</strong>だということ。
+      これができる人のまわりでは、テストも開発も止まりません。
+    </p>
+    <p>
+      この先のStep2（応用編）では、テスト戦略とリスクの考え方（第4回）、上流での品質の作り込み（第5回）へ進みます。
+      今日のセクション6で見た「欠陥が集中する機能」「上流で作り込まれる欠陥」は、そのままStep2の入口です。
+    </p>
+    <div class="example">
+      <span class="tag">これから続けること</span>
+      <ul style="margin:4px 0 0;padding-left:1.3em;">
+        <li>毎朝15分の巡回を、まず2週間続ける</li>
+        <li>クローズ済みの過去チケットで、週に2〜3件「次の一手の予測」をやってみる（管理編 第2回ワークの形式。先輩に選んでもらうとよい）</li>
+        <li>月に一度、6つの観点でセルフチェックする</li>
+      </ul>
+    </div>
+
+    <p class="jstqb">
+      <strong>主なシラバス対応: JSTQB Advanced Level シラバス テストマネジメント Version 3.0.J02（ISTQB CTAL-TM v3.0 の日本語翻訳版）</strong><br>
+      2.1 テストメトリクス（2.1.1 テストマネジメント活動のためのメトリクス／2.1.2 モニタリング、コントロール、完了／2.1.3 テスト報告）／2.3.5 欠陥レポート情報／2.3.6 欠陥レポート情報を用いたプロセス改善アクションの定義／1.1.2 テストモニタリングとコントロールの活動／1.2.1 テストステークホルダー／1.2.2 テストマネジメントにおけるステークホルダーの持つ知見の重要性／1.5.4 ふりかえり<br>
+      <em style="background:none;">実務拡張</em>: 巡回の5つの切り口、朝の15分、報告の5行、任され方の5つの段階、相談の基準、セルフチェックの6観点は、本講座の実務補足です。ワークのチケットと数値は架空のものです。<br>
+      シラバスの出典および著作権: International Software Testing Qualifications Board（ISTQB®）／日本語翻訳版 Japan Software Testing Qualifications Board（JSTQB®）
+    </p>
+  </section>
+
+  <footer class="pager">
+    <a href="phaseM2.html">← 管理編 第2回 チケットを運ぶ</a>
+    <a href="index.html">Step1.5 目次に戻る →</a>
+  </footer>
+</div>
+</body>
+</html>

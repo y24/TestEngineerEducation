@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理編 第2回 チケットを運ぶ — コメントと合意で、解決まで持っていく</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #4a3a8c;
+    --accent-light: #efedf8;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --warn: #b91c1c;
+    --warn-bg: #fef2f2;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 16px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 36px; margin-bottom: 36px;
+  }
+  header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
+  header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
+  section {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 30px 34px; margin-bottom: 30px;
+  }
+  section > h2 {
+    margin: -30px -34px 24px; padding: 16px 34px;
+    background: var(--accent-light); border-radius: 12px 12px 0 0;
+    font-size: 1.25rem; color: var(--accent);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  section > h2 .time { float: right; font-size: .8rem; color: var(--muted); font-weight: normal; margin-top: 4px; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 28px 0 10px; }
+  .goal { background: var(--accent-light); border-radius: 10px; padding: 20px 26px; margin-bottom: 30px; }
+  .goal h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--accent); }
+  .goal ul { margin: 0; padding-left: 1.4em; }
+  .mind, .work, .example, .warn { border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .mind .tag { color: var(--mind); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .warn { background: var(--warn-bg); border-left: 5px solid var(--warn); }
+  .warn .tag { color: var(--warn); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; font-size: .93rem; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: .8rem; display: block; margin-bottom: 2px; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: .8rem; display: block; margin-bottom: 2px; }
+  /* チケットカード */
+  .tk { border: 1px solid #d1d5db; border-radius: 10px; background: #fff; overflow: hidden; margin: 14px 0; font-size: .92rem; line-height: 1.75; }
+  .tk .tk-head { display: flex; gap: 12px; align-items: baseline; padding: 8px 16px; background: #f3f4f6; border-bottom: 1px solid #e5e7eb; }
+  .tk .tk-id { font-family: Consolas, "Courier New", monospace; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .tk .tk-title { font-weight: 700; }
+  .tk .tk-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 6px 16px; font-size: .8rem; color: var(--muted); border-bottom: 1px dashed #e5e7eb; }
+  .tk .tk-body { padding: 10px 16px 12px; }
+  .tk .tk-body p { margin: 4px 0; }
+  .tk .tk-body ol { margin: 2px 0; padding-left: 1.5em; }
+  /* コメント */
+  .cm { border-left: 4px solid #9ca3af; background: #f9fafb; border-radius: 0 8px 8px 0; padding: 10px 16px; margin: 10px 0; font-size: .92rem; line-height: 1.75; }
+  .cm .who { display: block; font-weight: 700; font-size: .8rem; color: #4b5563; margin-bottom: 2px; }
+  .cm.qa { border-left-color: var(--accent); background: var(--accent-light); }
+  .cm.dev { border-left-color: #1e3a5f; }
+  .cm.po { border-left-color: var(--mind); background: var(--mind-bg); }
+  .cm.sys { border-left-style: dashed; background: #fff; color: var(--muted); font-size: .85rem; padding: 6px 16px; }
+  .stop { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 14px 20px; margin: 16px 0; }
+  .stop .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  td.c, th.c { text-align: center; }
+  details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  figure { margin: 20px 0; text-align: center; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
+  .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
+  footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
+  footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="crumb"><a href="index.html">← Step1.5 目次に戻る</a></nav>
+
+  <header class="hero">
+    <div class="label">テストエンジニア育成講座 Step1.5 — 管理編 第2回（90分）</div>
+    <h1>チケットを運ぶ<br>— コメントと合意で、解決まで持っていく</h1>
+    <p>渡したら終わり、ではない。「再現しません」「仕様です」と返ってきたあとの動き方と、止まったチケットの動かし方。</p>
+  </header>
+
+  <div class="goal">
+    <h2>今日のゴール</h2>
+    <ul>
+      <li>欠陥をどう扱うかは<strong>関係者で決めるもの</strong>だと理解し、誰が何を判断するのかを言える</li>
+      <li>依頼コメントを<strong>「分かっていること・お願い・期限と理由・返してほしいもの」</strong>の4点で書ける</li>
+      <li>「再現しません」「仕様です」「直しました」「次回にしたい」に、それぞれ<strong>次の一手</strong>を返せる</li>
+      <li><strong>止まっているチケット</strong>に気づき、フォローとエスカレーションができる</li>
+      <li>確認テスト・クローズ・見送りを、<strong>理由を残して</strong>終わらせられる</li>
+    </ul>
+  </div>
+
+  <details>
+    <summary>本日の進行（90分）</summary>
+    <table>
+      <tr><th style="width:60%">内容</th><th class="c" style="width:20%">時間</th></tr>
+      <tr><td>1. 前回の振り返り</td><td class="c">5分</td></tr>
+      <tr><td>2. 欠陥の扱いは、一人では決めない</td><td class="c">12分</td></tr>
+      <tr><td>3. 伝わるコメントの型（ミニワーク5分を含む）</td><td class="c">18分</td></tr>
+      <tr><td>4. ワーク② チケット追体験 — 次の一手を予測する</td><td class="c">25分</td></tr>
+      <tr><td>5. 止まったチケットを動かす</td><td class="c">12分</td></tr>
+      <tr><td>6. 終わらせ方 — 確認テスト・クローズ・見送り</td><td class="c">10分</td></tr>
+      <tr><td>まとめ</td><td class="c">5分</td></tr>
+      <tr><td><strong>調整余白</strong></td><td class="c">3分</td></tr>
+    </table>
+  </details>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>1. 前回の振り返り <span class="time">5分</span></h2>
+    <p>
+      前回は、届いた1件を読んで次の一手を決める<strong>一次判断</strong>を扱いました。
+      5つの問い（何が起きている／情報は足りている／何として扱う／次に誰が何をする／次の状態になる条件は）で、
+      チケットの行き先を決めるところまでです。
+    </p>
+    <p>
+      しかし、渡したところでチケットの旅は終わりません。むしろ本番はここからです。
+      開発からは「再現しません」と返ってきます。「仕様です」と却下されます。「次のリリースで」と言われます。
+      あるいは、<em>何も返ってこないまま3日が過ぎます</em>。
+    </p>
+    <p>今日は、1件のチケットを<strong>起票からクローズまで</strong>追いかけます。</p>
+    <div class="example">
+      <span class="tag">問いかけ（2分・口頭で数名）</span>
+      前回から今日までに受け取ったチケットで、5つの問いのうち<strong>どの問いで手が止まりましたか</strong>？
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>2. 欠陥の扱いは、一人では決めない <span class="time">12分</span></h2>
+
+    <h3>機能横断的な欠陥マネジメント</h3>
+    <p>
+      JSTQBのシラバスは、欠陥マネジメントのプロセスやツールはテスト組織が持つことが多い一方で、
+      <strong>個々のプロジェクトで欠陥をどう扱うかは、機能横断的なチームが担う</strong>と述べています。
+      このチームは<strong>欠陥マネジメント委員会</strong>と呼ばれることもあり、テストマネージャー、開発の代表、プロジェクトマネジメント、
+      プロダクトオーナーなど、そのソフトウェアに関心を持つ関係者で構成されます。
+    </p>
+    <p>このチームが決めるのは、次のことです。</p>
+    <ul>
+      <li>報告されたものが<strong>有効な欠陥かどうか</strong></li>
+      <li><strong>修正する</strong>か（複数の開発チームがあるなら、どのチームが直すか）、<strong>却下する</strong>か、<strong>延期する</strong>か</li>
+      <li>修正する場合、ほかの作業に対する<strong>優先度</strong></li>
+    </ul>
+    <p>
+      判断にあたっては、修正することの<strong>利点・リスク・コスト</strong>を検討します。
+      この検討を行う場が、Step1 第3回で扱った<strong>トリアージ（ミーティング）</strong>です。
+    </p>
+
+    <h3>誰が、何を判断するのか</h3>
+    <table>
+      <tr><th style="width:27%">判断すること</th><th style="width:30%">主に判断する人</th><th>テスト側が出す材料</th></tr>
+      <tr>
+        <td>有効な欠陥か</td>
+        <td>「どうあるべきか」は仕様担当・PO。<br>「実装がどうなっているか」は開発</td>
+        <td>再現手順、実際の結果、期待結果とその根拠</td>
+      </tr>
+      <tr>
+        <td>直すか、却下か、延期か</td>
+        <td>トリアージ（PM・PO・開発・テスト）</td>
+        <td>業務への影響、頻度と条件、回避策の中身、テストへの影響</td>
+      </tr>
+      <tr>
+        <td>誰が直すか</td>
+        <td>開発リーダー</td>
+        <td>どの機能・どの連携で起きるか</td>
+      </tr>
+      <tr>
+        <td>どの順番で直すか</td>
+        <td>トリアージ、PO</td>
+        <td>止まっているテスト、リリースまでの残り日数</td>
+      </tr>
+      <tr>
+        <td>直ったか</td>
+        <td>テスター</td>
+        <td>確認テストの結果</td>
+      </tr>
+    </table>
+    <p>
+      右の列を見てください。<strong>どの判断にも、テスト側が出す材料があります</strong>。
+      シラバスも、欠陥の相対的な重要性についてはテストマネージャーとテストチームに相談し、
+      テスト側は<em>有効で客観的な情報を提供すべき</em>だとしています。
+    </p>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      管理担当は、一人で答えを出す人ではない。<strong>正しく判断できる場所まで、チケットを運ぶ人</strong>。<br>
+      ただし、荷物を置いて帰るだけの運び屋でもない。<em>材料と一緒に「自分はこう考える」を添えて運ぶ</em>
+      （Step1 第3回の「意思を持って材料を出す」）。
+    </div>
+
+    <h3>トリアージに持ち込む前に揃えるもの</h3>
+    <p>1件を1分で説明できる形にしておきます。</p>
+    <table>
+      <tr><th style="width:26%">揃えるもの</th><th>例</th></tr>
+      <tr><td>事象（一文で）</td><td>兼務者の5万円超の申請が、部長承認なしで承認済みになる</td></tr>
+      <tr><td>影響</td><td>内部統制の要件を満たさない支払いが発生しうる。対象は兼務者12名</td></tr>
+      <tr><td>頻度・条件</td><td>兼務先の部署に部長職がいない場合に、必ず発生</td></tr>
+      <tr><td>回避策とその中身</td><td>経理が支払前に目視で確認する。<em>誰が・毎回確実にできるか</em>まで書く</td></tr>
+      <tr><td>テストへの影響</td><td>承認ルートのテスト24件が止まっている。修正後の確認とリグレッションに1.5日</td></tr>
+      <tr><td>選択肢と推奨</td><td>A: 今回修正／B: 見送って運用で回避。推奨はA。理由は…</td></tr>
+    </table>
+
+    <h3>ツールは、会話の代わりにならない</h3>
+    <p>
+      シラバスにはこういう趣旨の一文があります。<strong>欠陥マネジメントツールを、よいコミュニケーションの代用にすべきではない。</strong>
+      チケットに書いたから伝わった、とは限りません。
+    </p>
+    <table>
+      <tr><th style="width:50%">チケットのコメントで足りる</th><th>話したほうが早い</th></tr>
+      <tr>
+        <td>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>事実の追記、結果の報告</li>
+            <li>急がない質問で、答えが一言で済むもの</li>
+            <li>決まったことの記録</li>
+          </ul>
+        </td>
+        <td>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>テストが止まる、お金やデータに関わる</li>
+            <li><strong>同じ論点でコメントが2往復した</strong></li>
+            <li>互いの前提がずれていそう（見ている環境、データ、仕様の版）</li>
+            <li>画面を見せれば10秒で伝わること</li>
+          </ul>
+        </td>
+      </tr>
+    </table>
+    <p>
+      ただし、<strong>話した内容は必ずチケットに書き戻します</strong>。誰と話して、何が分かり、何が決まり、次は誰の番か。
+      書き戻さなければ、その会話はチームにとって無かったことになります。
+    </p>
+
+    <details>
+      <summary>アジャイルチームやハイブリッド開発では（自習用）</summary>
+      <p style="margin:6px 0;">
+        アジャイル開発では、欠陥マネジメントはもっと軽く、形式ばらないことが多いです。
+        同じ場所にいるチームなら、チケットを書かずに口頭で直してもらうこともあります。
+        それでもシラバスは、次のような場合は<strong>欠陥レポートを作成すべき</strong>としています。
+      </p>
+      <ul>
+        <li>ほかの作業を止めていて、チーム内ですぐ直せない欠陥</li>
+        <li>同じイテレーションの中で解決できない欠陥</li>
+        <li>ほかのチームやサプライヤーが解決に関わる欠陥</li>
+        <li>欠陥レポートが明示的に求められている場合（開発者がすぐ着手できない、など）</li>
+      </ul>
+      <p style="margin:6px 0;">
+        同じイテレーションで解決できない欠陥は、プロダクトバックログに入れて、ほかのユーザーストーリーと並べて優先順位を付けるのが一般的です。
+        どこまで形式を整えるかはチームで合意し、<strong>決めたことは文書に残します</strong>。
+      </p>
+      <p style="margin:6px 0 0;">
+        複数のチームが別々の開発モデルやツールで動くハイブリッド開発では、ツール間の同期、
+        プロダクトオーナーが優先順位付けに関わること、全チームの計画が互いに見えていること、が課題になります。
+      </p>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>3. 伝わるコメントの型 <span class="time">18分</span></h2>
+
+    <h3>チケットのコメントは「引き継げる記録」</h3>
+    <p>
+      チャットのメッセージは、今その場にいる相手に向けて書きます。チケットのコメントは違います。
+      <strong>3日後に、経緯を知らない別の人が読んでも分かる</strong>ように書きます。
+      読むのは宛先の開発者だけではありません。トリアージの参加者、確認テストをするテスター、半年後に似た不具合を調べる誰か、です。
+    </p>
+
+    <h3>依頼コメントの4点</h3>
+    <table>
+      <tr><th class="c" style="width:7%"></th><th style="width:26%">書くこと</th><th>ポイント</th></tr>
+      <tr>
+        <td class="c"><strong>①</strong></td><td><strong>分かっていること</strong></td>
+        <td>観測した事実、試したこと、まだ分からないこと。事実と推測を分ける（Step1 第1回）</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>②</strong></td><td><strong>お願いしたいこと</strong></td>
+        <td>誰に、何を。原因の調査なのか、仕様の判断なのか、再現の確認なのか。<em>「確認お願いします」の「確認」の中身を書く</em></td>
+      </tr>
+      <tr>
+        <td class="c"><strong>③</strong></td><td><strong>いつまでに・なぜ</strong></td>
+        <td>期限と、その理由。理由はたいてい「テストの何が止まっているか」。理由のない期限は守られない</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>④</strong></td><td><strong>返してほしいもの</strong></td>
+        <td>何が返ってくれば次へ進めるか（前回の問5）。全部の答えでなくてよい。「見立てだけでも」と書けば、相手は返しやすい</td>
+      </tr>
+    </table>
+
+    <div class="bad-box">
+      <span class="tag">悪い例（前回の #2102 を開発へ渡すとき）</span>
+      高橋さん、確認お願いします。
+    </div>
+    <div class="good-box">
+      <span class="tag">良い例</span>
+      高橋さん、原因の調査をお願いします。<br>
+      <strong>■ 分かっていること</strong>: 一括承認で10件以上を選ぶと500エラーになります（10・12・20件で3回中3回）。9件以下は成功します。エラー後、選択した申請はすべて承認待ちのままでした。発生時刻は 10/6 9:42、9:47、9:55 です。<br>
+      <strong>■ お願い</strong>: 原因の調査と、修正の見込みの回答<br>
+      <strong>■ いつまでに・なぜ</strong>: 今日中に見込みだけでも頂けると助かります。一括承認シナリオのテスト38件が止まっています<br>
+      <strong>■ 返してほしいもの</strong>: 原因の見立て／修正が入るビルドの見込み
+    </div>
+    <p>
+      長く感じるかもしれませんが、開発がこのコメントを読んで<strong>聞き返すことは、ほぼありません</strong>。
+      「確認お願いします」の一行は、書くのは5秒でも、相手の読み解きと聞き返しで半日を使います。
+    </p>
+
+    <h3>返ってきた言葉別・次の一手</h3>
+    <table>
+      <tr><th style="width:20%">返ってきた言葉</th><th style="width:30%">やりがち</th><th>次の一手</th></tr>
+      <tr>
+        <td><strong>「再現しません」</strong></td>
+        <td>「こちらでは再現します」と返す</td>
+        <td>違いを探す。<strong>ユーザー・データ・ビルド・環境・手順</strong>のどれが違うか。分からなければ画面を並べて一緒に再現する。条件を絞り直して、もう一度渡す</td>
+      </tr>
+      <tr>
+        <td><strong>「仕様です」</strong></td>
+        <td>そのまま受け入れて閉じる。または「でもおかしいです」と言い返す</td>
+        <td><strong>どの仕様書のどこか</strong>を聞く。書いてあれば却下を受け入れ、テストケースを直す。<em>書いていないなら「仕様どおり」ではなく「仕様が未定義」</em>。仕様担当へ判断を依頼する</td>
+      </tr>
+      <tr>
+        <td><strong>「直しました」</strong></td>
+        <td>すぐ確認テストへ回す</td>
+        <td><strong>どのビルドに入ったか、何を直したか、影響しそうな範囲はどこか</strong>を聞く。確認テストの範囲がそれで決まる</td>
+      </tr>
+      <tr>
+        <td><strong>「次回にしたい」</strong></td>
+        <td>「分かりました」と一人で受ける。または「困ります」と一人で断る</td>
+        <td>管理担当が決めることではない。<strong>材料を揃えてトリアージへ</strong>。見送るなら、理由・リスク・回避策を記録に残す</td>
+      </tr>
+      <tr>
+        <td><strong>「調査中です」</strong>（が続く）</td>
+        <td>待つ</td>
+        <td><strong>次に状況を教えてもらう時点</strong>を合意する。「明日の朝会で、途中経過だけでも」</td>
+      </tr>
+      <tr>
+        <td>（返事がない）</td>
+        <td>待つ。または「まだですか」</td>
+        <td>セクション5のフォローへ</td>
+      </tr>
+    </table>
+
+    <h3>言い方の作法</h3>
+    <ul>
+      <li><strong>主語は人ではなく、事象</strong>。「高橋さんの修正が間違っています」ではなく「修正後のビルドでも、同じ手順で同じ結果になりました」</li>
+      <li><strong>質問は答えやすい形で</strong>。「どうなっていますか？」より「AとBのどちらですか」「今日中に見込みは出ますか」</li>
+      <li><strong>自分の事情や感情は書かない</strong>。「困っています」ではなく「テスト38件が止まっています」。困っていることは、事実が伝えてくれる</li>
+      <li><strong>結果を返す</strong>。相手の対応で前へ進んだら、それを一言書く。「頂いた条件で再現しました。助かりました」。次の依頼が通りやすくなる</li>
+    </ul>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      開発は「直させる相手」ではなく、<strong>同じ問題を一緒に解く相手</strong>。<br>
+      コメントの一行一行が、「このテストチームからの依頼は読む価値がある」という信頼を積んでいく。あるいは削っていく。
+    </div>
+
+    <div class="work">
+      <span class="tag">ミニワーク（個人3分 → ペアで見せ合い2分）</span>
+      <p style="margin:6px 0;">次のコメントを、4点の型で書き直してください。</p>
+      <div class="bad-box" style="background:#fff;">
+        <span class="tag">書き直す対象</span>
+        高橋さん、#2188 どうなってますか？ テストが進まなくて困っています。早めにお願いします。
+      </div>
+      <p style="margin:6px 0 2px;"><strong>分かっている事実</strong>:</p>
+      <ul style="margin:2px 0;">
+        <li>#2188「領収書の添付ファイルが5MBを超えると、アップロードが終わらない」。3営業日前に開発へ渡した</li>
+        <li>状態は「進行中」のまま、渡してからコメントは付いていない</li>
+        <li>添付ファイル関連のテスト12件が未実行。テスト終了まで残り6営業日</li>
+        <li>4MBでは成功、5MBちょうどでは成功、6MBで発生（3回中3回）。画面は読み込み中の表示のまま変わらない</li>
+      </ul>
+    </div>
+    <details>
+      <summary>解答例を見る（書き直したコメントの一例）</summary>
+      <div class="good-box">
+        <span class="tag">書き直し例</span>
+        高橋さん、#2188 の状況を教えてください。<br>
+        <strong>■ 分かっていること</strong>: 領収書の添付で、6MBのファイルだとアップロードが終わりません（3回中3回。読み込み中の表示のまま）。4MBと5MBちょうどでは成功します。3営業日前にお渡ししてから、こちらで新しく分かったことはありません。<br>
+        <strong>■ お願い</strong>: 現在の調査状況と、修正の見込みの共有<br>
+        <strong>■ いつまでに・なぜ</strong>: 明日の午前中までに。添付ファイル関連のテスト12件が未実行で、テスト終了まで残り6営業日です。修正が入る時期によって、テストの順番を組み替えます<br>
+        <strong>■ 返してほしいもの</strong>: 着手済みかどうか／原因の見立て／修正が入るビルドの見込み。まだ着手できていない場合は、その旨だけでも構いません
+      </div>
+      <ul>
+        <li>「どうなってますか」は、相手が<em>何から答えればよいか</em>を考えなければならない質問。返してほしいものを並べると、相手は一行ずつ埋めるだけで済む</li>
+        <li>「困っています」は「テスト12件が未実行、残り6営業日」という事実に置き換わる</li>
+        <li><strong>「まだ着手できていないなら、それだけでも」</strong>と書けるかが分かれ目。責めるためではなく、テストの順番を決めるために知りたい、という目的が伝わる</li>
+        <li>3営業日コメントが無いこと自体は責めない。ただし、これは本来もっと早く気づくべきだった停滞（セクション5）</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>4. ワーク② チケット追体験 — 次の一手を予測する <span class="time">25分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（グループ18分 → 全体でふりかえり7分）</span>
+      <p style="margin:6px 0;">
+        前回リリースのシステムテストで実際にあった、という設定のチケットを、<strong>起票からクローズまで</strong>たどります。
+        履歴は6つの場面に区切ってあります。
+      </p>
+      <ol style="margin:6px 0;">
+        <li>「止まって考える」の問いが出たら、<strong>続きを開く前に</strong>、グループで次の一手を決める（1場面2分）。<br>
+          決めるのは<strong>「誰に・何をするか」</strong>。コメントを書くなら、何と書くか</li>
+        <li>続きを開いて、実際の履歴とポイントを読む（1場面1分）</li>
+        <li>自分たちの予測と違ったら、<strong>どこが違ったか</strong>を一言メモする</li>
+      </ol>
+      <p style="margin:6px 0;">
+        当てることが目的ではありません。<strong>予測してから見る</strong>ことで、「この場面ならこう動く」という型が残ります。
+        完成したチケットをただ読むだけでは、型は残りません。
+      </p>
+    </div>
+
+    <div class="thread">
+      <div class="tk">
+        <div class="tk-head"><span class="tk-id">#1764</span><span class="tk-title">5万円を超える申請が、課長承認だけで「承認済み」になる</span></div>
+        <div class="tk-meta"><span>起票: 鈴木（テスター）／1日目（月）10:20</span><span>重要度: 高</span><span>状態: オープン</span><span>所有者: 管理担当</span></div>
+        <div class="tk-body">
+          <p><strong>前提</strong>: STG／ビルド 2026.06.08.1</p>
+          <p><strong>手順</strong>:</p>
+          <ol><li>申請者 user07 で、金額 60,000円の経費を申請する</li><li>課長 kacho03 でログインし、その申請を承認する</li></ol>
+          <p><strong>実際の結果</strong>: 申請のステータスが「承認済み」になる</p>
+          <p><strong>期待結果</strong>: 「部長承認待ち」になる（仕様書§4-3「申請金額が5万円を超える場合は、部長の承認が必要となる」）</p>
+          <p><strong>頻度</strong>: 2回中2回</p>
+        </div>
+      </div>
+
+      <div class="stop">
+        <span class="tag">止まって考える ①</span>
+        あなたが管理担当です。このチケットを受け取りました。<strong>次の一手は？</strong>（前回の5つの問いを使ってください）
+      </div>
+
+      <details>
+        <summary>続きを開く ①（実際の履歴と、この場面のポイント）</summary>
+        <div class="cm qa"><span class="who">管理担当（当時）／1日目（月）10:35</span>開発さん、確認お願いします。</div>
+        <div class="cm sys">状態: オープン → 進行中　所有者: 管理担当 → 開発 高橋</div>
+        <div class="cm dev"><span class="who">開発 高橋／2日目（火）15:10</span>
+          こちらの環境で user01 と kacho01 を使って試しましたが、再現しません。60,000円の申請は、課長承認のあと「部長承認待ち」になります。再現条件を確認してください。</div>
+        <div class="cm sys">所有者: 開発 高橋 → 管理担当</div>
+
+        <div class="example">
+          <span class="tag">この場面のポイント</span>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>当時の管理担当は<strong>横流し</strong>をした。「確認お願いします」には、何を・いつまでに・なぜ、が無い</li>
+            <li>5つの問いを通すと、問2で引っかかる。<strong>user07 がどんなユーザーなのか</strong>が書かれていない。手順は明確でも、条件が足りない</li>
+            <li>5分でできた一次切り分け: <em>別の申請者でも起きるか</em>を試す。起きなければ、「user07 に固有の何か」が論点だと分かる</li>
+            <li>重要度「高」は妥当（承認の統制をすり抜ける）。それなら、チケットに書くだけでなく開発へ一声かける場面だった</li>
+            <li>結果: 開発は別のユーザーで試し、再現せず。<strong>ここまでで約1日半</strong></li>
+          </ul>
+        </div>
+
+        <div class="stop">
+          <span class="tag">止まって考える ②</span>
+          開発から「再現しません」と返ってきました。<strong>次の一手は？</strong>
+        </div>
+      </details>
+
+      <details>
+        <summary>続きを開く ②</summary>
+        <div class="cm"><span class="who">（チケット外）管理担当が鈴木さんと5分話す</span>
+          user07 は<strong>兼務</strong>のユーザーだった（主務: 営業一課、兼務: 業務改革室）。kacho03 は業務改革室の課長。
+          兼務でない user01 では起きない。別の兼務ユーザー user12 でも、兼務先の課長 kacho05 が承認すると起きる（2回中2回）。</div>
+        <div class="cm qa"><span class="who">管理担当／2日目（火）16:00</span>
+          高橋さん、再現条件を絞り込みました。もう一度お願いします。<br>
+          <strong>■ 分かったこと</strong>: 申請者が<strong>兼務ユーザー</strong>で、<strong>兼務先の部署の課長</strong>が承認した場合に発生します（user07→kacho03、user12→kacho05 で各2回中2回）。兼務でない user01 では発生しません（高橋さんの結果と一致します）。<br>
+          <strong>■ お願い</strong>: この条件での再現確認と、原因の見立て<br>
+          <strong>■ いつまでに・なぜ</strong>: 明日の午前中に、見立てだけでも。承認ルートのテスト24件を止めています<br>
+          <strong>■ 返してほしいもの</strong>: 再現したかどうか／原因の見立て／修正の見込み</div>
+        <div class="cm sys">所有者: 管理担当 → 開発 高橋</div>
+        <div class="cm dev"><span class="who">開発 高橋／3日目（水）11:00</span>
+          再現しました。兼務先の業務改革室には部長職がいないため、その部署の課長の承認が最終承認になります。
+          承認ルートは、承認者が所属する部署の組織階層から算出する作りで、設計書どおりです。
+          兼務者の扱いは設計書に記載がありません。仕様どおりのため、却下します。</div>
+        <div class="cm sys">状態: 進行中 → 却下　所有者: 開発 高橋 → 管理担当</div>
+
+        <div class="example">
+          <span class="tag">この場面のポイント</span>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>やってはいけないのは<strong>「こちらでは再現します」と返すこと</strong>。往復が1回増えるだけで、何も進まない</li>
+            <li>「再現しない」は、<em>どこかの条件が違う</em>という情報。ユーザー・データ・ビルド・環境・手順のどれが違うかを探す。今回はユーザーだった</li>
+            <li>起票者に聞けば5分で分かった。<strong>話して、分かったことをチケットに書き戻している</strong>点にも注目</li>
+            <li>コメントが4点の型になっている。「高橋さんの結果と一致します」の一言で、相手の作業が無駄ではなかったことも伝えている</li>
+          </ul>
+        </div>
+
+        <div class="stop">
+          <span class="tag">止まって考える ③</span>
+          「仕様どおり」として却下されました。<strong>次の一手は？</strong> 却下を受け入れますか。差し戻しますか。それとも？
+        </div>
+      </details>
+
+      <details>
+        <summary>続きを開く ③</summary>
+        <div class="cm qa"><span class="who">管理担当／3日目（水）11:40</span>
+          渡辺さん（経理部）、仕様の判断をお願いします。<br>
+          <strong>■ 事象</strong>: 兼務者が5万円を超える申請をしたとき、兼務先の部署に部長職がいないと、兼務先の課長の承認だけで「承認済み」になります。<br>
+          <strong>■ 論点</strong>: 仕様書§4-3は「5万円を超える場合は、部長の承認が必要」としています。一方、兼務者の承認ルートは、仕様書にも設計書にも記載がありません（開発 高橋さん確認済み）。<br>
+          <strong>■ 決めていただきたいこと</strong>: 兼務者の5万円超の申請は、誰が最終承認すべきか<br>
+          <strong>■ いつまでに・なぜ</strong>: 明日中に方針だけでも。リリース判定まで5営業日で、修正が必要な場合の期間を確保したいためです<br>
+          <strong>■ 参考</strong>: 現状では、部長承認を経ずに支払いへ進む経路があります。兼務者の人数は人事マスタで確認できると思います</div>
+        <div class="cm sys">状態: 却下 → 明確化（仕様確認中）　所有者: 管理担当 → 仕様担当 渡辺</div>
+        <div class="cm po"><span class="who">仕様担当 渡辺／4日目（木）10:00</span>
+          兼務者でも、5万円を超える申請には部長承認が必須です（内部統制上の要件です）。主務の部署の部長に回してください。
+          兼務者は現在、全社で12名です。</div>
+        <div class="cm dev"><span class="who">開発 高橋／4日目（木）10:30</span>
+          対応する場合、承認ルート算出の共通部分に手が入ります。修正に2日、影響範囲は承認フロー全体です。
+          リリースまで4営業日なので、次回リリースへの見送りを提案します。</div>
+
+        <div class="example">
+          <span class="tag">この場面のポイント</span>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>「仕様どおり」には2種類ある。<strong>仕様書に書いてあるとおり</strong>と、<strong>仕様書に書いていないので、実装がそうなっている</strong>。今回は後者。それは「仕様どおり」ではなく<em>「仕様が未定義」</em></li>
+            <li>開発と「どちらが正しいか」を言い合わない。開発が答えられるのは<em>実装がどうなっているか</em>まで。<em>どうあるべきか</em>を決めるのは仕様担当</li>
+            <li>却下を<strong>一人で受け入れず、一人で突き返しもしない</strong>。判断できる人へ運んだ</li>
+            <li>仕様担当への依頼は、<strong>答えやすい問い</strong>になっている（誰が最終承認すべきか）。「これはバグですか」とは聞いていない</li>
+            <li>状態を「明確化」に変え、所有者を渡辺さんにしている。<strong>画面上のボールと実際のボールが一致</strong>している</li>
+          </ul>
+        </div>
+
+        <div class="stop">
+          <span class="tag">止まって考える ④</span>
+          仕様は決まりました。しかし開発から「次回リリースへ見送りたい」という提案が出ています。<strong>次の一手は？</strong>
+        </div>
+      </details>
+
+      <details>
+        <summary>続きを開く ④</summary>
+        <div class="cm qa"><span class="who">管理担当／4日目（木）11:15</span>
+          山本さん（PM）、本日中に臨時のトリアージをお願いします。判断材料をまとめました。<br>
+          <strong>■ 事象</strong>: 兼務者の5万円超の申請が、部長承認なしで承認済みになる（兼務先に部長職がいない場合に必ず発生）<br>
+          <strong>■ 影響</strong>: 内部統制上の要件を満たさない支払いが発生しうる。対象は兼務者12名<br>
+          <strong>■ 回避策の案</strong>: 兼務者12名の5万円超の申請を、経理が支払前に目視で確認する。ただし、対象者の入れ替わりへの追随と、確認漏れのリスクがある<br>
+          <strong>■ 修正する場合</strong>: 開発2日。テスト側は、確認テストと承認ルート全パターンのリグレッションで1.5日。リリース判定までに収まるが、余裕は半日<br>
+          <strong>■ 選択肢</strong>: A 今回修正する／B 見送り、運用で回避する／C 兼務者の5万円超の申請を、暫定的にシステムで受け付けない<br>
+          <strong>■ テスト側の推奨</strong>: A。統制上の要件であり、目視の回避策は漏れたときの影響が大きいため。Aが難しい場合はC</div>
+        <div class="cm"><span class="who">臨時トリアージ／4日目（木）14:00（PM 山本、開発リーダー 高橋、仕様担当 渡辺、管理担当）</span>
+          <strong>決定: 今回のリリースで修正する（優先度: 最優先）。</strong>
+          理由: 内部統制上の要件であり、運用での回避は確認漏れのリスクが高い。リグレッションの範囲は承認ルートの全パターンとする。決定者: PM 山本。</div>
+        <div class="cm sys">状態: 明確化 → 進行中　所有者: 仕様担当 渡辺 → 開発 高橋</div>
+        <div class="cm dev"><span class="who">開発 高橋／6日目（月）16:00</span>修正しました。</div>
+        <div class="cm sys">状態: 進行中 → 解決　所有者: 開発 高橋 → テスター 鈴木</div>
+
+        <div class="example">
+          <span class="tag">この場面のポイント</span>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>見送るかどうかは、管理担当が決めることではない。しかし<strong>黙って流すことでもない</strong>。開発の提案を「分かりました」と一人で受けていたら、統制上の問題を誰も判断しないまま出荷していた</li>
+            <li>やったことは、<strong>判断できる人たちを集め、判断できる材料を並べたこと</strong>。影響・回避策・修正する場合のコスト・選択肢・推奨</li>
+            <li>回避策は「ある／ない」ではなく<strong>中身</strong>で書いている（Step1 第3回）。「目視で確認する。ただし漏れのリスク」</li>
+            <li>テスト側の見積り（1.5日）を自分から出している。<em>修正のコストは開発が、確認のコストはテストが出す</em></li>
+            <li>決定・理由・決定者が<strong>チケットに記録されている</strong>。会議で決まったことは、書かなければ残らない</li>
+          </ul>
+        </div>
+
+        <div class="stop">
+          <span class="tag">止まって考える ⑤</span>
+          開発から「修正しました」と返ってきました。<strong>次の一手は？</strong> 確認テストでは何を確かめますか。
+        </div>
+      </details>
+
+      <details>
+        <summary>続きを開く ⑤</summary>
+        <div class="cm qa"><span class="who">管理担当／6日目（月）16:20</span>
+          ありがとうございます。確認テストの範囲を決めたいので、3点教えてください。①修正が入ったビルド　②修正の内容（どこをどう変えたか、一言で）　③影響がありそうな範囲</div>
+        <div class="cm dev"><span class="who">開発 高橋／6日目（月）16:45</span>
+          ①ビルド 2026.06.15.2。②承認ルートを「承認者の所属部署」ではなく「申請者の主務部署」の階層から算出するように変更。
+          ③兼務者の承認ルート全般。兼務でないユーザーは、理屈の上では影響なし。</div>
+        <div class="cm"><span class="who">テスター 鈴木／7日目（火）11:30　確認テストの結果（ビルド 2026.06.15.2）</span>
+          ・元の手順（user07 → kacho03）: 課長承認後、「部長承認待ち」（主務の営業部長）になる → <strong>OK</strong><br>
+          ・別の兼務者（user12）: 同じく部長承認待ちになる → <strong>OK</strong><br>
+          ・兼務でないユーザー（user01）: 従来どおり → <strong>OK</strong><br>
+          ・5万円ちょうど（50,000円）の兼務者: 課長承認で承認済み → <strong>OK</strong><br>
+          ・<strong>主務の部署の部長が空席の兼務者（user15）: 60,000円を申請すると「承認ルートを作成できません」というシステムエラーになる → NG</strong></div>
+
+        <div class="example">
+          <span class="tag">この場面のポイント</span>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>「直しました」をそのまま確認テストに流さない。<strong>どのビルドか／何を直したか／影響しそうな範囲</strong>を聞く。答えが確認テストの設計になる</li>
+            <li>確認したのは<strong>元の手順だけではない</strong>。別の兼務者（同じ条件の別データ）、兼務でないユーザー（壊していないか）、境界の5万円ちょうど</li>
+            <li>修正の内容（主務部署の階層から算出）を聞いたから、「では主務部署に部長がいなかったら？」という条件を思いつけた</li>
+            <li>「理屈の上では影響なし」は推測（Step1 第1回）。<em>影響なしと言われた範囲こそ、1件は確かめる</em></li>
+          </ul>
+        </div>
+
+        <div class="stop">
+          <span class="tag">止まって考える ⑥</span>
+          元の事象は直りました。しかし別の条件でシステムエラーが見つかりました。
+          <strong>#1764 は再オープンしますか。それとも新しいチケットにしますか。</strong> そして、クローズするとき何を書き残しますか。
+        </div>
+      </details>
+
+      <details>
+        <summary>続きを開く ⑥（クローズまで）</summary>
+        <div class="cm qa"><span class="who">管理担当／7日目（火）11:50</span>
+          確認テストの結果です（ビルド 2026.06.15.2）。<br>
+          元の事象（兼務者の5万円超の申請が、部長承認なしで承認済みになる）は解消しました。
+          確認した条件: user07→kacho03、user12→kacho05、兼務でない user01、5万円ちょうどの兼務者。いずれも期待どおりです。<br>
+          別の事象を1件見つけたので、<strong>#1791 として新規に起票</strong>しました（主務の部署の部長が空席の兼務者で、承認ルート作成がシステムエラーになる。本修正で通るようになった経路です）。本チケットと関連付けています。<br>
+          あわせて2点お願いします。<br>
+          ・渡辺さん: 兼務者の承認ルートを、仕様書§4-3に追記してください（今回の決定: 主務の部署の部長が承認する）<br>
+          ・テストチーム: 承認ルートのテストケースに、兼務者のパターンを追加します（担当: 鈴木）<br>
+          本チケットはクローズします。</div>
+        <div class="cm sys">状態: 解決 → クローズ（終結の理由: 修正を確認）　関連: #1791</div>
+
+        <div class="example">
+          <span class="tag">この場面のポイント</span>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>判断の基準: <strong>元の事象が直っていない → 再オープン</strong>。<strong>元の事象は直ったが、別の事象が出た → 元はクローズし、新規に起票して関連付ける</strong>。今回は後者</li>
+            <li>ただし、チームのルールが「修正が原因で起きた不具合は再オープン」なら、それに従う。大事なのは<em>基準が決まっていて、いつも同じ</em>こと。再オープンの件数は、次回のメトリクスになる</li>
+            <li>クローズのコメントに<strong>確認したビルド・条件・結果</strong>が書かれている。半年後に同じ機能を触る人が、何を確かめたかを知ることができる</li>
+            <li><strong>仕様書への追記を依頼している</strong>。これをしないと、次のリリースでまた同じ議論が起きる。「仕様が未定義」で見つかった不正は、仕様書が直るまでが解決</li>
+            <li>テストケースの追加も同じ。今回は鈴木さんがたまたま兼務者を使ったから見つかった。<em>偶然を、次からは必然にする</em></li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <h3>ふりかえり — このチケットのボールはどう動いたか</h3>
+    <figure>
+      <svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="チケット#1764のボールの軌跡。1日目に管理担当がそのまま開発へ渡し、開発で約1日半止まったあと再現しないと戻る。2日目に条件を絞って再依頼、3日目に却下され、仕様担当へ判断を依頼。4日目に回答とトリアージがあり、開発が6日目に修正、7日目にテスターが確認してクローズ">
+        <g font-family="sans-serif" font-size="12" text-anchor="middle">
+          <!-- 日 -->
+          <g fill="#6b7280" font-size="11">
+            <text x="168" y="22">1日目</text><text x="265" y="22">2日目</text><text x="362" y="22">3日目</text><text x="459" y="22">4日目</text>
+            <text x="556" y="22">5日目</text><text x="653" y="22">6日目</text><text x="750" y="22">7日目</text>
+          </g>
+          <g stroke="#e5e7eb" stroke-width="1">
+            <line x1="120" y1="30" x2="120" y2="262"/><line x1="217" y1="30" x2="217" y2="262"/><line x1="314" y1="30" x2="314" y2="262"/>
+            <line x1="411" y1="30" x2="411" y2="262"/><line x1="508" y1="30" x2="508" y2="262"/><line x1="605" y1="30" x2="605" y2="262"/>
+            <line x1="702" y1="30" x2="702" y2="262"/><line x1="800" y1="30" x2="800" y2="262"/>
+          </g>
+          <!-- レーン -->
+          <g stroke="#d1d5db" stroke-width="1" stroke-dasharray="3 4">
+            <line x1="120" y1="60" x2="800" y2="60"/><line x1="120" y1="105" x2="800" y2="105"/><line x1="120" y1="150" x2="800" y2="150"/>
+            <line x1="120" y1="195" x2="800" y2="195"/><line x1="120" y1="240" x2="800" y2="240"/>
+          </g>
+          <g text-anchor="end" fill="#374151" font-size="12.5">
+            <text x="108" y="64">テスター</text>
+            <text x="108" y="109" font-weight="bold" fill="#4a3a8c">管理担当</text>
+            <text x="108" y="154">開発</text>
+            <text x="108" y="199">仕様担当</text>
+            <text x="108" y="244">トリアージ</text>
+          </g>
+          <!-- 軌跡 -->
+          <polyline points="150,60 166,105 184,150" fill="none" stroke="#4a3a8c" stroke-width="2.5"/>
+          <polyline points="184,150 280,150" fill="none" stroke="#b91c1c" stroke-width="4"/>
+          <polyline points="280,150 286,105 292,60 298,105 306,150 345,150 351,105 359,195 440,195 449,105 472,240 488,150 678,150 700,60 757,60 772,105" fill="none" stroke="#4a3a8c" stroke-width="2.5"/>
+          <g fill="#4a3a8c">
+            <circle cx="150" cy="60" r="4.5"/><circle cx="166" cy="105" r="4.5"/><circle cx="184" cy="150" r="4.5"/>
+            <circle cx="280" cy="150" r="4.5"/><circle cx="286" cy="105" r="4.5"/><circle cx="292" cy="60" r="4.5"/><circle cx="298" cy="105" r="4.5"/>
+            <circle cx="306" cy="150" r="4.5"/><circle cx="345" cy="150" r="4.5"/><circle cx="351" cy="105" r="4.5"/><circle cx="359" cy="195" r="4.5"/>
+            <circle cx="440" cy="195" r="4.5"/><circle cx="449" cy="105" r="4.5"/><circle cx="472" cy="240" r="4.5"/><circle cx="488" cy="150" r="4.5"/>
+            <circle cx="678" cy="150" r="4.5"/><circle cx="700" cy="60" r="4.5"/><circle cx="757" cy="60" r="4.5"/>
+          </g>
+          <rect x="765" y="98" width="14" height="14" rx="2" fill="#374151"/>
+          <!-- 注記 -->
+          <text x="150" y="46" fill="#6b7280" font-size="10.5">起票</text>
+          <text x="232" y="172" fill="#b91c1c" font-size="11" font-weight="bold">横流しの代償: 約1日半</text>
+          <text x="292" y="46" fill="#6b7280" font-size="10.5">5分話す</text>
+          <text x="325" y="138" fill="#6b7280" font-size="10.5">却下</text>
+          <text x="400" y="214" fill="#6b7280" font-size="10.5">仕様の判断</text>
+          <text x="472" y="258" fill="#6b7280" font-size="10.5">修正を決定</text>
+          <text x="583" y="138" fill="#6b7280" font-size="10.5">修正</text>
+          <text x="728" y="46" fill="#6b7280" font-size="10.5">確認テスト</text>
+          <text x="772" y="128" fill="#374151" font-size="10.5">クローズ</text>
+          <text x="460" y="288" fill="#374151" font-size="11.5">横線が長いところが「待ち」。管理担当の線は、いつも短い（受け取って、すぐ次へ渡している）</text>
+        </g>
+      </svg>
+      <figcaption>#1764 のボールの軌跡。起票からクローズまで7日。そのうち約1日半は、最初の「確認お願いします」が生んだ往復</figcaption>
+    </figure>
+    <p>
+      最初の一手で5分の切り分けと4点のコメントがあれば、仕様の確認は1日目のうちに始められました。
+      そして注目してほしいのは、2日目以降の管理担当の動きです。<strong>一度も自分で原因を調べていません</strong>。
+      やったのは、条件を絞る、判断できる人へ渡す、材料を揃える、記録する、の4つだけです。それで解決まで届いています。
+    </p>
+
+    <details>
+      <summary>講師用: このワークの狙いと進め方、自社のチケットで教材を作る手順</summary>
+      <p style="margin:6px 0;"><strong>狙い</strong></p>
+      <ul>
+        <li>経験者が何百件ものチケットを見て身につけた「この場面ならこう動く」を、<strong>予測 → 答え合わせ</strong>の形で短時間に追体験させる。完成したチケットを読むだけでは残らない</li>
+        <li>6つの場面は、前半（①②）が前回の復習、③が今日のセクション2、④がトリアージ、⑤⑥がセクション6の先取り</li>
+      </ul>
+      <p style="margin:10px 0 4px;"><strong>進め方</strong></p>
+      <ul>
+        <li>画面共有で講師が1つずつ開く運用が確実（各自の画面で開かせると、先を読むグループが出る）</li>
+        <li>場面③が山場。「却下を受け入れる」と「開発に差し戻す」で割れることが多い。どちらの場合も「では、その判断は誰がするのが適切ですか」と返す</li>
+        <li>場面④で「見送りでよい」という意見が出たら歓迎する。結論の当否ではなく、<strong>誰が・何を材料に決めたか</strong>を問う。管理担当が一人で決めたなら、結論が合っていても進め方が違う</li>
+        <li>場面⑥の再オープンか新規かは、チームの実際のルールを紹介する。ルールが無ければ、この場で決める宿題にしてよい</li>
+        <li>時間が押したら、場面⑤と⑥は講師が読み上げて、セクション6の説明と合わせる</li>
+      </ul>
+      <p style="margin:10px 0 4px;"><strong>自社の過去チケットで同じ教材を作る</strong>（OJTで最も効くのはこちら）</p>
+      <ol>
+        <li>クローズ済みのチケットから選ぶ。<strong>コメントが3往復以上あったもの、却下や見送りで終わったもの、再オープンされたもの</strong>が向く。すんなり閉じたものは教材にならない</li>
+        <li>起票時の内容だけを見せて、「この時点で、あなたなら次に何をしますか」と聞く</li>
+        <li>コメントを1つ開示するたびに、同じ質問をする</li>
+        <li>最後に、<strong>なぜこの結論になったと思うか</strong>を説明させる</li>
+        <li>個人名は役割名に置き換える。誰のミスだったかを探す場にしない</li>
+      </ol>
+      <p style="margin:6px 0 0;">
+        目安は1件10〜15分。週に2〜3件、合計20〜30件ほど続けると、判断の型がかなり揃ってきます。
+        ツールの変更履歴がそのまま教材になるので、準備の手間はチケットを選ぶことだけです。
+      </p>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>5. 止まったチケットを動かす <span class="time">12分</span></h2>
+
+    <h3>チケットはなぜ止まるのか</h3>
+    <table>
+      <tr><th style="width:27%">止まり方</th><th style="width:33%">見分け方</th><th>動かし方</th></tr>
+      <tr>
+        <td><strong>持ち主がいない</strong></td>
+        <td>所有者が空欄。または、休暇中や異動した人のまま</td>
+        <td>持ち主を決めて、付け替える</td>
+      </tr>
+      <tr>
+        <td><strong>持ち主が、自分の番だと知らない</strong></td>
+        <td>最後のコメントが、宛先のない質問で終わっている。状態と実態がずれている</td>
+        <td>宛先を明示して聞き直す。状態と所有者を直す</td>
+      </tr>
+      <tr>
+        <td><strong>知っているが、後回しになっている</strong></td>
+        <td>所有者は正しい。更新だけが無い</td>
+        <td>テストへの影響を伝える。優先度が決まっていなければ、決める場へ</td>
+      </tr>
+      <tr>
+        <td><strong>誰も決められない</strong></td>
+        <td>「どうしましょうか」「検討が必要ですね」で終わっている</td>
+        <td>判断できる人を特定して、トリアージへ</td>
+      </tr>
+      <tr>
+        <td><strong>自分が持っている</strong></td>
+        <td>所有者が自分</td>
+        <td>手放す。今分かっていることを書いて、次の人へ</td>
+      </tr>
+    </table>
+    <p>
+      最後の行は見落としがちです。<strong>止まっているチケットを探すとき、最初に見るのは自分の手元</strong>です。
+    </p>
+
+    <h3>滞留の目安を、先に決めておく</h3>
+    <p>
+      「止まっている」と感じる日数は、人によって違います。感覚でフォローすると、相手には催促が気まぐれに見えます。
+      目安をチームで決めておけば、フォローは個人の催促ではなく<strong>チームの決まりごと</strong>になります。
+    </p>
+    <div class="example">
+      <span class="tag">滞留の目安（例。数字はチームで決める）</span>
+      <table style="background:#fff;margin:8px 0 0;">
+        <tr><th style="width:34%">状態</th><th>この時間を過ぎたら動く</th></tr>
+        <tr><td>オープン（新規）</td><td>起票された営業日のうちに一次判断する</td></tr>
+        <tr><td>明確化（情報待ち）</td><td>1営業日、返事がない</td></tr>
+        <tr><td>進行中（優先度が高い）</td><td>1営業日、更新がない</td></tr>
+        <tr><td>進行中（それ以外）</td><td>3営業日、更新がない</td></tr>
+        <tr><td>解決（確認テスト待ち）</td><td>1営業日以内に、確認テストに着手していない</td></tr>
+      </table>
+    </div>
+    <p>
+      最後の行に注意してください。<strong>「解決」で止まっているチケットは、テスト側のボール</strong>です。
+      開発には催促するのに、自分たちの確認テストが3日止まっている、というのはよくある光景です。
+    </p>
+
+    <h3>フォローの3段階</h3>
+    <figure>
+      <svg viewBox="0 0 820 262" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="フォローの3段階。1段目はチケットで宛先と期限と理由を書いて聞く。目安を過ぎても動かなければ2段目として直接話し、結論をチケットに書く。話しても決まらない、または自分の権限を超えるなら3段目としてエスカレーションし、事実と影響で伝える">
+        <defs>
+          <marker id="m5a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker>
+        </defs>
+        <g font-family="sans-serif" font-size="13" text-anchor="middle">
+          <rect x="20" y="130" width="236" height="84" rx="10" fill="#efedf8" stroke="#4a3a8c" stroke-width="1.5"/>
+          <text x="138" y="158" fill="#4a3a8c" font-weight="bold" font-size="15">① チケットで聞く</text>
+          <text x="138" y="181" fill="#374151" font-size="12">宛先・期限・理由を書く</text>
+          <text x="138" y="199" fill="#374151" font-size="12">（依頼コメントの4点）</text>
+
+          <rect x="292" y="82" width="236" height="132" rx="10" fill="#fff7ed" stroke="#b45309" stroke-width="1.5"/>
+          <text x="410" y="112" fill="#92400e" font-weight="bold" font-size="15">② 直接話す</text>
+          <text x="410" y="137" fill="#374151" font-size="12">チャット、口頭、朝会</text>
+          <text x="410" y="157" fill="#374151" font-size="12">「いま何が障害になっていますか」</text>
+          <text x="410" y="181" fill="#374151" font-size="12" font-weight="bold">結論はチケットに書き戻す</text>
+
+          <rect x="564" y="34" width="236" height="180" rx="10" fill="#fef2f2" stroke="#b91c1c" stroke-width="1.5"/>
+          <text x="682" y="64" fill="#b91c1c" font-weight="bold" font-size="15">③ エスカレーション</text>
+          <text x="682" y="89" fill="#374151" font-size="12">開発リーダー、PM、自分の上長へ</text>
+          <text x="682" y="113" fill="#374151" font-size="12">いつから止まっているか（事実）</text>
+          <text x="682" y="133" fill="#374151" font-size="12">何がいつ止まるか（影響）</text>
+          <text x="682" y="153" fill="#374151" font-size="12">これまでにやったこと</text>
+          <text x="682" y="173" fill="#374151" font-size="12" font-weight="bold">判断してほしいこと</text>
+
+          <line x1="256" y1="172" x2="288" y2="172" stroke="#4b5563" stroke-width="1.8" marker-end="url(#m5a)"/>
+          <line x1="528" y1="150" x2="560" y2="150" stroke="#4b5563" stroke-width="1.8" marker-end="url(#m5a)"/>
+          <text x="138" y="238" fill="#4b5563" font-size="11.5">目安を過ぎても動かない → ②へ</text>
+          <text x="410" y="238" fill="#4b5563" font-size="11.5">話しても決まらない／権限を超える → ③へ</text>
+          <text x="682" y="238" fill="#b91c1c" font-size="11.5">急ぎは①を飛ばして②から</text>
+        </g>
+      </svg>
+      <figcaption>段を上がるほど相手の時間を使う。だから①で済むように書く。ただし、急ぎのもの（テストが止まる、お金・データ、リリース判断）は①を待たない</figcaption>
+    </figure>
+
+    <h3>エスカレーションは、告げ口ではない</h3>
+    <p>
+      エスカレーションをためらう人は多いです。「相手を悪者にするようで気が引ける」と感じるからです。
+      しかしエスカレーションとは、<strong>判断に必要な情報を、判断できる人に届けること</strong>です。誰かを責める行為ではありません。
+    </p>
+    <div class="bad-box">
+      <span class="tag">悪い例</span>
+      山本さん、高橋さんが #2102 を5日も放置しています。何度言っても対応してくれません。
+    </div>
+    <div class="good-box">
+      <span class="tag">良い例</span>
+      山本さん、#2102 について判断をお願いします。<br>
+      <strong>■ 事実</strong>: 一括承認の500エラー。開発へ渡して5営業日、進行中のまま更新がありません。3日前と昨日に高橋さんへ状況を伺い、「別件の対応で着手できていない」と聞いています。<br>
+      <strong>■ 影響</strong>: 一括承認シナリオのテスト38件が未実行です。明後日までに修正が入らないと、リリース判定までに消化できません。<br>
+      <strong>■ 判断してほしいこと</strong>: #2102 と別件の優先順位。または、一括承認シナリオをリリース判定の対象から外すかどうか。
+    </div>
+    <ul>
+      <li>主語は<strong>人ではなくチケット</strong>。「放置している」ではなく「更新がない」</li>
+      <li>相手の事情（別件の対応）も書く。高橋さんが悪いのではなく、<strong>優先順位を決める人がいなかった</strong>ことが問題だと伝わる</li>
+      <li>上げる前に、本人へ一言。「優先順位の判断を山本さんにお願いしますね」。不意打ちにしない</li>
+    </ul>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      エスカレーションしないことは、優しさではない。<strong>判断できる人から、判断する機会を奪っている</strong>。<br>
+      同じことは、自分の先輩や上長への相談にも言える。「自分で何とかしよう」と抱えた時間は、チケットが止まっていた時間。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>6. 終わらせ方 — 確認テスト・クローズ・見送り <span class="time">10分</span></h2>
+
+    <h3>「直しました」から確認テストまで</h3>
+    <p>状態が「解決」になったら、ボールはテスト側です。確認テストに入る前に、3つを確かめます。</p>
+    <table>
+      <tr><th style="width:30%">聞くこと</th><th>なぜ必要か</th></tr>
+      <tr><td>どのビルドに入ったか</td><td>修正が入っていないビルドで確認して「直っていません」と返す事故を防ぐ</td></tr>
+      <tr><td>何を直したか（一言で）</td><td>確認すべき条件が分かる。ワークの⑤で、空席の部長というケースを思いつけたのはこれ</td></tr>
+      <tr><td>影響しそうな範囲</td><td>リグレッションテストの範囲が決まる</td></tr>
+    </table>
+    <p>確認する範囲は3層で考えます。</p>
+    <ul>
+      <li><strong>元の手順</strong>: チケットに書かれた再現手順で、期待どおりになるか（確認テスト）</li>
+      <li><strong>その近く</strong>: 同じ条件の別データ、境界の前後</li>
+      <li><strong>周り</strong>: 修正で壊していないか（リグレッションテスト）。範囲は、修正内容と重要度で決める</li>
+    </ul>
+
+    <h3>クローズ・再オープン・新規起票</h3>
+    <table>
+      <tr><th style="width:38%">確認テストの結果</th><th>扱い</th></tr>
+      <tr>
+        <td>元の事象が解消し、周りも問題ない</td>
+        <td><strong>クローズ</strong>。確認したビルド・条件・結果を書く</td>
+      </tr>
+      <tr>
+        <td>元の事象が解消していない</td>
+        <td><strong>再オープン</strong>。どのビルドで・どの手順で・何が起きたかを書く。「直っていません」だけで戻さない</td>
+      </tr>
+      <tr>
+        <td>元の事象は解消したが、別の事象が出た</td>
+        <td>元は<strong>クローズ</strong>し、<strong>新規に起票</strong>して関連付ける（チームのルールがあれば、それに従う）</td>
+      </tr>
+    </table>
+
+    <h3>却下や見送りで終わるとき</h3>
+    <table>
+      <tr><th style="width:24%">終わり方</th><th>残すもの・やること</th></tr>
+      <tr>
+        <td><strong>却下を受け入れる</strong></td>
+        <td>
+          <strong>理由を選んで残す</strong>（仕様どおり／テストの誤り／重複／再現できない）。理由別の件数は、次回扱う改善の材料になる。<br>
+          テストの誤りだったなら、<strong>テストケースや期待結果を直す</strong>。直さなければ、次のサイクルでまた同じチケットが上がる。<br>
+          仕様どおりでも、使い勝手の指摘は要望として別に残す
+        </td>
+      </tr>
+      <tr>
+        <td><strong>「再現できない」で閉じる</strong></td>
+        <td>
+          試した条件・回数・期間を書く。「2日間、3人が延べ40回試して再現せず」。<br>
+          再発したときに再オープンできるよう、<strong>発生時の手がかり</strong>（日時、ユーザー、データ）を残しておく。<em>再現できないことは、欠陥がないことの証明ではない</em>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>見送る</strong></td>
+        <td>
+          <strong>理由・残るリスク・回避策・再検討の時期・決めた人</strong>を書く。<br>
+          既知の問題の一覧に載せる。これがStep1 第3回の<strong>テスト完了報告の「残存リスク」</strong>の元データになる。<br>
+          運用やサポートなど、<strong>その問題に出会う人に伝わるようにする</strong>
+        </td>
+      </tr>
+    </table>
+    <p>
+      シラバスは、終端の状態は1つ（クローズ）にして、そこへ移るときに<strong>終結の理由</strong>を選ばせることを勧めています。
+      理由が残っていれば、あとからプロセスを評価して改善できるからです。
+    </p>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      クローズは「片付け」ではなく、<strong>記録の完成</strong>。<br>
+      読むのは、半年後に同じ機能で似た不具合に出会った誰か。たいていは自分。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>まとめ <span class="time">5分</span></h2>
+    <h3>今日の持ち帰り</h3>
+    <ul>
+      <li>欠陥をどう扱うかは<strong>関係者で決める</strong>。管理担当は、正しく判断できる場所までチケットを運び、<strong>材料と推奨を添える</strong></li>
+      <li>依頼コメントは4点: <strong>分かっていること／お願い／いつまでに・なぜ／返してほしいもの</strong>。「確認お願いします」の中身を書く</li>
+      <li>「再現しません」は<strong>条件の違いを探す合図</strong>。「仕様です」は<strong>どこに書いてあるかを確かめる合図</strong>。書いていなければ、それは仕様が未定義</li>
+      <li>コメントが2往復したら、<strong>話す</strong>。話したら、<strong>書き戻す</strong></li>
+      <li>止まっているチケットは、まず<strong>自分の手元</strong>から探す。滞留の目安を決めておき、チケット → 直接 → エスカレーションの順で動かす</li>
+      <li>エスカレーションは、判断に必要な情報を判断できる人に届けること。<strong>主語は人ではなくチケット</strong></li>
+      <li>クローズは記録の完成。<strong>確認した内容と、終結の理由</strong>を残す。仕様書やテストケースが直るまでが解決</li>
+    </ul>
+    <p>
+      ここまでは、1件のチケットを追いかけてきました。次回は視点を引いて、<strong>チケット全体</strong>を眺めます。
+      15件のうち、今日動かすべきはどれか。全体として何が起きているのか。それを誰にどう報告し、どう改善につなげるか。
+    </p>
+    <div class="example">
+      <span class="tag">次回までにやってみること（任意）</span>
+      自分が所有者になっているチケットを一覧で出し、<strong>3営業日以上動いていないもの</strong>を数えてみてください。
+      その中の1件を選び、4点の型でコメントを書いて手放してみましょう。
+    </div>
+    <p class="jstqb">
+      <strong>主なシラバス対応: JSTQB Advanced Level シラバス テストマネジメント Version 3.0.J02（ISTQB CTAL-TM v3.0 の日本語翻訳版）</strong><br>
+      2.3.2 機能横断的な欠陥マネジメント／2.3.3 アジャイルチームにおける欠陥マネジメントの特徴／2.3.4 ハイブリッドソフトウェア開発における欠陥マネジメントの課題／2.3.1 欠陥のライフサイクル（解決・却下・クローズの扱い）／1.1.3 テスト完了の活動（既知の欠陥の引き渡し）<br>
+      <em style="background:none;">実務拡張</em>: 依頼コメントの4点、返答別の次の一手、滞留の目安、フォローの3段階、再オープンと新規起票の使い分けは、本講座の実務補足です。ワークのチケットと登場人物は架空のものです。<br>
+      シラバスの出典および著作権: International Software Testing Qualifications Board（ISTQB®）／日本語翻訳版 Japan Software Testing Qualifications Board（JSTQB®）
+    </p>
+  </section>
+
+  <footer class="pager">
+    <a href="phaseM1.html">← 管理編 第1回 チケットを受け取る</a>
+    <a href="phaseM3.html">管理編 第3回 チケット全体を読む →</a>
+  </footer>
+</div>
+</body>
+</html>

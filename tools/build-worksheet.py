@@ -74,6 +74,40 @@ WORKS = [
                 ("3. ワーク①", "cls", "sit-cards", 0)],
     ),
     dict(
+        wid="phaseM1-work1", step="step1.5", src="phaseM1.html",
+        phase="管理編 第1回", phase_title="チケットを受け取る — 1件を読んで、次の一手を決める",
+        label="ワーク①", title="今朝届いた6件を一次判断する", time="個人8分 → グループ10分 → 全体共有7分",
+        lead="5つの問いを使って、6件それぞれの「足りない情報／扱い／次に誰が何をする／次へ進む条件」を決めます。",
+        blocks=[("4. ワーク①", "cls", "work", 0),
+                ("4. ワーク①", "cls", "tickets", 0),
+                ("4. ワーク①", "details", "時間が余った", 0),
+                ("3. 5つの問い", "figure", None, 0)],
+    ),
+    dict(
+        wid="phaseM2-work1", step="step1.5", src="phaseM2.html",
+        phase="管理編 第2回", phase_title="チケットを運ぶ — コメントと合意で、解決まで持っていく",
+        label="ミニワーク", title="依頼コメントを4点の型で書き直す", time="個人3分 → ペアで見せ合い2分",
+        lead="「どうなってますか？」を、分かっていること／お願い／いつまでに・なぜ／返してほしいもの、の4点で書き直します。",
+        blocks=[("3. 伝わるコメントの型", "cls", "work", 0)],
+    ),
+    dict(
+        wid="phaseM2-work2", step="step1.5", src="phaseM2.html",
+        phase="管理編 第2回", phase_title="チケットを運ぶ — コメントと合意で、解決まで持っていく",
+        label="ワーク②", title="チケット追体験 — 次の一手を予測する", time="グループ18分 → 全体でふりかえり7分",
+        lead="1件のチケットを起票からクローズまでたどります。続きを開く前に、必ず次の一手を決めてください。",
+        blocks=[("4. ワーク②", "cls", "work", 0),
+                ("4. ワーク②", "cls", "thread", 0)],
+    ),
+    dict(
+        wid="phaseM3-work1", step="step1.5", src="phaseM3.html",
+        phase="管理編 第3回", phase_title="チケット全体を読む — 滞留・傾向・報告、そして改善へ",
+        label="ワーク③", title="ボードを読んで、今日の動きと報告を決める", time="個人6分 → グループ12分 → 全体共有7分",
+        lead="未解決15件のボードから、今日動かすチケット・全体の問題・PM宛ての5行報告を決めます。",
+        blocks=[("4. ワーク③", "cls", "work", 0),
+                ("4. ワーク③", "cls", "sit-common", 0),
+                ("4. ワーク③", "cls", "board", 0)],
+    ),
+    dict(
         wid="phase4-work1", step="step2", src="phase4.html",
         phase="第4回", phase_title="テスト戦略とリスクベースドテスト",
         label="ワーク①", title="リスク分析（2ステップ）", time="全25分（Step A 13分 / Step B 12分）",
@@ -181,6 +215,37 @@ STYLE = """
     white-space: pre-wrap;
   }
   .memo .memo-head { font-weight: 700; color: var(--work); display: block; margin-bottom: 6px; }
+  /* Step1.5（管理編）のワークで使う部品 */
+  .tk { border: 1px solid #d1d5db; border-radius: 10px; background: #fff; overflow: hidden; margin: 14px 0; font-size: .92rem; line-height: 1.75; }
+  .tk .tk-head { display: flex; gap: 12px; align-items: baseline; padding: 8px 16px; background: #f3f4f6; border-bottom: 1px solid #e5e7eb; }
+  .tk .tk-id { font-family: Consolas, "Courier New", monospace; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .tk .tk-title { font-weight: 700; }
+  .tk .tk-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 6px 16px; font-size: .8rem; color: var(--muted); border-bottom: 1px dashed #e5e7eb; }
+  .tk .tk-body { padding: 10px 16px 12px; }
+  .tk .tk-body p { margin: 4px 0; }
+  .tk .tk-body ol { margin: 2px 0; padding-left: 1.5em; }
+  .cm { border-left: 4px solid #9ca3af; background: #f9fafb; border-radius: 0 8px 8px 0; padding: 10px 16px; margin: 10px 0; font-size: .92rem; line-height: 1.75; }
+  .cm .who { display: block; font-weight: 700; font-size: .8rem; color: #4b5563; margin-bottom: 2px; }
+  .cm.qa { border-left-color: var(--accent); background: var(--accent-light); }
+  .cm.dev { border-left-color: #1e3a5f; }
+  .cm.po { border-left-color: #0f766e; background: #f0fdfa; }
+  .cm.sys { border-left-style: dashed; background: #fff; color: var(--muted); font-size: .85rem; padding: 6px 16px; }
+  .stop { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 14px 20px; margin: 16px 0; }
+  .stop .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 4px; }
+  .bad-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 14px 20px; margin: 12px 0; font-size: .93rem; }
+  .bad-box .tag { color: #b91c1c; font-weight: 700; font-size: .8rem; display: block; margin-bottom: 2px; }
+  .board { overflow-x: auto; margin: 18px 0; }
+  .board table { font-size: .8rem; line-height: 1.55; margin: 0; min-width: 780px; }
+  .board th, .board td { padding: 6px 8px; }
+  .board th { white-space: nowrap; }
+  .board td.id { font-family: Consolas, "Courier New", monospace; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .board td.nw { white-space: nowrap; }
+  .sev { display: inline-block; min-width: 2.2em; text-align: center; border-radius: 4px; padding: 0 6px; font-weight: 700; }
+  .sev.h { background: #fee2e2; color: #b91c1c; }
+  .sev.m { background: #ffedd5; color: #b45309; }
+  .sev.l { background: #f3f4f6; color: #4b5563; }
+  details { background: #fff; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
   table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; background: #fff; }
   th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
   th { background: var(--accent-light); color: var(--accent); }
@@ -360,7 +425,7 @@ def indent(block, spaces="  "):
 
 def main():
     cache = {}
-    for step in ("step1", "step2"):
+    for step in ("step1", "step1.5", "step2"):
         os.makedirs(os.path.join(OUT_DIR, step), exist_ok=True)
 
     for w in WORKS:
@@ -385,6 +450,7 @@ def main():
     # 一覧ページ
     groups = []
     for step, heading in (("step1", "Step1 — テスターの土台を作る"),
+                          ("step1.5", "Step1.5 — チケットを止めずに運ぶ"),
                           ("step2", "Step2 — 設計者として一段上がる")):
         cards = []
         for w in WORKS:

@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理編 第1回 チケットを受け取る — 1件を読んで、次の一手を決める</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --accent: #4a3a8c;
+    --accent-light: #efedf8;
+    --muted: #6b7280;
+    --work: #b45309;
+    --work-bg: #fff7ed;
+    --mind: #0f766e;
+    --mind-bg: #f0fdfa;
+    --ex-bg: #f3f4f6;
+    --warn: #b91c1c;
+    --warn-bg: #fef2f2;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: #f6f7f9;
+    line-height: 1.9;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  nav.crumb { font-size: .85rem; margin-bottom: 16px; }
+  nav.crumb a { color: var(--accent); text-decoration: none; }
+  header.hero {
+    background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 36px; margin-bottom: 36px;
+  }
+  header.hero .label { font-size: .85rem; letter-spacing: .08em; opacity: .85; }
+  header.hero h1 { margin: 6px 0 10px; font-size: 1.65rem; line-height: 1.4; }
+  header.hero p { margin: 0; opacity: .92; font-size: .95rem; }
+  section {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 30px 34px; margin-bottom: 30px;
+  }
+  section > h2 {
+    margin: -30px -34px 24px; padding: 16px 34px;
+    background: var(--accent-light); border-radius: 12px 12px 0 0;
+    font-size: 1.25rem; color: var(--accent);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  section > h2 .time { float: right; font-size: .8rem; color: var(--muted); font-weight: normal; margin-top: 4px; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 28px 0 10px; }
+  .goal { background: var(--accent-light); border-radius: 10px; padding: 20px 26px; margin-bottom: 30px; }
+  .goal h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--accent); }
+  .goal ul { margin: 0; padding-left: 1.4em; }
+  .mind, .work, .example, .warn { border-radius: 10px; padding: 18px 24px; margin: 20px 0; }
+  .mind { background: var(--mind-bg); border-left: 5px solid var(--mind); }
+  .mind .tag { color: var(--mind); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .work { background: var(--work-bg); border-left: 5px solid var(--work); }
+  .work .tag { color: var(--work); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .example { background: var(--ex-bg); border-left: 5px solid #9ca3af; }
+  .example .tag { color: #4b5563; font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .warn { background: var(--warn-bg); border-left: 5px solid var(--warn); }
+  .warn .tag { color: var(--warn); font-weight: 700; font-size: .82rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .bad-box, .good-box { border-radius: 8px; padding: 14px 20px; margin: 12px 0; font-size: .93rem; }
+  .bad-box { background: var(--bad-bg); border: 1px solid #fecaca; }
+  .bad-box .tag { color: var(--bad); font-weight: 700; font-size: .8rem; display: block; margin-bottom: 2px; }
+  .good-box { background: var(--good-bg); border: 1px solid #bbf7d0; }
+  .good-box .tag { color: var(--good); font-weight: 700; font-size: .8rem; display: block; margin-bottom: 2px; }
+  .sit-common {
+    background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px;
+    padding: 16px 22px; margin: 18px 0; font-size: .92rem;
+  }
+  .sit-common .tag { font-weight: 700; color: #92400e; font-size: .82rem; display: block; margin-bottom: 6px; }
+  /* チケットカード */
+  .tk { border: 1px solid #d1d5db; border-radius: 10px; background: #fff; overflow: hidden; margin: 14px 0; font-size: .92rem; line-height: 1.75; }
+  .tk .tk-head { display: flex; gap: 12px; align-items: baseline; padding: 8px 16px; background: #f3f4f6; border-bottom: 1px solid #e5e7eb; }
+  .tk .tk-id { font-family: Consolas, "Courier New", monospace; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .tk .tk-title { font-weight: 700; }
+  .tk .tk-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 6px 16px; font-size: .8rem; color: var(--muted); border-bottom: 1px dashed #e5e7eb; }
+  .tk .tk-body { padding: 10px 16px 12px; }
+  .tk .tk-body p { margin: 4px 0; }
+  .tk .tk-body ol { margin: 2px 0; padding-left: 1.5em; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: .92rem; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent); }
+  td.c, th.c { text-align: center; }
+  details { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  figure { margin: 20px 0; text-align: center; }
+  figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  figure svg { max-width: 100%; height: auto; }
+  .jstqb { font-size: .8rem; color: var(--muted); border-top: 1px dashed #d1d5db; margin-top: 20px; padding-top: 10px; }
+  footer.pager { display: flex; justify-content: space-between; margin-top: 40px; font-size: .95rem; }
+  footer.pager a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  em { font-style: normal; background: linear-gradient(transparent 65%, #fde68a 65%); }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="crumb"><a href="index.html">← Step1.5 目次に戻る</a></nav>
+
+  <header class="hero">
+    <div class="label">テストエンジニア育成講座 Step1.5 — 管理編 第1回（90分）</div>
+    <h1>チケットを受け取る<br>— 1件を読んで、次の一手を決める</h1>
+    <p>横に流さない、抱え込まない。テスターから上がったチケットを「解決に近づける」ための、最初の判断を身につける。</p>
+  </header>
+
+  <div class="goal">
+    <h2>今日のゴール</h2>
+    <ul>
+      <li>チケット管理の仕事を、<strong>「自分で解くこと」でも「右から左へ流すこと」でもない</strong>ものとして説明できる</li>
+      <li>テスターから上がってきたものを<strong>「不正」</strong>として受け取り、欠陥かどうかを決めつけずに扱える</li>
+      <li>欠陥ワークフローの状態を見て、<strong>「今これは誰の番か」</strong>を言える</li>
+      <li>チケットを開いたら<strong>5つの問い</strong>で、次の一手（誰が・何を・何が返れば次へ進むか）を決められる</li>
+      <li><strong>自分で調べる範囲</strong>と<strong>人に渡す範囲</strong>の線を引ける</li>
+    </ul>
+  </div>
+
+  <details>
+    <summary>本日の進行（90分）</summary>
+    <table>
+      <tr><th style="width:60%">内容</th><th class="c" style="width:20%">時間</th></tr>
+      <tr><td>1. チケットはなぜ止まるのか — 横流しと抱え込み</td><td class="c">7分</td></tr>
+      <tr><td>2. 欠陥マネジメントの地図 — 不正・ワークフロー・ボールの持ち主</td><td class="c">18分</td></tr>
+      <tr><td>3. 5つの問いと一次判断フロー</td><td class="c">20分</td></tr>
+      <tr><td>4. ワーク① 今朝届いた6件を一次判断する</td><td class="c">25分</td></tr>
+      <tr><td>5. 講評 — 一次判断でよくある失敗</td><td class="c">12分</td></tr>
+      <tr><td>まとめ</td><td class="c">5分</td></tr>
+      <tr><td><strong>調整余白</strong>（ワークの指示確認・質疑応答）</td><td class="c">3分</td></tr>
+    </table>
+    <p style="margin:6px 0 0;font-size:.9rem;color:var(--muted);">
+      各セクションの折りたたみは、講義中に開かない前提の自習・補足用です。
+    </p>
+  </details>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>1. チケットはなぜ止まるのか — 横流しと抱え込み <span class="time">7分</span></h2>
+
+    <h3>管理を任されると、チケットとの関係が変わる</h3>
+    <p>
+      Step1の第1回では、チケットを<strong>書く側</strong>として「開発者が動ける不具合報告」を学びました。
+      同じく第3回では、トリアージに<strong>材料を出す側</strong>の話をしました。
+      テスト管理を任されると、もう一つ役割が増えます。テスターから上がってくるチケットを<strong>受け取り、解決まで動かす側</strong>です。
+    </p>
+    <p>
+      チケットは、起票された時点ではまだ何も解決していません。誰かが読み、判断し、適切な人に渡し、
+      返事を受け取り、直ったことを確かめて、ようやく閉じます。<em>この「流れ」を止めないのが管理の仕事</em>です。
+      この講座では、この役割を<strong>管理担当</strong>と呼びます
+      <span style="font-size:.9em;color:var(--muted);">（現場での呼び名はテストリード、テスト管理者などさまざま。小さなチームではテスター自身が兼ねます）</span>。
+    </p>
+
+    <h3>止まり方には2つの型がある</h3>
+    <table>
+      <tr><th style="width:14%">型</th><th style="width:28%">やっていること</th><th style="width:32%">その結果</th><th>そうなる気持ち</th></tr>
+      <tr>
+        <td><strong>横流し</strong></td>
+        <td>届いたチケットをそのまま開発へ回す。コメントは「確認お願いします」</td>
+        <td>情報不足で差し戻される。仕様の話なのに開発が悩む。重複に誰も気づかない。<em>往復の回数だけ日数が溶ける</em></td>
+        <td>「判断するのは自分ではない」「早く渡したほうが早く進む」</td>
+      </tr>
+      <tr>
+        <td><strong>抱え込み</strong></td>
+        <td>分からない点を自分で調べ始める。ログやデータベースまで追いかける</td>
+        <td>チケットは自分の手元で止まる。<em>開発は問題の存在すら知らない</em>。2時間後に「分かりませんでした」</td>
+        <td>「分からないまま渡すのは申し訳ない」「自分で突き止めてこそ」</td>
+      </tr>
+    </table>
+    <p>
+      正反対に見えますが、根は同じです。どちらも
+      <strong>「このチケットを解決に近づける、次の一手は何か」</strong>という問いを立てていません。
+      問いがないと、選択肢は「渡す」か「自分でやる」の二択になります。
+    </p>
+
+    <figure>
+      <svg viewBox="0 0 820 318" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="チケットの動かし方の3つの型。横流しはそのまま転送して差し戻しが増える。抱え込みは管理担当の手元で止まる。進めるは精査・分類・宛先・出口条件を付けて渡し、足りない情報は起票者に戻す">
+        <defs>
+          <marker id="m1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/></marker>
+          <marker id="m1b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4a3a8c"/></marker>
+        </defs>
+        <g font-family="sans-serif" font-size="13" text-anchor="middle">
+          <text x="250" y="18" fill="#6b7280" font-size="11">テスター</text>
+          <text x="450" y="18" fill="#6b7280" font-size="11">管理担当</text>
+          <text x="680" y="18" fill="#6b7280" font-size="11">開発・仕様担当など</text>
+
+          <!-- 横流し -->
+          <text x="80" y="62" fill="#b91c1c" font-weight="bold" font-size="15">横流し</text>
+          <rect x="200" y="38" width="100" height="40" rx="8" fill="#f3f4f6" stroke="#9ca3af"/>
+          <text x="250" y="63" fill="#374151">起票</text>
+          <rect x="390" y="38" width="120" height="40" rx="8" fill="#fff" stroke="#9ca3af" stroke-dasharray="4 3"/>
+          <text x="450" y="63" fill="#9ca3af">素通り</text>
+          <rect x="610" y="38" width="140" height="40" rx="8" fill="#fef2f2" stroke="#b91c1c"/>
+          <text x="680" y="63" fill="#b91c1c">読み解けない</text>
+          <line x1="300" y1="58" x2="386" y2="58" stroke="#9ca3af" stroke-width="2" marker-end="url(#m1a)"/>
+          <line x1="510" y1="58" x2="606" y2="58" stroke="#9ca3af" stroke-width="2" marker-end="url(#m1a)"/>
+          <text x="558" y="50" fill="#6b7280" font-size="10.5">そのまま転送</text>
+          <text x="475" y="98" fill="#b91c1c" font-size="11.5">→ 差し戻しと往復が増え、1往復ごとに半日〜1日が消える</text>
+
+          <line x1="20" y1="112" x2="800" y2="112" stroke="#e5e7eb"/>
+
+          <!-- 抱え込み -->
+          <text x="80" y="166" fill="#b45309" font-weight="bold" font-size="15">抱え込み</text>
+          <rect x="200" y="142" width="100" height="40" rx="8" fill="#f3f4f6" stroke="#9ca3af"/>
+          <text x="250" y="167" fill="#374151">起票</text>
+          <rect x="398" y="134" width="120" height="40" rx="8" fill="#fed7aa" stroke="#b45309"/>
+          <rect x="394" y="138" width="120" height="40" rx="8" fill="#ffedd5" stroke="#b45309"/>
+          <rect x="390" y="142" width="120" height="40" rx="8" fill="#fff7ed" stroke="#b45309" stroke-width="1.5"/>
+          <text x="450" y="167" fill="#b45309">自分で調査中…</text>
+          <rect x="610" y="142" width="140" height="40" rx="8" fill="#fff" stroke="#d1d5db" stroke-dasharray="4 3"/>
+          <text x="680" y="167" fill="#9ca3af">何も知らない</text>
+          <line x1="300" y1="162" x2="386" y2="162" stroke="#9ca3af" stroke-width="2" marker-end="url(#m1a)"/>
+          <text x="563" y="168" fill="#b91c1c" font-size="18" font-weight="bold">×</text>
+          <text x="475" y="204" fill="#b45309" font-size="11.5">→ ボールが見えないまま日数が過ぎ、手元にチケットが積み上がる</text>
+
+          <line x1="20" y1="218" x2="800" y2="218" stroke="#e5e7eb"/>
+
+          <!-- 進める -->
+          <text x="80" y="268" fill="#4a3a8c" font-weight="bold" font-size="15">進める</text>
+          <rect x="200" y="244" width="100" height="40" rx="8" fill="#f3f4f6" stroke="#9ca3af"/>
+          <text x="250" y="269" fill="#374151">起票</text>
+          <rect x="390" y="244" width="120" height="40" rx="8" fill="#efedf8" stroke="#4a3a8c" stroke-width="1.8"/>
+          <text x="450" y="269" fill="#4a3a8c" font-weight="bold">一次判断</text>
+          <rect x="610" y="244" width="140" height="40" rx="8" fill="#f0fdf4" stroke="#15803d"/>
+          <text x="680" y="269" fill="#15803d">すぐ動ける</text>
+          <line x1="300" y1="274" x2="386" y2="274" stroke="#4a3a8c" stroke-width="2" marker-end="url(#m1b)"/>
+          <line x1="390" y1="256" x2="304" y2="256" stroke="#4a3a8c" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#m1b)"/>
+          <text x="345" y="234" fill="#4a3a8c" font-size="10.5">足りない情報は</text>
+          <text x="345" y="247" fill="#4a3a8c" font-size="10.5">具体的に戻す</text>
+          <line x1="510" y1="264" x2="606" y2="264" stroke="#4a3a8c" stroke-width="2.5" marker-end="url(#m1b)"/>
+          <text x="558" y="244" fill="#4a3a8c" font-size="10.5">分類・宛先・</text>
+          <text x="558" y="257" fill="#4a3a8c" font-size="10.5">出口条件を付ける</text>
+          <text x="475" y="306" fill="#15803d" font-size="11.5">→ 受け取った人がすぐ動ける。止まったときに気づける</text>
+        </g>
+      </svg>
+      <figcaption>3つの型。管理担当が加える価値は「調べ上げること」ではなく、<strong>次の人がすぐ動ける状態にして渡すこと</strong></figcaption>
+    </figure>
+
+    <div class="mind">
+      <span class="tag">この3回を通した定義</span>
+      管理担当の仕事は、<strong>問題を自分で解くことではない</strong>。<br>
+      解決に必要な<strong>人と情報を揃え、判断を前へ進めること</strong>。
+    </div>
+
+    <p>管理編の3回は、チケットを見る「距離」を順に広げていきます。</p>
+    <table>
+      <tr><th style="width:18%">回</th><th style="width:30%">見る範囲</th><th>身につけること</th></tr>
+      <tr><td><strong>第1回（今日）</strong></td><td>届いた<strong>1件</strong></td><td>読んで、分類し、次の一手を決める</td></tr>
+      <tr><td>第2回</td><td>1件の<strong>起票からクローズまで</strong></td><td>コメントでやり取りし、関係者と合意して、解決まで運ぶ</td></tr>
+      <tr><td>第3回</td><td>チケット<strong>全体</strong></td><td>滞留と傾向を読み、報告し、改善につなげる</td></tr>
+    </table>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>2. 欠陥マネジメントの地図 — 不正・ワークフロー・ボールの持ち主 <span class="time">18分</span></h2>
+
+    <h3>「バグの報告」ではなく「不正の報告」として受け取る</h3>
+    <p>
+      テスターが「期待した結果と、実際の結果が違う」と気づいたとき、その食い違いを<strong>不正（anomaly）</strong>と呼びます。
+      大事なのは、<em>不正を見つけた時点では、それが製品の欠陥によるものかどうかはまだ分からない</em>ということです。
+      JSTQBのシラバスも、この初期段階では原因が欠陥なのか別の何かなのか分からない、という点を強調しています。
+    </p>
+    <table>
+      <tr><th style="width:24%">不正の正体</th><th style="width:44%">経費精算システムでの例</th><th>直すもの／動く人</th></tr>
+      <tr><td><strong>製品の欠陥</strong></td><td>5万円ちょうどの申請が部長承認に回ってしまう</td><td>コード・設定／開発</td></tr>
+      <tr><td><strong>テスト側の誤り</strong></td><td>テストケースの期待結果が旧仕様のまま。部長権限のつもりで課長アカウントを使っていた</td><td>テストケース・テストデータ／テストチーム</td></tr>
+      <tr><td><strong>仕様の未定義・解釈違い</strong></td><td>差し戻し後の再申請は、承認をどこからやり直すのか書かれていない</td><td>仕様書（決めて、書く）／仕様担当・PO</td></tr>
+      <tr><td><strong>環境・連携先の問題</strong></td><td>会計システムのモックが落ちていて、取り込みがタイムアウトする</td><td>テスト環境／環境担当</td></tr>
+      <tr><td><strong>重複</strong></td><td>同じ事象が、別のテスターからすでに起票されている</td><td>元のチケットに集約／管理担当</td></tr>
+      <tr><td><strong>要望・変更要求</strong></td><td>仕様どおりだが「一覧は50件表示のほうが使いやすい」</td><td>要望リスト・バックログ／PO</td></tr>
+    </table>
+    <p>
+      テスターが「バグ」と書いてきたから欠陥、ではありません。<strong>分類が決まるまでは、どれも「不正」</strong>です。
+      管理担当の最初の仕事は、この表の<em>どの行に当たりそうかを見立てて、その行の右端にいる人へつなぐこと</em>です。
+    </p>
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      「調べたら欠陥ではなかった」は失敗ではない。<strong>正体が早く分かったなら、それは成功</strong>。
+      失敗なのは、正体が分からないまま何日も置かれること。
+    </div>
+
+    <h3>欠陥ワークフロー — 状態は「今だれの番か」を表す</h3>
+    <p>
+      チケット（JSTQBの用語では<strong>欠陥レポート</strong>）は、起票からクローズまで、決まった<strong>状態</strong>を順に通ります。
+      この道筋を<strong>欠陥ワークフロー</strong>と呼びます。
+    </p>
+    <figure>
+      <svg viewBox="0 0 820 296" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="欠陥ワークフロー。オープンから進行中、解決、クローズへ進む。オープンや進行中から却下に進み、却下を受け入れたらクローズする。拡張として、情報待ちの明確化、確認テストNGでの再オープン、トリアージで決める見送りがある">
+        <defs>
+          <marker id="m2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4a3a8c"/></marker>
+          <marker id="m2b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+          <marker id="m2c" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#6b7280"/></marker>
+        </defs>
+        <g font-family="sans-serif" font-size="13" text-anchor="middle">
+          <!-- 再オープン -->
+          <path d="M515,70 C515,26 310,26 310,66" fill="none" stroke="#6b7280" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#m2b)"/>
+          <text x="412" y="28" fill="#4b5563" font-size="11.5">再オープン（確認テストでNG）</text>
+
+          <!-- メイン行 -->
+          <rect x="30" y="70" width="150" height="58" rx="9" fill="#efedf8" stroke="#4a3a8c" stroke-width="1.6"/>
+          <text x="105" y="94" fill="#4a3a8c" font-weight="bold" font-size="14">オープン</text>
+          <text x="105" y="114" fill="#374151" font-size="11">ボール: 管理担当</text>
+          <rect x="235" y="70" width="150" height="58" rx="9" fill="#efedf8" stroke="#4a3a8c" stroke-width="1.6"/>
+          <text x="310" y="94" fill="#4a3a8c" font-weight="bold" font-size="14">進行中</text>
+          <text x="310" y="114" fill="#374151" font-size="11">ボール: 開発など</text>
+          <rect x="440" y="70" width="150" height="58" rx="9" fill="#efedf8" stroke="#4a3a8c" stroke-width="1.6"/>
+          <text x="515" y="94" fill="#4a3a8c" font-weight="bold" font-size="14">解決</text>
+          <text x="515" y="114" fill="#374151" font-size="11">ボール: テスター</text>
+          <rect x="645" y="70" width="150" height="58" rx="9" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.6"/>
+          <text x="720" y="94" fill="#374151" font-weight="bold" font-size="14">クローズ</text>
+          <text x="720" y="114" fill="#6b7280" font-size="11">終端（理由を残す）</text>
+          <line x1="180" y1="99" x2="231" y2="99" stroke="#4a3a8c" stroke-width="2" marker-end="url(#m2a)"/>
+          <line x1="385" y1="99" x2="436" y2="99" stroke="#4a3a8c" stroke-width="2" marker-end="url(#m2a)"/>
+          <line x1="590" y1="99" x2="641" y2="99" stroke="#4a3a8c" stroke-width="2" marker-end="url(#m2a)"/>
+
+          <!-- 2段目 -->
+          <rect x="30" y="196" width="150" height="52" rx="9" fill="#fff" stroke="#6b7280" stroke-width="1.4" stroke-dasharray="5 4"/>
+          <text x="105" y="218" fill="#374151" font-weight="bold">明確化（情報待ち）</text>
+          <text x="105" y="236" fill="#374151" font-size="11">ボール: 質問された人</text>
+          <rect x="235" y="196" width="150" height="52" rx="9" fill="#f3f4f6" stroke="#4a3a8c" stroke-width="1.6"/>
+          <text x="310" y="218" fill="#4a3a8c" font-weight="bold" font-size="14">却下</text>
+          <text x="310" y="236" fill="#374151" font-size="11">起票側が確認して閉じる</text>
+          <rect x="440" y="196" width="150" height="52" rx="9" fill="#fff" stroke="#6b7280" stroke-width="1.4" stroke-dasharray="5 4"/>
+          <text x="515" y="218" fill="#374151" font-weight="bold">見送り</text>
+          <text x="515" y="236" fill="#374151" font-size="11">トリアージで決める</text>
+
+          <line x1="105" y1="134" x2="105" y2="190" stroke="#6b7280" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#m2b)" marker-start="url(#m2c)"/>
+          <line x1="150" y1="128" x2="258" y2="193" stroke="#4a3a8c" stroke-width="1.6" marker-end="url(#m2a)"/>
+          <line x1="310" y1="128" x2="310" y2="192" stroke="#4a3a8c" stroke-width="1.6" marker-end="url(#m2a)"/>
+          <line x1="362" y1="128" x2="470" y2="193" stroke="#6b7280" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#m2b)"/>
+          <path d="M310,248 L310,274 L720,274 L720,132" fill="none" stroke="#4a3a8c" stroke-width="1.6" marker-end="url(#m2a)"/>
+          <text x="560" y="290" fill="#4a3a8c" font-size="11.5">却下の理由を受け入れたらクローズ</text>
+        </g>
+      </svg>
+      <figcaption>
+        実線: JSTQB Advanced Level テストマネジメントの「単純な欠陥ワークフロー」（オープン／進行中／却下／解決／クローズ）を本講座用に描き直したもの。<br>
+        破線: 現場でよく足される状態の例（シラバスは再オープン・受け入れ・明確化・見送りを拡張例として挙げている）
+      </figcaption>
+    </figure>
+
+    <table>
+      <tr><th style="width:17%">状態</th><th style="width:33%">意味</th><th style="width:22%">ボールを持つ人</th><th>次へ進む条件</th></tr>
+      <tr><td><strong>オープン</strong><br><span style="font-size:.85em;color:var(--muted);">新規</span></td><td>起票された。まだ誰も判断していない</td><td>管理担当</td><td>一次判断を終え、次の持ち主を決めた</td></tr>
+      <tr><td><strong>明確化</strong><br><span style="font-size:.85em;color:var(--muted);">情報待ち</span></td><td>判断に必要な情報・回答を待っている</td><td>質問された人（テスター、仕様担当など）</td><td>回答がチケットに書かれた</td></tr>
+      <tr><td><strong>進行中</strong></td><td>分析や修正に取り組んでいる</td><td>開発など</td><td>修正した、または修正しない理由を示した</td></tr>
+      <tr><td><strong>却下</strong></td><td>欠陥としては扱わない、と判断された（仕様どおり、テストの誤り、重複、再現できない、など）</td><td>起票側（理由に納得できるか確かめる）</td><td>理由を受け入れた → クローズ。受け入れられない → 根拠を添えて戻す</td></tr>
+      <tr><td><strong>解決</strong><br><span style="font-size:.85em;color:var(--muted);">修正済み・再テスト待ち</span></td><td>修正が入った。直ったかどうかはまだ確かめていない</td><td>テスター</td><td>確認テストOK → クローズ。NG → 再オープン</td></tr>
+      <tr><td><strong>見送り</strong></td><td>今回は直さない、と決めた</td><td>決めた場（トリアージ）と、既知の問題を管理する人</td><td>再検討の時期が来た</td></tr>
+      <tr><td><strong>クローズ</strong></td><td>終端。これ以上の作業はしない</td><td>—</td><td>終結の理由を残す</td></tr>
+    </table>
+
+    <p>シラバスは、ワークフローを設計するときのよい実践例をいくつか挙げています。管理担当として覚えておきたいのは次の3つです。</p>
+    <ul>
+      <li>ほとんどの状態で、<strong>1人がチケットを所有し</strong>、その状態でのタスク（分析、修正、確認テストなど）を担当する</li>
+      <li><strong>連続する状態は、異なる役割に割り当てる</strong>のが基本（同じ人が持ち続けるなら、理由が要る）</li>
+      <li>終端を除くどの状態でも、<strong>次のステップに責任を持つ役割が分かる</strong>ようになっている</li>
+    </ul>
+    <p>
+      つまり状態とは、作業の進み具合である前に、<strong>「今だれがボールを持っているか」の表示</strong>です。
+      状態が変わるたびに、ボールは別の人へ渡ります。
+    </p>
+    <div class="warn">
+      <span class="tag">現場の鉄則</span>
+      チケットを開いて<strong>「今これは誰の番？」に3秒で答えられなければ、そのチケットは止まっている</strong>。<br>
+      よくあるのは、状態は「進行中」のままなのに、実際には開発がテスターの返事を待っているケース。
+      画面上のボールと実際のボールがずれている。<em>このずれを直して一致させるのが、管理担当の仕事。</em>
+    </div>
+
+    <details>
+      <summary>自分のチームのツールに読み替える（Azure Boards の例・自習用）</summary>
+      <p style="margin:6px 0;">
+        状態の名前はツールや設定によって違います。大事なのは名前ではなく、<strong>それぞれの状態で誰がボールを持つか</strong>です。
+        参考として、Azure Boards の Bug（Agile プロセスの既定設定）と対応させるとこうなります。
+      </p>
+      <table>
+        <tr><th style="width:26%">本講座（JSTQB）</th><th style="width:30%">Azure Boards の例</th><th>補足</th></tr>
+        <tr><td>オープン</td><td>State: New</td><td>Assigned To が空のまま残っていないかを毎日見る</td></tr>
+        <tr><td>進行中</td><td>State: Active</td><td>Assigned To が「今の持ち主」</td></tr>
+        <tr><td>解決</td><td>State: Resolved（Reason: Fixed）</td><td>確認テストをする人に Assigned To を戻す運用が多い</td></tr>
+        <tr><td>却下</td><td>State: Resolved（Reason: As Designed／Cannot Reproduce／Duplicate など）</td><td>独立した状態ではなく、Resolved と Reason の組み合わせで表す。起票側が理由を確認してから Closed にする</td></tr>
+        <tr><td>見送り</td><td>State: Resolved（Reason: Deferred）など</td><td>バックログへ移す運用もある</td></tr>
+        <tr><td>クローズ</td><td>State: Closed</td><td>—</td></tr>
+        <tr><td>明確化</td><td>（既定では専用の状態なし）</td><td>Assigned To を質問相手に変え、タグやコメントで「情報待ち」と分かるようにすることが多い</td></tr>
+      </table>
+      <p style="margin:6px 0 0;font-size:.9rem;color:var(--muted);">
+        ※ プロセスの種類（Agile／Scrum／CMMI）やカスタマイズで、状態名や Reason の選択肢は変わります。Scrum プロセスの Bug は New → Approved → Committed → Done です。
+        必ず自分のプロジェクトの設定で確認してください。
+      </p>
+    </details>
+
+    <h3>チケットに載っていてほしい情報</h3>
+    <p>
+      シラバスは、ほとんどの環境で必須となる情報と、ツールが自動で持つことの多い情報を分けて挙げています。
+    </p>
+    <table>
+      <tr><th style="width:20%">区分</th><th style="width:34%">項目</th><th>管理担当が見るポイント</th></tr>
+      <tr>
+        <td rowspan="4"><strong>人が書く</strong><br><span style="font-size:.85em;color:var(--muted);">ほぼ必須</span></td>
+        <td>タイトルと、不正の簡単な概要</td><td>一読で「何をしたら・何がどうなった」が分かるか</td>
+      </tr>
+      <tr><td>再現手順を含む、詳細な説明</td><td>別の人が同じ結果にたどり着けるか（Step1 第1回で学んだ前提条件・期待結果と根拠・環境・証跡・頻度は、この中身）</td></tr>
+      <tr><td>重要度</td><td>影響の大きさと釣り合っているか。<strong>起票者が付けた値をそのまま信じない</strong></td></tr>
+      <tr><td>優先度</td><td>誰が決めた値か。決まっていなければ、決める場へ持っていく</td></tr>
+      <tr>
+        <td rowspan="5"><strong>ツールが持つ</strong></td>
+        <td>ID、作成日時、発見者・報告者</td><td>追加で聞きたいとき、誰に聞けばよいか</td>
+      </tr>
+      <tr><td>検出したプロジェクトと工程</td><td>—</td></tr>
+      <tr><td><strong>ステータス</strong></td><td>実際の状況と合っているか</td></tr>
+      <tr><td><strong>現在の所有者</strong></td><td>本当にその人がボールを持っているか。空欄になっていないか</td></tr>
+      <tr><td><strong>変更履歴</strong>、参照（テストケース、関連チケット）</td><td>最後に動いたのはいつか。何が分かって、何がまだ分かっていないか</td></tr>
+    </table>
+    <p>
+      内容がきちんと書けているのに動かないチケットは、たいてい<strong>ステータス・所有者・変更履歴</strong>のどれかが実態とずれています。
+      管理担当が毎回見るのはこの3つです。
+    </p>
+    <p style="font-size:.93rem;color:var(--muted);">
+      なお、チケットの情報は1件を直すためだけのものではありません。プロジェクト全体の状況を把握し、プロセスを改善するためのデータにもなります（管理編 第3回で扱います）。
+      一方でシラバスは、<em style="background:none;">項目を増やすほど起票に時間がかかり、入力する人を混乱させる</em>とも注意しています。項目は「使うもの」だけに絞ります。
+    </p>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>3. 5つの問いと一次判断フロー <span class="time">20分</span></h2>
+
+    <h3>チケットを開いたら、5つの問い</h3>
+    <p>
+      経験のある人は、チケットを開いた数十秒のあいだに、無意識にいくつもの判断をしています。
+      それを言葉にすると、次の5つになります。<strong>慣れるまでは、1件ごとに声に出して確かめてください。</strong>
+    </p>
+    <table>
+      <tr><th class="c" style="width:7%">問</th><th style="width:22%">問い</th><th style="width:36%">判断すること</th><th>答えが出ないとき</th></tr>
+      <tr>
+        <td class="c"><strong>1</strong></td><td><strong>何が起きている？</strong></td>
+        <td>事象を自分の言葉で一文にできるか。「何をしたら・何がどうなった・本来はこうなるはず」</td>
+        <td>一文にできないなら、まだ読み解けていない。情報不足の合図</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>2</strong></td><td><strong>情報は足りている？</strong></td>
+        <td>次の人が<em>読んですぐ動き出せるか</em>。再現手順、期待結果と根拠、環境、データ、証跡、頻度</td>
+        <td>足りない項目を<strong>具体的に指定して</strong>起票者へ戻す</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>3</strong></td><td><strong>何として扱う？</strong></td>
+        <td>欠陥候補／仕様の確認／テスト側の誤り／環境・データ／重複／要望</td>
+        <td>迷うこと自体が情報。<em>「誰の判断があれば分類が決まるか」</em>を考える</td>
+      </tr>
+      <tr>
+        <td class="c"><strong>4</strong></td><td><strong>次に誰が何をする？</strong></td>
+        <td>次の持ち主と、その人にしてほしいこと</td>
+        <td>「担当者を付ける」ではなく、<strong>次に判断・作業できる人を特定する</strong></td>
+      </tr>
+      <tr>
+        <td class="c"><strong>5</strong></td><td><strong>次の状態になる条件は？</strong></td>
+        <td>何が返ってきたら次へ進むのか。いつ様子を見に行くのか</td>
+        <td>これを決めずに渡すと、<em>止まっても気づけない</em></td>
+      </tr>
+    </table>
+
+    <h3>一次判断フロー</h3>
+    <p>5つの問いを、判断の順番に並べたものがこのフローです。</p>
+    <figure>
+      <svg viewBox="0 0 840 840" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="チケットの一次判断フロー。受け取ったら情報が揃っているかを見て、不足なら起票者へ戻す。同じ事象のチケットがあれば重複としてリンクする。次に分類し、テスト側の誤りの可能性は時間を区切ってQAで確認、仕様が不明なら仕様担当へ、環境起因なら環境担当へ渡す。製品の欠陥なら欠陥候補として重要度とテストへの影響を見直し、急ぎならすぐ連絡してトリアージへ、そうでなければ依頼コメントを付けて開発へ渡す。最後に出口条件と次の確認日を決める">
+        <defs>
+          <marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker>
+        </defs>
+        <g font-family="sans-serif" font-size="13" text-anchor="middle" fill="#1f2937">
+          <!-- start -->
+          <rect x="190" y="10" width="260" height="46" rx="23" fill="#4a3a8c"/>
+          <text x="320" y="30" fill="#fff" font-weight="bold">チケットを受け取る</text>
+          <text x="320" y="47" fill="#e0dcf5" font-size="11">この時点では、まだ「不正」</text>
+          <line x1="320" y1="56" x2="320" y2="68" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+
+          <!-- D1 -->
+          <text x="150" y="82" fill="#4a3a8c" font-weight="bold" font-size="12">問1・問2</text>
+          <polygon points="320,70 480,110 320,150 160,110" fill="#fff" stroke="#4a3a8c" stroke-width="1.8"/>
+          <text x="320" y="107">判断に必要な情報は</text>
+          <text x="320" y="124">揃っているか？</text>
+          <line x1="480" y1="110" x2="537" y2="110" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <text x="508" y="103" fill="#4b5563" font-size="11.5">No</text>
+          <rect x="540" y="84" width="280" height="52" rx="8" fill="#fff7ed" stroke="#b45309" stroke-width="1.5"/>
+          <text x="680" y="106" font-weight="bold" fill="#92400e">テスターへ戻す（明確化）</text>
+          <text x="680" y="124" font-size="11" fill="#374151">足りない項目を具体的に書いて依頼</text>
+          <path d="M680,84 L680,33 L453,33" fill="none" stroke="#4b5563" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#fa)"/>
+          <text x="572" y="26" fill="#6b7280" font-size="10.5">情報が来たら、もう一度ここから</text>
+          <line x1="320" y1="150" x2="320" y2="164" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <text x="338" y="162" fill="#4b5563" font-size="11.5">Yes</text>
+
+          <!-- D2 -->
+          <polygon points="320,166 480,206 320,246 160,206" fill="#fff" stroke="#4a3a8c" stroke-width="1.8"/>
+          <text x="320" y="203">同じ事象のチケットが</text>
+          <text x="320" y="220">既にあるか？</text>
+          <line x1="480" y1="206" x2="537" y2="206" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <text x="508" y="199" fill="#4b5563" font-size="11.5">Yes</text>
+          <rect x="540" y="180" width="280" height="52" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+          <text x="680" y="202" font-weight="bold" fill="#374151">重複としてリンクし、却下</text>
+          <text x="680" y="220" font-size="11" fill="#374151">新しい情報は元のチケットへ追記</text>
+          <line x1="320" y1="246" x2="320" y2="268" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <text x="337" y="262" fill="#4b5563" font-size="11.5">No</text>
+
+          <!-- 分類 -->
+          <rect x="120" y="270" width="400" height="40" rx="8" fill="#4a3a8c"/>
+          <text x="320" y="295" fill="#fff" font-weight="bold">問3　何として扱うか（分類する）</text>
+          <path d="M320,310 L320,322 M115,322 L723,322" fill="none" stroke="#4b5563" stroke-width="1.6"/>
+          <line x1="115" y1="322" x2="115" y2="334" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <line x1="320" y1="322" x2="320" y2="334" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <line x1="519" y1="322" x2="519" y2="334" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <line x1="723" y1="322" x2="723" y2="334" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+
+          <rect x="20" y="336" width="190" height="56" rx="8" fill="#fff" stroke="#4a3a8c" stroke-width="1.5"/>
+          <text x="115" y="359" font-weight="bold">テスト側の誤りかも</text>
+          <text x="115" y="378" font-size="11" fill="#4b5563">手順・期待結果・データ</text>
+          <rect x="222" y="336" width="190" height="56" rx="8" fill="#fff" stroke="#4a3a8c" stroke-width="1.5"/>
+          <text x="317" y="359" font-weight="bold">仕様が不明・未定義</text>
+          <text x="317" y="378" font-size="11" fill="#4b5563">書かれていない／解釈が割れる</text>
+          <rect x="424" y="336" width="190" height="56" rx="8" fill="#fff" stroke="#4a3a8c" stroke-width="1.5"/>
+          <text x="519" y="359" font-weight="bold">環境・データ起因かも</text>
+          <text x="519" y="378" font-size="11" fill="#4b5563">他の人・他の機能でも起きる</text>
+          <rect x="626" y="336" width="194" height="56" rx="8" fill="#fff" stroke="#4a3a8c" stroke-width="1.5"/>
+          <text x="723" y="359" font-weight="bold">製品の欠陥らしい</text>
+          <text x="723" y="378" font-size="11" fill="#4b5563">再現し、期待の根拠も明確</text>
+
+          <line x1="115" y1="392" x2="115" y2="412" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <line x1="320" y1="392" x2="320" y2="412" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <line x1="519" y1="392" x2="519" y2="412" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <line x1="723" y1="392" x2="723" y2="498" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+
+          <!-- 問4 -->
+          <text x="668" y="432" fill="#4a3a8c" font-weight="bold" font-size="12">問4</text>
+          <text x="668" y="448" fill="#4a3a8c" font-size="11">次に誰が</text>
+          <text x="668" y="463" fill="#4a3a8c" font-size="11">動くかを決める</text>
+
+          <rect x="20" y="414" width="190" height="56" rx="8" fill="#efedf8" stroke="#4a3a8c" stroke-width="1.5"/>
+          <text x="115" y="437" font-weight="bold" fill="#4a3a8c">QAで確認する</text>
+          <text x="115" y="456" font-size="11" fill="#374151">時間を区切る（例: 15分）</text>
+          <rect x="222" y="414" width="190" height="56" rx="8" fill="#fff7ed" stroke="#b45309" stroke-width="1.5"/>
+          <text x="317" y="437" font-weight="bold" fill="#92400e">仕様担当／POへ</text>
+          <text x="317" y="456" font-size="11" fill="#374151">判断を依頼する</text>
+          <rect x="424" y="414" width="190" height="56" rx="8" fill="#fff7ed" stroke="#b45309" stroke-width="1.5"/>
+          <text x="519" y="437" font-weight="bold" fill="#92400e">環境担当へ</text>
+          <text x="519" y="456" font-size="11" fill="#374151">調査を依頼する</text>
+
+          <path d="M115,470 L115,482 M320,470 L320,482 M519,470 L519,482 M115,482 L519,482" fill="none" stroke="#4b5563" stroke-width="1.6"/>
+          <line x1="320" y1="482" x2="320" y2="492" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+
+          <!-- D4 -->
+          <polygon points="320,494 490,530 320,566 150,530" fill="#fff" stroke="#4a3a8c" stroke-width="1.8"/>
+          <text x="320" y="535">確認の結果、製品の欠陥か？</text>
+          <line x1="490" y1="530" x2="527" y2="530" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <text x="508" y="523" fill="#4b5563" font-size="11.5">Yes</text>
+          <line x1="320" y1="566" x2="320" y2="588" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <text x="337" y="582" fill="#4b5563" font-size="11.5">No</text>
+
+          <rect x="60" y="590" width="340" height="56" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+          <text x="230" y="613" font-weight="bold" fill="#374151">理由を記録して却下 → クローズ</text>
+          <text x="230" y="632" font-size="11" fill="#374151">直すのはテストケース／仕様書／環境。要望は別管理へ</text>
+
+          <!-- 欠陥候補 -->
+          <rect x="530" y="500" width="290" height="60" rx="8" fill="#efedf8" stroke="#4a3a8c" stroke-width="2.2"/>
+          <text x="675" y="525" font-weight="bold" fill="#4a3a8c" font-size="14">欠陥候補として扱う</text>
+          <text x="675" y="545" font-size="11" fill="#374151">重要度を見直し、テストへの影響を書く</text>
+          <line x1="675" y1="560" x2="675" y2="576" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+
+          <!-- D5 -->
+          <polygon points="675,578 820,620 675,662 530,620" fill="#fff" stroke="#4a3a8c" stroke-width="1.8"/>
+          <text x="675" y="616" font-size="12">テストが止まる／お金・データ／</text>
+          <text x="675" y="633" font-size="12">リリース判断に関わるか？</text>
+          <path d="M530,620 L505,620 L505,688" fill="none" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <text x="517" y="612" fill="#4b5563" font-size="11.5">Yes</text>
+          <path d="M675,662 L675,676 L725,676 L725,688" fill="none" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <text x="660" y="678" fill="#4b5563" font-size="11.5">No</text>
+
+          <rect x="400" y="690" width="210" height="70" rx="8" fill="#fef2f2" stroke="#b91c1c" stroke-width="1.6"/>
+          <text x="505" y="712" font-weight="bold" fill="#b91c1c">すぐ口頭・チャットで知らせ</text>
+          <text x="505" y="730" font-weight="bold" fill="#b91c1c">トリアージに上げる</text>
+          <text x="505" y="749" font-size="11" fill="#374151">チケットに書いて待たない</text>
+          <rect x="630" y="690" width="190" height="70" rx="8" fill="#fff7ed" stroke="#b45309" stroke-width="1.5"/>
+          <text x="725" y="712" font-weight="bold" fill="#92400e">依頼コメントを付けて</text>
+          <text x="725" y="730" font-weight="bold" fill="#92400e">開発へ渡す</text>
+          <text x="725" y="749" font-size="11" fill="#374151">書き方は管理編 第2回</text>
+          <line x1="505" y1="760" x2="505" y2="782" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+          <line x1="725" y1="760" x2="725" y2="782" stroke="#4b5563" stroke-width="1.6" marker-end="url(#fa)"/>
+
+          <rect x="400" y="784" width="420" height="44" rx="8" fill="#4a3a8c"/>
+          <text x="610" y="811" fill="#fff" font-weight="bold">問5　出口条件と、次に確認する日を決める</text>
+
+          <!-- 凡例 -->
+          <g text-anchor="start" font-size="11.5" fill="#374151">
+            <rect x="24" y="700" width="18" height="14" rx="3" fill="#efedf8" stroke="#4a3a8c"/>
+            <text x="50" y="712">管理担当・テスト側が自分で動く</text>
+            <rect x="24" y="726" width="18" height="14" rx="3" fill="#fff7ed" stroke="#b45309"/>
+            <text x="50" y="738">相手にボールを渡す（誰に・何を、を書く）</text>
+            <rect x="24" y="752" width="18" height="14" rx="3" fill="#f3f4f6" stroke="#6b7280"/>
+            <text x="50" y="764">理由を残して閉じる</text>
+            <rect x="24" y="778" width="18" height="14" rx="3" fill="#fef2f2" stroke="#b91c1c"/>
+            <text x="50" y="790">急ぎ: チケットだけに頼らない</text>
+          </g>
+        </g>
+      </svg>
+      <figcaption>一次判断フロー（本講座の実務モデル）。5つの問いを、判断する順番に並べたもの</figcaption>
+    </figure>
+    <div class="warn">
+      <span class="tag">このフローに無い箱</span>
+      このフローには、<strong>「分からないので、自分で原因を調べる」という箱がありません</strong>。意図的に置いていません。<br>
+      分からないときの行き先は、いつも<em>「誰の判断・調査が必要かを特定して、その人へ渡す」</em>です。
+    </div>
+
+    <h3>問4の地図 — その問いに答えられるのは誰か</h3>
+    <table>
+      <tr><th style="width:32%">分からないこと</th><th style="width:26%">主に答えられる人</th><th>管理担当がやること</th></tr>
+      <tr><td>実際にやった操作、再現条件</td><td>起票したテスター</td><td>項目を指定して聞く</td></tr>
+      <tr><td>テスト手順や期待結果が正しいか</td><td>テスト設計者、テストチーム</td><td>仕様書の該当箇所と突き合わせる</td></tr>
+      <tr><td>なぜ起きるのか（原因）</td><td>開発</td><td>再現条件と観測した事実を揃えて渡す</td></tr>
+      <tr><td>仕様として正しいか、どうあるべきか</td><td>仕様担当、PO</td><td>論点を<strong>質問の形</strong>にして渡す</td></tr>
+      <tr><td>環境・データ・連携先の状態</td><td>環境担当、連携先</td><td>いつから・誰に起きているかを添える</td></tr>
+      <tr><td>今回のリリースで直すか、後回しにするか</td><td>トリアージ（PM・PO・開発・テスト）</td><td>判断材料を揃えて持ち込む（管理編 第2回）</td></tr>
+    </table>
+    <p>
+      「なぜ起きるのか」と「どうあるべきか」は、答えられる人が違います。
+      開発に「これはバグですか？」と聞くと、開発は<em>実装がどうなっているか</em>しか答えられません。
+      「どうあるべきか」が論点なら、宛先は仕様担当です。
+    </p>
+
+    <h3>「調べる」と「渡す」の線引き — 一次切り分けは時間を区切る</h3>
+    <p>
+      では、管理担当は何も調べないのか。そうではありません。調べることには2種類あり、片方はテスト側の大事な仕事です。
+    </p>
+    <table>
+      <tr><th style="width:50%">一次切り分け（テスト側でやる）</th><th>原因調査（開発に任せる）</th></tr>
+      <tr>
+        <td>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>自分の手でも再現するか</li>
+            <li>条件を変えると結果が変わるか（別ユーザー、別データ、別ブラウザ、境界の前後）</li>
+            <li>仕様書の該当箇所には何と書いてあるか</li>
+            <li>同じ事象のチケットがすでにないか</li>
+            <li>環境やデータに異常の知らせが出ていないか</li>
+            <li>発生した時刻（開発がログを追う手がかりになる）</li>
+          </ul>
+        </td>
+        <td>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>サーバーログを解析して原因を特定する</li>
+            <li>コードやSQLを読んで不備の箇所を探す</li>
+            <li>データベースの内部状態を追いかける</li>
+            <li>修正方法を検討する</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>目的: 何として扱うかを決め、次の人が動きやすくする</strong></td>
+        <td><strong>目的: 欠陥の場所と原因を突き止めて直す</strong></td>
+      </tr>
+    </table>
+    <div class="example">
+      <span class="tag">チームのルール（例）</span>
+      <strong>一次切り分けは15分まで。</strong>15分で分類が決まらなければ、そこまでに
+      <strong>①分かったこと ②試したこと ③分からないこと</strong>を書いて、次の人へ渡す。<br>
+      続きが気になるなら、<em>渡してから調べる</em>。先に渡せば、相手の時計も同時に進む。
+      <br><span style="font-size:.88rem;color:var(--muted);">※ 15分は例。5分でも30分でもよい。大事なのは「分かるまで」ではなく、時間で終わりを決めておくこと。</span>
+    </div>
+    <p>抱え込みがなぜまずいのか、理由は3つあります。</p>
+    <ul>
+      <li>自分が2時間かけて分からないことを、コードを知っている開発は10分で見抜くことが多い</li>
+      <li>その2時間、チケットは<strong>誰からも見えない</strong>。進んでいるのか止まっているのか、周りには分からない</li>
+      <li>重大な問題だった場合、関係者が知るのが2時間遅れる（Step1 第1回の「悪い報せほど、早く・正確に」）</li>
+    </ul>
+    <div class="mind">
+      <span class="tag">誤解しないでほしいこと</span>
+      切り分けそのものは価値が高い。「兼務しているユーザーでだけ起きる」まで絞れていれば、開発の調査は半分終わっている。<br>
+      まずいのは調べることではなく、<strong>黙って持ち続けること</strong>。
+    </div>
+
+    <h3>戻すときの型 — 「情報が足りません」では戻さない</h3>
+    <div class="bad-box">
+      <span class="tag">悪い例</span>
+      情報が不足しています。追記してください。
+    </div>
+    <div class="good-box">
+      <span class="tag">良い例</span>
+      次の3点を追記してください。<br>
+      ① どの申請で起きたか（申請番号、金額、申請者）<br>
+      ② 承認に使ったアカウントと権限<br>
+      ③ 発生した回数／試した回数<br>
+      開発が再現するために必要です。今日の15時までにもらえれば、本日中に開発へ渡せます。
+    </div>
+    <p>
+      型は3点です。<strong>何が足りないか（項目で）／なぜ必要か／いつまでに</strong>。
+      「不足しています」だけでは、書いた本人は何を足せばよいのか分かりません。分かっていたら、最初から書いています。
+    </p>
+    <p style="font-size:.93rem;color:var(--muted);">
+      席が近いなら、口頭やチャットで聞いたほうが早いことも多いです。そのときは<strong>聞いた結果をチケットに書き足す</strong>ところまでがセット。
+      チケットに残っていない情報は、次に読む人にとって存在しません。
+    </p>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>4. ワーク① 今朝届いた6件を一次判断する <span class="time">25分</span></h2>
+    <div class="work">
+      <span class="tag">ワーク（個人8分 → グループ10分 → 全体共有7分）</span>
+      <p style="margin:6px 0;">
+        あなたは経費精算システム刷新プロジェクトのシステムテストで、<strong>チケットの管理担当</strong>を任されています。
+        今朝、テスターから次の6件が上がってきました。すべて状態は「オープン」、所有者はあなたです。
+      </p>
+      <p style="margin:6px 0;">1件ごとに、<strong>5つの問い</strong>を使って次の4つを決めてください。</p>
+      <table style="background:#fff;margin:8px 0;">
+        <tr><th class="c" style="width:12%">チケット</th><th>① 足りない情報</th><th>② 何として扱うか</th><th>③ 次に誰が・何をする</th><th>④ 何が返れば次へ進むか</th></tr>
+        <tr><td class="c">#2101</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td class="c">…</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+      </table>
+      <ul style="margin:6px 0;">
+        <li>個人ワークは<strong>1件あたり1分強</strong>です。完璧に書かず、メモで構いません</li>
+        <li>グループでは、<strong>②と③が割れたチケット</strong>を中心に話します。全員一致したものは飛ばしてください</li>
+        <li>起票者が付けた<strong>重要度</strong>に違和感があれば、それも書き留めます</li>
+      </ul>
+    </div>
+
+    <div class="tickets">
+      <div class="sit-common">
+        <span class="tag">プロジェクトの前提（全チケット共通）</span>
+        経費精算システム刷新プロジェクトのシステムテスト。テスト環境は STG、今朝のビルドは 2026.10.05.2。<br>
+        関係者: テスター（佐藤・鈴木・田中）／開発リーダー 高橋、開発 伊藤／仕様担当 渡辺（経理部）／環境担当 中村／PM 山本
+      </div>
+
+      <div class="tk">
+        <div class="tk-head"><span class="tk-id">#2101</span><span class="tk-title">承認するとエラーになる</span></div>
+        <div class="tk-meta"><span>起票: 佐藤（テスター）</span><span>重要度: 高</span><span>状態: オープン</span></div>
+        <div class="tk-body">
+          <p>承認画面で承認ボタンを押したらエラーになりました。何回かやりましたがダメです。スクリーンショットを添付します。</p>
+          <p style="color:var(--muted);font-size:.9em;">添付: 画面全体のスクリーンショット1枚（「システムエラーが発生しました」のダイアログが写っている）</p>
+        </div>
+      </div>
+
+      <div class="tk">
+        <div class="tk-head"><span class="tk-id">#2102</span><span class="tk-title">一括承認で10件以上を選択すると、500エラーになる</span></div>
+        <div class="tk-meta"><span>起票: 鈴木（テスター）</span><span>重要度: 中</span><span>状態: オープン</span></div>
+        <div class="tk-body">
+          <p><strong>前提</strong>: 課長権限 kacho01 でログイン。承認待ちの申請が20件ある状態。STG／ビルド 2026.10.05.2</p>
+          <p><strong>手順</strong>:</p>
+          <ol><li>承認待ち一覧を開く</li><li>10件以上にチェックを入れる</li><li>「一括承認」を押す</li></ol>
+          <p><strong>実際の結果</strong>: 「500 Internal Server Error」の画面になる。一覧に戻ると、選択した申請はすべて承認待ちのまま</p>
+          <p><strong>期待結果</strong>: 選択した申請がすべて承認済みになる（仕様書§6.3 一括承認。件数の上限は記載なし）</p>
+          <p><strong>頻度</strong>: 10件・12件・20件で各1回、3回中3回。9件以下では成功する</p>
+          <p><strong>備考</strong>: 一括承認シナリオのテストケース38件が実行できません</p>
+        </div>
+      </div>
+
+      <div class="tk">
+        <div class="tk-head"><span class="tk-id">#2103</span><span class="tk-title">差し戻し後に再申請すると、承認が課長からやり直しになる</span></div>
+        <div class="tk-meta"><span>起票: 佐藤（テスター）</span><span>重要度: 中</span><span>状態: オープン</span></div>
+        <div class="tk-body">
+          <p><strong>前提</strong>: 申請者 user01、課長 kacho01、部長 bucho01。STG／ビルド 2026.10.05.2</p>
+          <p><strong>手順</strong>:</p>
+          <ol><li>user01 で 60,000円を申請する</li><li>kacho01 で承認する</li><li>bucho01 で差し戻す</li><li>user01 で摘要を修正して再申請する</li></ol>
+          <p><strong>実際の結果</strong>: ステータスが「課長承認待ち」になる</p>
+          <p><strong>期待結果</strong>: 「部長承認待ち」になるべきでは。課長はすでに承認しているため</p>
+          <p><strong>根拠</strong>: 仕様書に該当する記載は見つかりませんでした。前のシステムでは部長承認から再開していた、と経理の方から聞きました</p>
+          <p><strong>頻度</strong>: 2回中2回</p>
+        </div>
+      </div>
+
+      <div class="tk">
+        <div class="tk-head"><span class="tk-id">#2104</span><span class="tk-title">下書き保存した申請を開き直すと、まれに金額が0円になっている</span></div>
+        <div class="tk-meta"><span>起票: 鈴木（テスター）</span><span>重要度: 低</span><span>状態: オープン</span></div>
+        <div class="tk-body">
+          <p><strong>前提</strong>: 一般権限 user03。STG／ビルド 2026.10.05.2</p>
+          <p><strong>手順</strong>:</p>
+          <ol><li>経費申請画面で金額（例: 12,800円）と摘要を入力する</li><li>「下書き保存」を押す</li><li>申請一覧から、その下書きを開き直す</li></ol>
+          <p><strong>実際の結果</strong>: 金額欄が 0 になっていることがある</p>
+          <p><strong>期待結果</strong>: 保存した金額が表示される</p>
+          <p><strong>頻度</strong>: 10回中2回。発生する条件は分かりません。保存直後の一覧では正しく表示されていた気がします</p>
+          <p><strong>備考</strong>: 再現率が低いので、重要度は低にしました</p>
+        </div>
+      </div>
+
+      <div class="tk">
+        <div class="tk-head"><span class="tk-id">#2105</span><span class="tk-title">一括登録（CSV取込）で、金額100円の行がエラーになる</span></div>
+        <div class="tk-meta"><span>起票: 佐藤（テスター）</span><span>重要度: 中</span><span>状態: オープン</span></div>
+        <div class="tk-body">
+          <p><strong>前提</strong>: 一般権限 user01。STG／ビルド 2026.10.05.2</p>
+          <p><strong>手順</strong>:</p>
+          <ol><li>金額が 99円・100円・101円 の3行を含むCSVを用意する</li><li>「一括登録」から取り込む</li></ol>
+          <p><strong>実際の結果</strong>: 100円の行と101円の行が「金額は100円未満で入力してください」でエラーになる。99円の行は登録される</p>
+          <p><strong>期待結果</strong>: 100円の行は登録される（仕様書§3.2「申請金額は100円以下の場合、登録可能」）。101円の行はエラーで正しい</p>
+          <p><strong>頻度</strong>: 2回中2回</p>
+          <p style="color:var(--muted);font-size:.9em;">※ 既存チケット <strong>#1987</strong>「経費申請画面で金額に100円を入力すると、エラーとなり登録できない」（状態: 進行中、所有者: 開発 伊藤）</p>
+        </div>
+      </div>
+
+      <div class="tk">
+        <div class="tk-head"><span class="tk-id">#2106</span><span class="tk-title">申請一覧の初期表示が20件しかない</span></div>
+        <div class="tk-meta"><span>起票: 田中（テスター・配属1か月）</span><span>重要度: 中</span><span>状態: オープン</span></div>
+        <div class="tk-body">
+          <p>申請一覧を開くと、最初に20件しか表示されません。営業の人は月に50件以上申請すると聞いたので、毎回ページを送るのは使いにくいと思います。50件表示にすべきです。</p>
+          <p><strong>環境</strong>: STG／ビルド 2026.10.05.2／一般権限 user05</p>
+          <p style="color:var(--muted);font-size:.9em;">※ 仕様書§5.1「申請一覧は1ページあたり20件を表示し、ページ送りで続きを表示する」</p>
+        </div>
+      </div>
+    </div>
+
+    <details>
+      <summary>時間が余ったグループ向けの追加チケット</summary>
+      <div class="tk">
+        <div class="tk-head"><span class="tk-id">#2107</span><span class="tk-title">会計連携の取り込みがタイムアウトする</span></div>
+        <div class="tk-meta"><span>起票: 鈴木（テスター）</span><span>重要度: 高</span><span>状態: オープン</span></div>
+        <div class="tk-body">
+          <p><strong>前提</strong>: 経理権限 keiri01。STG／ビルド 2026.10.05.2</p>
+          <p><strong>手順</strong>:</p>
+          <ol><li>連携管理画面で「会計システムへ送信」を押す</li></ol>
+          <p><strong>実際の結果</strong>: 60秒後に「連携先からの応答がありません」と表示される</p>
+          <p><strong>期待結果</strong>: 送信が完了し、連携結果が「成功」になる</p>
+          <p><strong>頻度</strong>: 昨日16時以降、3回中3回。昨日の午前中は成功していた</p>
+          <p style="color:var(--muted);font-size:.9em;">※ 昨日17時、環境担当の中村さんがチームのチャットに「午後から連携先モックの応答が不安定です。調査中」と投稿している</p>
+        </div>
+      </div>
+      <p style="margin:6px 0 0;">問い: これは製品の欠陥として開発へ渡しますか？ 却下しますか？ それとも別の扱いですか？</p>
+    </details>
+
+    <details>
+      <summary>講師用: 解答例と見るべきポイント</summary>
+      <p style="font-size:.9rem;">唯一の正解ではなく、<strong>この情報ならふつうはこう動く</strong>という一例です。根拠が語れていれば、別の判断でも構いません。</p>
+      <table>
+        <tr><th class="c" style="width:9%">#</th><th style="width:18%">何として扱うか</th><th style="width:34%">次に誰が・何をする</th><th>ポイント</th></tr>
+        <tr>
+          <td class="c"><strong>2101</strong></td>
+          <td>判断できない（情報不足）</td>
+          <td><strong>佐藤さんへ戻す（明確化）</strong>。どの申請か（申請番号・金額・申請者）、承認者のアカウントと権限、試した回数と発生した回数、ビルド、エラーの出た時刻を指定して聞く。<br>出口条件: 上記が追記される（今日15時まで）</td>
+          <td>このまま開発へ渡すのが<strong>横流し</strong>。開発から同じ質問が返ってきて1往復を失う。<br>重要度「高」も現時点では判断できない（全員が承認できないのか、特定条件だけなのかで変わる）。<br>席が近ければ口頭で5分聞き、結果を追記してもらうのが最短</td>
+        </tr>
+        <tr>
+          <td class="c"><strong>2102</strong></td>
+          <td>欠陥候補（急ぎ）</td>
+          <td><strong>開発（高橋さん）へ</strong>。チケットに依頼を書いたうえで、<strong>直接ひと声かける</strong>。伝えるのは「テスト38件が止まっている」こと。<br>出口条件: 原因の見立てと、修正ビルドの見込み（今日中に見込みだけでも）</td>
+          <td>情報は揃っている。追加で聞くことはない。<strong>揃っているチケットを手元で寝かせない</strong>。<br>重要度: 9件ずつなら承認できるので「中」のままでも成り立つが、月末に数十件を承認する承認者の主要動線と見れば高寄り。意見が割れてよい。<br><strong>優先度は明確に高い</strong>。理由は業務影響ではなく「テストが止まること」（Step1 第1回の「軽微だが急いで修正」の象限と同じ構造）。<br>止まった38件をどうするか（テスト順の入れ替え）はStep1 第3回のテストコントロールの話</td>
+        </tr>
+        <tr>
+          <td class="c"><strong>2103</strong></td>
+          <td>仕様の確認</td>
+          <td><strong>仕様担当（渡辺さん）へ判断を依頼</strong>。「差し戻し後の再申請では、承認をどの段階から再開するのが正しいか。現在の動作は課長から」と質問の形にする。<br>出口条件: 仕様の決定。課長からが正 → 却下して仕様書に追記を依頼。部長からが正 → 欠陥として開発へ</td>
+          <td>情報は足りているが、<strong>期待結果の根拠が仕様書にない</strong>。これを開発へ「バグです」と渡すと、開発は「仕様どおり」と返すか、開発の判断で直してしまう。どちらも危ない。<br>「経理の方から聞いた」は伝聞（Step1 第1回）。誰に聞いたのかを佐藤さんに確認し、仕様担当への質問に添える。<br>差し戻しで金額が変わるなら課長の再承認が必要、という考え方もあり得る。<em>だからこそ仕様担当が決める話</em></td>
+        </tr>
+        <tr>
+          <td class="c"><strong>2104</strong></td>
+          <td>欠陥候補（重要度を見直す）</td>
+          <td>①<strong>15分だけ一次切り分け</strong>: 発生した2回の共通点（入力した値、操作の間隔、ブラウザ、添付の有無）を鈴木さんに聞く。「一覧では正しかった気がする」を事実にする。<br>②分かったこと・試したこと・分からないことを書いて<strong>開発へ渡す</strong>。発生時刻を添える。<br>出口条件: 開発から原因の仮説、または「追加でこれを採ってほしい」という依頼</td>
+          <td><strong>抱え込みの誘惑が最も強いチケット</strong>。再現率100%になるまで調べたくなるが、そこまで持ち続けない。<br>重要度は<strong>低ではなく高</strong>。保存した金額が失われるのはデータの不整合で、お金に直結する。<em>再現率は重要度を下げる理由にならない</em>（頻度は別の情報として書く）。<br>重要度を変えたら、理由をコメントに残す。鈴木さんへのフィードバックにもなる</td>
+        </tr>
+        <tr>
+          <td class="c"><strong>2105</strong></td>
+          <td>欠陥候補（#1987と関連）</td>
+          <td><strong>#1987 に関連付け</strong>、#1987 に「CSV取込でも同じメッセージで発生する（#2105）」と追記する。<strong>開発（伊藤さん）へ</strong>「同じ原因か」の確認を依頼。<br>出口条件: 同じ原因 → #2105 は重複として却下し、#1987 の確認テスト範囲にCSV取込を加える。別の原因 → 別チケットとして継続</td>
+          <td>「100円のチケットは既にあるから重複」で即クローズしない。<strong>入口が違う</strong>（画面入力とCSV取込）という新しい情報がある。これを捨てると、画面だけ直ってCSV取込が残る。<br><strong>同じ事象か</strong>はテスト側で判断できる。<strong>同じ原因か</strong>は開発にしか分からない。推測で決めない。<br>もう一つ: 101円の行のメッセージが「100円未満で入力」なのは文言として正しいか。気づいた受講者がいたら拾う（別の事象。別チケットの候補）</td>
+        </tr>
+        <tr>
+          <td class="c"><strong>2106</strong></td>
+          <td>欠陥ではない（仕様どおり）＋要望</td>
+          <td><strong>却下（理由: 仕様どおり）</strong>。ただし指摘の中身は<strong>要望として別管理</strong>（要望リスト、バックログ）に登録し、仕様担当へ知らせる。<br>田中さんへ: 「仕様書§5.1どおりなので欠陥としては閉じます。使い勝手の指摘は要望として登録しました」<br>出口条件: 田中さんが理由を確認してクローズ</td>
+          <td>仕様書と一致しているので欠陥ではない。開発へは渡さない。<br>ただし<strong>却下＝捨てる、ではない</strong>。業務の目で見た違和感は価値がある（Step1 第1回の原則7「欠陥ゼロの落とし穴」）。<br>配属1か月のメンバーの起票を、理由なしで閉じない。<em>閉じ方ひとつで、次から書いてくれるかどうかが決まる</em>。<br>却下の理由を必ず残す。理由別の件数は管理編 第3回で改善の材料になる</td>
+        </tr>
+        <tr>
+          <td class="c"><strong>2107</strong><br><span style="font-size:.8em;">追加</span></td>
+          <td>環境起因の可能性（未確定）</td>
+          <td><strong>環境担当（中村さん）へ</strong>。モックの不安定と同じ事象かの確認を依頼。チケットは却下せず、明確化のまま持つ。同じ環境を使う他のテスターへ周知する。<br>出口条件: 環境の復旧連絡 → 再実行して、成功すれば環境起因としてクローズ。失敗すれば欠陥候補として開発へ</td>
+          <td>環境の知らせと時刻が重なっているので、まず環境を疑う。ただし<strong>「たぶん環境のせい」で閉じない</strong>（Step1 第1回のワーク①で、違和感を流して本番障害になった例）。<br>製品側のタイムアウト処理に問題がある可能性も残る。<em>確定するまで開いたままにする</em></td>
+        </tr>
+      </table>
+
+      <p style="margin:14px 0 4px;"><strong>全体共有で必ず触れること</strong></p>
+      <ul>
+        <li><strong>6件のうち、そのまま開発へ渡してよいのは1件だけ</strong>（#2102）。残りは、戻す・仕様担当へ・切り分けてから・関連付けて確認・却下、と行き先が全部違う。「来たら開発へ」では6件中5件を誤ることを数で見せる</li>
+        <li>#2101 と #2104 の対比。<strong>情報が足りないなら戻す</strong>（#2101）。<strong>足りないが、これ以上は起票者にも分からないなら、分からないと書いて渡す</strong>（#2104）。どちらも「自分で埋める」ではない</li>
+        <li>#2103 と #2106 の対比。<strong>仕様書に書いていない</strong>（#2103 → 決めてもらう）と、<strong>仕様書に書いてあるとおり</strong>（#2106 → 却下）は別物</li>
+        <li>重要度を見直した受講者がいたら必ず拾う。#2104 を「低」のまま流すのが最も危ない</li>
+      </ul>
+
+      <p style="margin:14px 0 4px;"><strong>進め方のヒント</strong></p>
+      <ul>
+        <li>個人ワークで手が止まる人には、5つの問いの表を指して「問1。このチケット、一文で言うと？」とだけ聞く。#2101 は一文にできないことに気づけば、あとは自分で進む</li>
+        <li>「全部開発に聞けばいいのでは」という声が出たら歓迎する。「では、開発は #2103 に何と答えると思う？」と返すと、仕様担当の存在に行き着く</li>
+        <li>「#2104 は原因が分かるまで自分で調べたい」という声が出たら、ここが今日の山場。否定せず、「調べている2時間、開発はこの問題を知っていますか？」と聞く</li>
+        <li>時間が押したら、全体共有は #2103・#2104・#2105 の3件に絞る</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>5. 講評 — 一次判断でよくある失敗 <span class="time">12分</span></h2>
+
+    <h3>7つの「やりがち」</h3>
+    <table>
+      <tr><th style="width:30%">やりがち</th><th style="width:34%">何が起きるか</th><th>こうする</th></tr>
+      <tr>
+        <td>そのまま転送して「確認お願いします」</td>
+        <td>何を確認すればよいのか、相手が読み解く。足りなければ差し戻し</td>
+        <td>5つの問いを通してから渡す。依頼の中身を書く（管理編 第2回）</td>
+      </tr>
+      <tr>
+        <td>開発に「これはバグですか？」と聞く</td>
+        <td>分類を丸投げしている。開発が答えられるのは「実装がどうなっているか」だけ</td>
+        <td>論点が「どうあるべきか」なら、宛先は仕様担当</td>
+      </tr>
+      <tr>
+        <td>再現率が低いから、重要度を下げる</td>
+        <td>重大な欠陥が低優先のまま埋もれる</td>
+        <td>重要度は影響の大きさで決める。頻度は別の情報として書く</td>
+      </tr>
+      <tr>
+        <td>重複だからと、すぐ閉じる</td>
+        <td>別の入口・別の条件という新しい情報が消える</td>
+        <td>元のチケットに追記してから閉じる。同じ原因かは開発に確かめる</td>
+      </tr>
+      <tr>
+        <td>「仕様どおり」で却下して終わり</td>
+        <td>使い勝手の指摘が消える。起票者が次から書かなくなる</td>
+        <td>理由を書いて閉じる。要望は別の場所に残す</td>
+      </tr>
+      <tr>
+        <td>急ぎのものも、チケットに書いて待つ</td>
+        <td>相手がチケットを開くまで、誰も知らない</td>
+        <td>テストが止まる・お金やデータに関わるものは、まず直接知らせる</td>
+      </tr>
+      <tr>
+        <td>全部そろうまで渡さない</td>
+        <td>抱え込みの変種。完璧を待つあいだ、チケットは止まっている</td>
+        <td>分からないことは「分からない」と書いて渡す</td>
+      </tr>
+    </table>
+
+    <h3>起票者が付けた重要度を、そのまま信じない</h3>
+    <p>
+      重要度は、起票したテスターが最初に付けます。しかしテスターは目の前の1件しか見ていません。
+      <strong>チケット全体を見渡して、重要度の基準を揃えるのは管理担当の仕事</strong>です。
+    </p>
+    <table>
+      <tr><th class="c" style="width:12%">チケット</th><th style="width:20%">起票者の重要度</th><th>見直しの考え方</th></tr>
+      <tr>
+        <td class="c">#2104</td><td>低（再現率が低いため）</td>
+        <td><strong>高へ</strong>。保存した金額が失われるのは、データの不整合。再現率は理由にならない</td>
+      </tr>
+      <tr>
+        <td class="c">#2102</td><td>中</td>
+        <td>重要度は中〜高で議論の余地あり（9件ずつなら承認できる）。<strong>優先度は高</strong>。テスト38件が止まっているため。<em>重要度と優先度を分けて語る</em>と、理由がはっきり伝わる</td>
+      </tr>
+      <tr>
+        <td class="c">#2101</td><td>高</td>
+        <td>まだ判断できない。情報が揃ってから決める。「判断できない」と書いておくのも立派な判断</td>
+      </tr>
+    </table>
+    <p>
+      重要度を変えたら、<strong>必ず理由をコメントに残します</strong>。黙って書き換えると、起票者は次も同じ付け方をします。
+      理由が残っていれば、それがそのままフィードバックになります。
+    </p>
+
+    <div class="mind">
+      <span class="tag">マインドセット</span>
+      一次判断の質は、<strong>そのチケットがクローズまでに何往復したか</strong>に表れる。<br>
+      最初の5分を惜しんで流したチケットは、あとで半日単位の往復になって返ってくる。
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <section>
+    <h2>まとめ <span class="time">5分</span></h2>
+    <h3>今日の持ち帰り</h3>
+    <ul>
+      <li>管理担当の仕事は、問題を自分で解くことではなく、<strong>解決に必要な人と情報を揃えて、判断を前へ進めること</strong>。横流しも抱え込みも、「次の一手は何か」という問いが抜けている</li>
+      <li>テスターから上がってくるのは<strong>不正</strong>。製品の欠陥とは限らない。正体を見立てて、答えられる人へつなぐ</li>
+      <li>状態は<strong>「今だれの番か」</strong>の表示。画面上のボールと実際のボールを一致させる</li>
+      <li>チケットを開いたら<strong>5つの問い</strong>: 何が起きている／情報は足りている／何として扱う／次に誰が何をする／次の状態になる条件は</li>
+      <li>一次切り分けは<strong>時間を区切る</strong>。分からないことは「分からない」と書いて渡す。続きは渡してから</li>
+      <li>起票者の重要度を見直し、変えたら理由を残す</li>
+    </ul>
+    <p>
+      次回は、渡したあとの話です。開発から「再現しません」「仕様です」と返ってきたらどうするか。
+      チケットが3日止まっていたらどうするか。1件の<strong>起票からクローズまで</strong>を追いかけます。
+    </p>
+    <div class="example">
+      <span class="tag">次回までにやってみること（任意）</span>
+      今日から次回までに自分が受け取ったチケットのうち3件について、5つの問いの答えをメモしてみてください。
+      どの問いで手が止まるかが、自分の伸びしろです。
+    </div>
+    <p class="jstqb">
+      <strong>主なシラバス対応: JSTQB Advanced Level シラバス テストマネジメント Version 3.0.J02（ISTQB CTAL-TM v3.0 の日本語翻訳版）</strong><br>
+      2.3 欠陥マネジメント（イントロダクション: 不正）／2.3.1 欠陥のライフサイクル／2.3.5 欠陥レポート情報<br>
+      あわせて JSTQB Foundation Level シラバス V4.0 — 5.5 欠陥マネジメント<br>
+      <em style="background:none;">実務拡張</em>: 「管理担当」という呼び名、5つの問い、一次判断フロー、一次切り分けの時間制限、戻すときの型は、本講座の実務補足です（シラバスが定めるのは、ワークフローの状態・所有者・レポート情報などの枠組みまで）。Azure Boards との対応は参考例です。<br>
+      シラバスの出典および著作権: International Software Testing Qualifications Board（ISTQB®）／日本語翻訳版 Japan Software Testing Qualifications Board（JSTQB®）
+    </p>
+  </section>
+
+  <footer class="pager">
+    <a href="index.html">← Step1.5 目次</a>
+    <a href="phaseM2.html">管理編 第2回 チケットを運ぶ →</a>
+  </footer>
+</div>
+</body>
+</html>
